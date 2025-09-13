@@ -10,13 +10,16 @@ use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class CpuController extends Controller
 {
     public function getCpuSpecs()
     {
         return [
-            'brands' => ['Intel', 'AMD', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'socket_types' => ['LGA 1700', 'AM4', 'AM5', ],
             'integrated_displays' => ['Yes', 'No', ],
             'generations' => ['12th Gen', 'Ryzen 5000 Series', '13th Gen', 'Ryzen 7000 Series', ],

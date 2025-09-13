@@ -80,6 +80,9 @@ Route::prefix('staff')->name('staff.')->group(function () {
     Route::get('supplier', [SupplierController::class, 'index'])->name('supplier');
     Route::post('supplier/store', [SupplierController::class, 'storeSupplier'])->name('supplier.store');
     Route::post('supplier/store/brand', [SupplierController::class, 'storeBrand'])->name('supplier.store.brand');
+    Route::put('supplier/update/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+    Route::delete('supplier/delete/{id}', [SupplierController::class, 'delete'])->name('supplier.delete');
+    Route::patch('supplier/restore/{id}', [SupplierController::class, 'restore'])->name('supplier.restore');
 
     // COMPONENT DETAILS
     Route::get('component-details', [ComponentDetailsController::class, 'index'])->name('componentdetails');

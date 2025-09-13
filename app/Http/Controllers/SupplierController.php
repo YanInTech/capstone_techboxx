@@ -10,7 +10,10 @@ class SupplierController extends Controller
 {
     //
     public function index() {
-        $suppliers = Supplier::paginate(6);
+        $suppliers = Supplier::with('brands')
+            ->orderByRaw("CASE WHEN is_active = 0 THEN 1 ELSE 0 END")
+            ->orderByDesc('created_at')
+            ->paginate(5);
 
         return view('staff.supplier', compact('suppliers'));
     }
@@ -45,5 +48,59 @@ class SupplierController extends Controller
             'message' => 'Brand added',
             'type' => 'success',
         ]); 
+    }
+
+    public function update(Request $request, string $id)  {
+        $supplier = Supplier::findOrFail($id);
+
+        $supplier->update([
+            'name' => $request->name,
+            'contact_person' => $request->contact_person,
+            'email' => $request->email,
+            'phone' => $request->phone,
+        ]);
+
+        foreach ($request->brands as $brandData) {
+            if (!empty(trim($brandData['name']))) {
+                Brand::where('id', $brandData['id'])->update([
+                    'name' => $brandData['name'],
+                ]);
+            }
+        }
+
+        return redirect()->route('staff.supplier')->with([
+            'message' => 'Supplier details updated',
+            'type' => 'success',
+        ]); 
+    }
+
+    public function delete($id) {
+        $supplier = Supplier::findOrFail($id);
+
+        $supplier->update([
+            'is_active' => false
+        ]);
+
+        $supplier->brands()->delete();
+
+        return redirect()->route('staff.supplier')->with([
+            'message' => 'Supplier status has been inactive',
+            'type' => 'success',
+        ]);
+    }
+
+    public function restore($id) {
+        $supplier = Supplier::findOrFail($id);
+
+        $supplier->update([
+            'is_active' => true
+        ]);
+
+        $supplier->brands()->restore();
+
+        return redirect()->route('staff.supplier')->with([
+            'message' => 'Supplier status has been inactive',
+            'type' => 'success',
+        ]);
     }
 }

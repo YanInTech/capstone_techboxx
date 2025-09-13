@@ -10,13 +10,16 @@ use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class GpuController extends Controller
 {
     public function getGpuSpecs() 
     {
         return [
-            'brands' => ['NVIDIA', 'MSI', 'Gigabyte', 'ASUS', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'pcie_interfaces' => ['PCIe 3.0 x16', 'PCIe 4.0 x16', ],
             'connectors_requireds' => ['None', '1 x 8-pin PCIe', '1 x 16-pin PCIe', ],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),

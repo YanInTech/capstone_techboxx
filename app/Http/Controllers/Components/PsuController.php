@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class PsuController extends Controller
 {
@@ -18,7 +20,8 @@ class PsuController extends Controller
     public function getPsuSpecs()
     {
         return [
-            'brands' => ['EVGA', 'Corsair', 'Seasonic', 'SilverStone', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'efficiency_ratings' => ['80 PLUS Bronze', '80 PLUS Gold', '80 PLUS Titanium', ],
             'modulars' => ['Non-Modular', 'Semi-Modular', 'Fully Modular', ],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),

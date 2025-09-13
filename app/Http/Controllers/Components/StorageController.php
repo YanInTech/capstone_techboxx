@@ -11,13 +11,16 @@ use Illuminate\Support\Facades\Storage as StorageFacade;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class StorageController extends Controller
 {
     public function getStorageSpecs()
     {
         return [
-            'brands' => ['Kingston', 'Western Digital', 'Samsung', 'Seagate', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'storage_types' => ['SSD', 'HDD', ],
             'interfaces' => ['SATA', 'NVMe', ],
             'form_factors' => ['2.5"', '3.5"', 'M.2', ],

@@ -11,11 +11,20 @@
         {{-- SPECS --}}
         <div class="form-divider">
             <div>
+                <label for="">Supplier</label>
+                <select required name="supplier" class="supplier-select">
+                    <option disabled selected hidden value="">Select a supplier</option>
+                    @foreach ($storageSpecs['suppliers'] as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label for="">Brand</label>
-                <select required name="brand" id="brand">
-                    <option disabled selected hidden value="">Select a brand</option>
+                <select required name="brand" class="brand-select" disabled>
+                    <option disabled selected hidden value="">Select a supplier first</option>
                     @foreach ($storageSpecs['brands'] as $brand)
-                        <option value="{{ $brand }}">{{ $brand }}</option>
+                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
                     @endforeach
                 </select>
             </div>

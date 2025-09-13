@@ -8,6 +8,8 @@ use App\Models\Hardware\Cooler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 
 class CoolerController extends Controller
@@ -16,7 +18,8 @@ class CoolerController extends Controller
     public function getCoolerSpecs()
     {
         return[
-            'brands' => ['Intel', 'Cooler Master', 'be quiet!', 'DeepCool', 'Noctua'],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'cooler_types' => ['Air Cooler', 'Liquid Cooler'],
             'socket_compatibilities' => ['LGA 1700', 'AM5', 'AM4'],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),

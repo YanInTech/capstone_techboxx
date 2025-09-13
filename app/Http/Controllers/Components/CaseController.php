@@ -21,7 +21,7 @@ class CaseController extends Controller
     public function getCaseSpecs()
     {
         return[
-            'suppliers' => Supplier::select('id','name')->get(),
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
             'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'form_factor_supports' => ['Micro-ATX', 'ATX', 'E-ATX', 'Mini-ITX', ],
             'locations' => ['Front', 'Top', 'Rear', 'Bottom', 'Side'],

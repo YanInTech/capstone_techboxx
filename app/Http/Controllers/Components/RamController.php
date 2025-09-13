@@ -10,13 +10,16 @@ use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class RamController extends Controller
 {
     public function getRamSpecs()
     {
         return [
-            'brands' => ['Corsair', 'G.Skill', 'G.Crucial', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'rams' => ['DDR4', 'DDR5'],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),
         ];

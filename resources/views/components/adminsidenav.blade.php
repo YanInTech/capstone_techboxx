@@ -15,7 +15,7 @@
                 ['route' => route('admin.dashboard') , 'label' => 'Dashboard', 'icon' => 'dashboard'],
                 ['route' => route('admin.useraccount') , 'label' => 'User Account', 'icon' => 'user'],
                 ['route' => route('staff.order') , 'label' => 'Order', 'icon' => 'order'],
-                ['route' => route('staff.supplier') , 'label' => 'Supplier', 'icon' => 'order'],
+                ['route' => route('staff.supplier') , 'label' => 'Supplier', 'icon' => 'supplier'],
                 ['route' => route('staff.componentdetails') , 'label' => 'Component Details', 'icon' => 'component'],
                 ['route' => route('admin.sales') , 'label' => 'Sales Report', 'icon' => 'bargraph'],
                 ['route' => route('staff.inventory') , 'label' => 'Inventory Report', 'icon' => 'inventory'],
@@ -26,7 +26,7 @@
             'Staff' => [
                 ['route' => route('staff.dashboard') , 'label' => 'Dashboard', 'icon' => 'dashboard'],
                 ['route' => route('staff.order') , 'label' => 'Order', 'icon' => 'order'],
-                ['route' => route('staff.supplier') , 'label' => 'Supplier', 'icon' => 'order'],
+                ['route' => route('staff.supplier') , 'label' => 'Supplier', 'icon' => 'supplier'],
                 ['route' => route('staff.componentdetails') , 'label' => 'Component Details', 'icon' => 'component'],
                 ['route' => route('staff.software-details') , 'label' => 'Software Details', 'icon' => 'software'],
                 ['route' => route('staff.inventory') , 'label' => 'Inventory Report', 'icon' => 'inventory'],

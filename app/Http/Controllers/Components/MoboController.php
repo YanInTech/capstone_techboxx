@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
+use App\Models\Brand;
 
 class MoboController extends Controller
 {
@@ -23,7 +25,8 @@ class MoboController extends Controller
     {
         return [
             'buildCategories' => BuildCategory::select('id', 'name')->get(),
-            'brands' => ['ASUS', 'MSI', 'ASRock', ],
+            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
+            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'socket_types' => ['LGA 1700', 'AM4', ],
             'chipsets' => ['Intel H610', 'AMD B550', 'AMD B450', 'Intel Z790'],
             'form_factors' => ['Micro-ATX', 'ATX', 'Mini-ITX', ],

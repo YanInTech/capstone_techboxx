@@ -29,7 +29,7 @@ class ComponentDetailsController extends Controller
             ...app(StorageController::class)->getFormattedStorages(),
             ...app(CoolerController::class)->getFormattedCoolers(),
         ])->sortBy([
-                fn ($component) => !is_null($component['deleted_at']),
+                fn ($component) => is_null($component['deleted_at'])  ? 0 : 1,
                 fn ($component) => -strtotime($component['created_at']),
             ])
           ->values();
@@ -115,7 +115,8 @@ class ComponentDetailsController extends Controller
         ]);
     }
 
-    public function search (Request $request) {
+    public function search(Request $request)
+    {
         $searchTerm = strtolower($request->input('search'));
 
         $components = $this->getAllFormattedComponents()->filter(function ($component) use ($searchTerm) {
@@ -123,8 +124,21 @@ class ComponentDetailsController extends Controller
                 || str_contains(strtolower($component['brand']), $searchTerm);
         });
 
+        // Pagination
+        $perPage = 6;
+        $currentPage = $request->get('page', 1);
+        $currentPageItems = $components->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $paginated = new LengthAwarePaginator(
+            $currentPageItems,
+            $components->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return view('staff.componentdetails', array_merge(
-            ['components' => $components],
+            ['components' => $paginated],
             $this->getAllSpecs()
         ));
     }

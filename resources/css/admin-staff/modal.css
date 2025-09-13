@@ -10,7 +10,8 @@
 
 .close {
     position: absolute;
-    left: 62%;
+    top: 0;
+    right: 0;
 }
 
 .modal-form,
@@ -181,23 +182,28 @@
     border-radius: 4px;
 }
 
-.specs-container {
+.specs-container,
+.supplier-container {
     width: 100%;
 }
 
-.specs-container div {
+.specs-container div,
+.supplier-container div {
     display: flex;
     gap: 1rem;
 }
 
-.specs-container div:nth-child(odd) {
+.specs-container div:nth-child(odd),
+.supplier-container div:nth-child(odd) {
     background-color: whitesmoke;
 }
 
-.specs-container div p:nth-child(1) {
+.specs-container div p:nth-child(1),
+.supplier-container div p:nth-child(1) {
     width: 25%;
 }
-.specs-container div p:nth-child(2) {
+.specs-container div p:nth-child(2),
+.supplier-container div p:nth-child(2) {
     width: 75%;
 }
 
@@ -334,8 +340,7 @@
 }
 
 /* INVENTORY */
-.inventory-form,
-.supplier-form {
+.inventory-form {
     display: flex;
     flex-direction: column;
 }
@@ -362,7 +367,18 @@
 }
 
 /* SUPPLIER */
-.supplier-form .supplier-container {
+.supplier-container div {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+}
+
+.supplier-container div :nth-of-type(1) {
+    width: 40% !important;
+    word-break: break-all;
+}
+
+.supplier-container div :nth-of-type(2) {
+    width: 60% !important;
+    word-break: break-all;
+
 }

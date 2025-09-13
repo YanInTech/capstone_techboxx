@@ -19,7 +19,8 @@
         'resources\css\admin-staff\modal.css',
         'resources\css\admin-staff\form.css',
         'resources\css\customer\header.css', 
-        'resources\js\app.js'
+        'resources\js\app.js',
+        'resources\js\addComponent.js'
         ])
 
 </head>

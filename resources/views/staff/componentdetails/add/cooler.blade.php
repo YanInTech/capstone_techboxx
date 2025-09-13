@@ -12,15 +12,23 @@
         {{-- SPECS --}}
         <div class="form-divider">
             <div>
-                <label for="">Brand</label>
-                <select required name="brand" id="brand">
-                    <option disabled selected hidden value="">Select a brand</option>
-                    @foreach ($coolerSpecs['brands'] as $brand)
-                        <option value="{{ $brand }}">{{ $brand }}</option>
+                <label for="">Supplier</label>
+                <select required name="supplier" class="supplier-select">
+                    <option disabled selected hidden value="">Select a supplier</option>
+                    @foreach ($coolerSpecs['suppliers'] as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                     @endforeach
                 </select>
             </div>
-
+            <div>
+                <label for="">Brand</label>
+                <select required name="brand" class="brand-select" disabled>
+                    <option disabled selected hidden value="">Select a supplier first</option>
+                    @foreach ($coolerSpecs['brands'] as $brand)
+                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div>
                 <label for="">Model</label>
                 <input name="model" required type="text" placeholder="Enter Model">
@@ -100,7 +108,7 @@
                 <label for="">Build Category</label>
                 <select required name="build_category_id" id="build_category_id">
                     <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
+                    @foreach ($coolerSpecs['buildCategories'] as $buildCategory)
                         <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
                     @endforeach 
                 </select>  

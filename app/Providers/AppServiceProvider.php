@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('components.icons.build', 'x-icons.build');
         Blade::component('components.icons.checkout', 'x-icons.checkout');
         Blade::component('components.icons.purchase', 'x-icons.purchase');
+        Blade::component('components.icons.supplier', 'x-icons.supplier');
 
         Storage::extend('google', function ($app, $config) {
             $client = new Google_Client();
