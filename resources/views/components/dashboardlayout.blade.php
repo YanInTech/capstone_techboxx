@@ -5,11 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Welcome</title>
 
-    <style>
-        html {
-            scroll-behavior: smooth; /* Enables smooth scrolling on the whole page */
-        }
-    </style>
     @vite([
         'resources\css\app.css', 
         'resources\css\admin-staff\sidebar.css',

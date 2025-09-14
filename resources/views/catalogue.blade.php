@@ -74,7 +74,7 @@
                         <li>
                             <a href="{{ route('catalogue', array_merge(request()->except('page'), ['category' => $cat])) }}"
                             class="hover:underline {{ request('category') === $cat ? 'text-blue-600 font-semibold' : '' }}">
-                                {{ ucfirst($cat) }}
+                                {{ strtoupper($cat) }}
                             </a>
                         </li>
                     @empty
@@ -151,7 +151,7 @@
                         <div>
                             <h3 class="font-bold text-sm truncate" title="{{ $product['name'] }}">{{ $product['name'] }}</h3>
                             <p class="text-xs text-gray-600">{{ $product['brand'] }}</p>
-                            <p class="text-[11px] text-gray-500 mt-0.5">{{ $product['category'] }}</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">{{ strtoupper($product['category']) }}</p>
                         </div>
 
                         <p class="text-gray-800 font-semibold mt-1">₱{{ number_format($product['price'], 0) }}</p>

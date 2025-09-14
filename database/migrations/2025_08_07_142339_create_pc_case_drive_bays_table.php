@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('pc_case_id')->constrained()->onDelete('cascade');
             $table->integer('3_5_bays');
             $table->integer('2_5_bays');
+            $table->softDeletes();
         });
     }
 

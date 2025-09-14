@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('usb_2_0');
             $table->integer('usb-c');
             $table->integer('audio_jacks');
+            $table->softDeletes();
         });
     }
 

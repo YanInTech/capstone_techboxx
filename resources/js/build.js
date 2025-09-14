@@ -211,16 +211,38 @@ generateBtn.addEventListener('click', () => {
         console.log(data);
         summaryTableBody.innerHTML = '';
 
+        let totalPrice = 0;
+
         Object.values(data).forEach(item => {
+            // Ensure price is a valid number (handle string with commas too)
+            const price = parseFloat(item.price.toString().replace(/,/g, ''));
+            if (isNaN(price)) {
+                console.warn(`Invalid price for item:`, item);
+                return;
+            }
+
+            totalPrice += price;
+
             let row = '';
             row += `<tr>`;
             row += `<td><p>${item.name}</p></td>`;
             row += `<td><p>1</p></td>`;
-            row += `<td><p>${item.price.toFixed(2)}</p></td>`;
-            row += `<tr/>`;
+            row += `<td><p>₱${price.toFixed(2)}</p></td>`;
+            row += `</tr>`;
 
             summaryTableBody.innerHTML += row;
-        })
+        });
+
+        // Add total price row
+        let totalRow = '';
+        totalRow += `<tr>`;
+        totalRow += `<td colspan="2"><p><strong>Total</strong></p></td>`;
+        totalRow += `<td><p><strong>₱${totalPrice.toFixed(2)}</strong></p></td>`;
+        totalRow += `</tr>`;
+
+        summaryTableBody.innerHTML += totalRow;
+
+        // Show summary UI
         summarySection.classList.remove("hidden");
         document.getElementById('summaryTab').classList.add('active');
         componentsSection.classList.add("hidden");
@@ -379,6 +401,8 @@ function updateSummaryTable() {
     const tbody = document.querySelector('#summaryTableBody');
     tbody.innerHTML = ''; // CLEAR OLD ENTRIES
 
+    let totalPrice = 0;
+
     for (const [type, component] of Object.entries(selectedComponents)) {
         const row = document.createElement('tr');
 
@@ -397,7 +421,24 @@ function updateSummaryTable() {
 
         tbody.appendChild(row);
 
+        totalPrice += component.price;
+
     }
+
+        // Step 3: Add total row at the end
+    const totalRow = document.createElement('tr');
+
+    const totalLabelCell = document.createElement('td');
+    totalLabelCell.setAttribute('colspan', '2'); // Span across name and quantity columns
+    totalLabelCell.innerHTML = `<p><strong>Total</strong></p>`;
+
+    const totalPriceCell = document.createElement('td');
+    totalPriceCell.innerHTML = `<p><strong>₱${totalPrice.toFixed(2)}</strong></p>`;
+
+    totalRow.appendChild(totalLabelCell);
+    totalRow.appendChild(totalPriceCell);
+
+    tbody.appendChild(totalRow);
 }
 
 // ADD DATE TODAY ON THE SUMMARY TAB

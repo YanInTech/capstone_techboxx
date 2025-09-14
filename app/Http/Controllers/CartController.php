@@ -35,29 +35,37 @@ class CartController extends Controller
         // Return the view with the cart items
         return view('cart', compact('cart'));
     }
-
-
-
+    
     // Add product to cart
     public function add(Request $request)
-    {   
+    {
         if (!Auth::check()) {
-            return redirect()->route('login'); // Redirect to login if not authenticated
+            return redirect()->route('login');
         }
 
-        $user = Auth::user(); // FETCHES USER ID
+        $user = Auth::user();
+        $cart = $user->shoppingCart;
 
-        $cart = $user->shoppingCart; //CHECK IF USER HAS A CART
+        if ($cart) {
+            // Cart exists — check if item is already in cart
+            $cartItem = $cart->cartItem()->where('product_id', $request->input('product_id'))->first();
 
-        $cartItem = $cart->cartItem()->where('product_id', $request->input('product_id'))->first(); // CHECK IF ITEM EXISTS IN CART
+            if ($cartItem) {
+                $cartItem->increment('quantity');
+                $newTotalPrice = $cartItem->total_price * 2;
+                $cartItem->update(['total_price' => $newTotalPrice]);
+            } else {
+                $cart->cartItem()->create([
+                    'product_id' => $request->input('product_id'),
+                    'product_type' => $request->input('component_type'),
+                    'quantity' => 1,
+                    'total_price' => $request->input('price'),
+                ]);
+            }
+        } else {
+            // Cart doesn't exist — create one first
+            $cart = ShoppingCart::create(['user_id' => $user->id]);
 
-        if (!$cart) {
-            $cartItem->increment('quantity');
-
-            $newTotalPrice = $cartItem->total_price * 2;
-            $cartItem->update(['total_price' => $newTotalPrice]);
-        }
-        else {
             $cart->cartItem()->create([
                 'product_id' => $request->input('product_id'),
                 'product_type' => $request->input('component_type'),
@@ -65,11 +73,13 @@ class CartController extends Controller
                 'total_price' => $request->input('price'),
             ]);
         }
+
         return back()->with([
             'message' => $request->input('name') . ' added to cart!',
             'type' => 'success',
         ]);
     }
+
 
 
 

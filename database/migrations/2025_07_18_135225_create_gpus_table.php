@@ -27,6 +27,7 @@ return new class extends Migration
             $table->integer('stock');
             $table->string('image')->nullable();
             $table->string('model_3d')->nullable();
+            $table->softDeletes();
         });
     }
 

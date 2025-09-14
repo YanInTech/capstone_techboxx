@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('pc_case_id')->constrained()->onDelete('cascade');
             $table->string('location');
             $table->integer('size_mm');
+            $table->softDeletes();
         });
     }
 
