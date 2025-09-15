@@ -9,8 +9,9 @@
     </div>
 
     <section class="section-style !pl-0 !h-[65vh]">
-        <div>
-            <table class="table">
+        <div x-data="{ showModal: false, selectedBuild:{} }" 
+            class="h-[55vh]">
+            <table class="table mb-3">
                 <thead>
                     <tr>
                         <th>Order ID</th>
@@ -24,16 +25,12 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-            </table> 
-        </div>
-
-        <div class="overflow-y-scroll">
-             <table class="table">
                 <tbody>
                     @foreach ($orders as $order)
                     <tr>
                         <td>{{ $order->id}}</td>
-                        <td class="build-details">{{ $order->userBuild->build_name}}</td>
+                        <td @click="showModal = true; selectedBuild = {{ $order->toJson() }};"
+                            class="build-details">{{ $order->userBuild->build_name}}</td>
                         <td class="text-center !pr-[1.5%]">{{ $order->created_at ? $order->created_at->format('Y-m-d') : 'N/A' }}</td>
                         <td>{{ $order->status }}</td>
                         <td>{{ $order->pickup_status }}</td>
@@ -54,7 +51,15 @@
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- VIEW MODAL --}}
+            <div x-show="showModal" x-cloak x-transition class="modal">
+                <div class="add-component" @click.away="showModal = false">
+                    <h2>Build Details</h2>
+                </div>
+            </div>
         </div>
+    {{ $orders->links() }}
 
     </section>
 

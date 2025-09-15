@@ -1,7 +1,10 @@
 @props(['caseSpecs'])
 
-<div class="new-component-header">
-    <h2 class="text-center">Case</h2>
+<div class="relative !m-0">
+    <h2 class="text-center w-[100%]">
+        EDIT
+        <x-icons.close class="close" @click="showEditModal = false"/>    
+    </h2>
 </div>
 
 <form x-bind:action="'/staff/component-details/case/' + selectedComponent.id" method="POST" class="new-component-form" enctype="multipart/form-data">
@@ -13,11 +16,13 @@
         <div class="form-divider">
             <div>
                 <label for="">Brand</label>
-                <select required name="brand" id="brand">
-                    <option disabled selected hidden value="">Select a brand</option>
+                <select required name="brand" x-model="selectedComponent.brand" class="brand-select" disabled>
+                    <option disabled selected hidden value="">Select a supplier first</option>
+                    @foreach ($caseSpecs['brands'] as $brand)
+                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
+                    @endforeach
                 </select>
             </div>
-
             <div>
                 <label for="">Model</label>
                 <input name="model" required type="text" x-model="selectedComponent.model" placeholder="Enter Model">

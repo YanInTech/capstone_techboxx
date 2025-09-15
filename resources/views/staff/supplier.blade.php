@@ -14,7 +14,12 @@
         {{-- STOCK-IN MODAL --}}
         <div x-show="showAddModal" x-cloak x-transition class="modal">
             <div class="add-component" @click.away="showAddModal = false">
-                <h2 class="text-center">SUPPLIER FORM</h2>
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        SUPPLIER FORM
+                        <x-icons.close class="close" @click="showAddModal = false"/>    
+                    </h2>
+                </div>
                 <form class="inventory-form" method="POST" action="{{ route('staff.supplier.store') }}">
                     @csrf
                     <div>
@@ -43,7 +48,12 @@
         {{-- ADD BRAND MODAL --}}
         <div x-show="showAddBrandModal" x-cloak x-transition class="modal">
             <div class="add-component" @click.away="showAddBrandModal = false">
-                <h2 class="text-center">BRAND FORM</h2>
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        BRAND FORM
+                        <x-icons.close class="close" @click="showAddBrandModal = false"/>    
+                    </h2>
+                </div>
                 <form class="inventory-form" method="POST" action="{{ route('staff.supplier.store.brand') }}">
                     @csrf
                     <div>
@@ -128,9 +138,11 @@
             {{-- VIEW MODAL --}}
             <div x-show="showViewModal" x-cloak x-transition class="modal">
                 <div class="modal-form" @click.away="showViewModal = false">
-                    <div class="flex">
-                        <h2 class="text-center">Supplier Details</h2>
-                        <x-icons.close class="close" @click="showViewModal = false"/>    
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Supplier Details
+                            <x-icons.close class="close" @click="showViewModal = false"/>    
+                        </h2>
                     </div>
 
                     <div class="supplier-container">
@@ -166,7 +178,7 @@
             {{-- EDIT MODAL --}}
             <div x-show="showEditModal" x-cloak x-transition class="modal">
                 <div class="add-component" @click.away="showEditModal = false">
-                    <div class="relative">
+                    <div class="relative !m-0">
                         <h2 class="text-center w-[100%]">
                             Edit Details
                             <x-icons.close class="close" @click="showEditModal = false"/>    

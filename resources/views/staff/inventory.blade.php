@@ -33,7 +33,12 @@
                        selectedComponenentId: '',
                        selectedComponent: {}}">
             <div class="add-component" @click.away="showStockInModal = false">
-                <h2 class="text-center">STOCK-IN FORM</h2>
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        STOCK-IN FORM
+                        <x-icons.close class="close" @click="showStockInModal = false"/>    
+                    </h2>
+                </div>
                 <form class="inventory-form" method="POST" action="{{ route('staff.inventory.stock-in') }}">
                     @csrf
                     <input type="hidden" name="type" :value="selectedComponent.component_type">
@@ -73,8 +78,13 @@
              x-data="{ components: @js($components),
                        selectedComponenentId: '',
                        selectedComponent: {}}">
-            <div class="add-component" @click.away="showStockInModal = false">
-                <h2 class="text-center">STOCK-IN FORM</h2>
+            <div class="add-component" @click.away="showStockOutModal = false">
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        STOCK-OUT FORM
+                        <x-icons.close class="close" @click="showStockOutModal = false"/>    
+                    </h2>
+                </div>
                 <form class="inventory-form" method="POST" action="{{ route('staff.inventory.stock-out') }}">
                     @csrf
                     <input type="hidden" name="type" :value="selectedComponent.component_type">
@@ -112,8 +122,9 @@
 
     {{-- TABLE --}}
     <section class="section-style !pl-0 !h-[65vh]">
-        <div>
-            <table class="table">
+        <div x-data="{ showStockInCompModal: false, showStockOutCompModal: false, selectedComponent:{} }" 
+             class="h-[55vh]">
+            <table class="table mb-3">
                 <thead>
                     <tr>
                         <th>Component</th>
@@ -123,11 +134,6 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-            </table> 
-        </div>
-
-        <div x-data="{ showStockInCompModal: false, showStockOutCompModal: false, selectedComponent:{} }" class="overflow-y-scroll">
-            <table class="table">
                 <tbody>
                     @foreach ($components as $component)
                     <tr>
@@ -155,7 +161,12 @@
             {{-- STOCK-IN MODAL --}}
             <div x-show="showStockInCompModal" x-cloak x-transition class="modal">
                 <div class="add-component" @click.away="showStockInCompModal = false">
-                    <h2 class="text-center">STOCK-IN FORM</h2>
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        STOCK-IN FORM
+                        <x-icons.close class="close" @click="showStockInModal = false"/>    
+                    </h2>
+                </div>
                     <form class="inventory-form" method="POST" action="{{ route('staff.inventory.stock-in') }}">
                         @csrf
                         <input type="hidden" name="stockInId" :value="selectedComponent.id">
@@ -207,6 +218,8 @@
                     </form>
                 </div>
             </div>
+        </div>
+        {{ $components->links() }}
     </section>
     
 

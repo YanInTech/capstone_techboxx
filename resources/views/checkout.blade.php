@@ -82,7 +82,7 @@
             </div>
 
 
-           <div class="border border-gray-200 rounded-xl p-5">
+    <div class="border border-gray-200 rounded-xl p-5">
     <form action="{{ route('checkout.process') }}" method="POST">
         @csrf
 
@@ -107,29 +107,30 @@
         </div>
 
         <!-- Payment Methods -->
-<div class="flex items-center mb-6">
-    <p class="w-40 text-gray-700 font-medium">Payment Method:</p>
-    <div class="flex gap-4">
-        <!-- Hidden input to store selected method -->
-        <input type="hidden" name="payment_method" id="payment_method" required>
+        <div class="flex items-center mb-6">
+            <p class="w-40 text-gray-700 font-medium">Payment Method:</p>
+            <div class="flex gap-4">
+                <!-- Hidden input to store selected method -->
+                <input type="hidden" name="payment_method" id="payment_method" required>
 
-        <!-- PayPal button -->
-        <button 
-            type="button" 
-            onclick="selectPayment('PayPal', this)" 
-            class="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500">
-            PayPal
-        </button>
+                <!-- PayPal button -->
+                <button 
+                    type="button" 
+                    onclick="selectPayment('PayPal', this)" 
+                    class="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500">
+                    PayPal
+                </button>
 
-        <!-- Cash On Pickup button -->
-        <button 
-            type="button" 
-            onclick="selectPayment('Cash on Pickup', this)" 
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">
-            Cash On Pickup
-        </button>
+                <!-- Cash On Pickup button -->
+                <button 
+                    type="button" 
+                    onclick="selectPayment('Cash on Pickup', this)" 
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">
+                    Cash On Pickup
+                </button>
+            </div>
+        </div>
     </div>
-</div>
         
 
         <!-- Total Payment -->

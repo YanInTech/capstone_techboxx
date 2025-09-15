@@ -1,5 +1,10 @@
 {{-- <pre x-text="JSON.stringify(selectedComponent, null, 2)"></pre> --}}
-<h2 class="text-center !relative">View</h2>
+<div class="relative !m-0">
+    <h2 class="text-center w-[100%]">
+        VIEW
+        <x-icons.close class="close" @click="showViewModal = false"/>    
+    </h2>
+</div>
 <div class="view-container">
     {{-- IMAGE --}}
     <div class="image-container">

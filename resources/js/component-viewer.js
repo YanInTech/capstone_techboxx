@@ -43,7 +43,7 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color('white');
+  // scene.background = new THREE.Color('white');
 
   const container = document.getElementById('canvas-container');
   const width = container.clientWidth;
@@ -52,7 +52,7 @@ function init() {
   camera = new THREE.PerspectiveCamera(30, width/height, 0.1, 1000);
   camera.position.set(20, 0, 0);
 
-  renderer = new THREE.WebGLRenderer({antialias: true});
+  renderer = new THREE.WebGLRenderer({alpha: true});
   renderer.setSize(width, height);
   container.appendChild(renderer.domElement);
 

@@ -35,7 +35,7 @@
     <main class="main-content flex justify-evenly h-[91vh] gap-1">
         
 
-        <section class="preview-section">
+        <section class="preview-section header">
             <div id="sidebar">
                 <h3 class="mb-3 text-center">BUILD COMPONENTS</h3>
                 <div id="components">
@@ -56,9 +56,6 @@
                 </button>
             </form>
 
-            {{-- VALIDATION BUTTON --}}
-            <button id="validateBuild">Validate Build</button>
-            <div id="validationResult"></div>
         </section>
         <section class="buttons-section">
             <div data-group="buildType">

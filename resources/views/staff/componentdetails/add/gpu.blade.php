@@ -1,7 +1,13 @@
 @props(['gpuSpecs'])
 
-<div class="new-component-header">
+<div class="flex flex-row justify-between">
+    <button @click="componentModal = null; showAddModal = true;">
+        <x-icons.arrow class="rotate-90 hover:opacity-50 w-[24px] h-[24px]"/>
+    </button>
     <h2 class="text-center">GPU</h2>
+    <button @click="componentModal = null; showAddModal = true;">
+        <x-icons.close/>
+    </button>
 </div>
 
 <form action="{{ route('staff.componentdetails.gpu.store') }}" method="POST" class="new-component-form" enctype="multipart/form-data">

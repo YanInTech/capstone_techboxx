@@ -21,7 +21,6 @@
 
 .nav-bar ul li {
     padding: 4px;
-    border-radius: 4px;
 }
 
 .last-nav {
@@ -33,6 +32,7 @@
 
 .nav-bar ul li:hover {
     background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 0 !important;
 }
 
 .active {
@@ -45,13 +45,53 @@
     gap: 4px;
 }
 
-.component-icon,
-.purchase-icon {
-    position: relative;
-    top: -8px;
-}
-
 .body {
     display: flex;
 }
 
+/* Dropdown styling */
+.dropdown-nav {
+    position: relative !important;
+    top: 0 !important;
+    box-shadow:  none !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    height: fit-content;
+}
+
+.nav-bar ul li.dropdown-nav > a {
+    cursor: pointer;
+    position: relative;
+}
+
+.submenu {
+    list-style: none;
+    padding-left: 20px;
+    display: none;
+}
+
+.submenu li {
+    padding: 4px 0;
+    width: 95px;
+}
+
+.nav-bar ul li.dropdown-nav .submenu li.active {
+    background-color: transparent !important;
+    border-bottom: 1px solid black;
+    border-radius: 0 !important;
+}
+
+.submenu li:hover {
+    border-bottom: 1px solid black;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+}
+
+/* Remove background color from dropdown-nav when active */
+.nav-bar ul li.dropdown-nav.active {
+    background-color: rgba(0, 0, 0, 0.1);  /* Ensures no background on "Manage" link */
+}
+
+.submenu.show {
+    display: block;
+}

@@ -1,4 +1,9 @@
-<h2 class="text-center">ADD NEW COMPONENT</h2>
+<div class="relative !m-0">
+    <h2 class="text-center w-[100%]">
+        ADD NEW COMPONENT
+        <x-icons.close class="close" @click="showAddModal = false"/>    
+    </h2>
+</div>
     <div>
         <button @click="componentModal = 'cpu'; showAddModal = false">
             <x-icons.addcomponents.cpu/>

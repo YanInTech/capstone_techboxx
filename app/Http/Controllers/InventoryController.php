@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\StockHistory;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 
 class InventoryController extends Controller
@@ -11,14 +13,30 @@ class InventoryController extends Controller
     //
     public function index() {
         $lowStockThreshold = 5;
-        
-        $components = app(ComponentDetailsController::class)->getAllFormattedComponents();
-        $components->each(function ($component) use ($lowStockThreshold) {
+
+        // Get all components (assuming getAllFormattedComponents() returns a collection)
+        $componentss = app(ComponentDetailsController::class)->getAllFormattedComponents();
+
+        // Add the status based on stock
+        $componentss->each(function ($component) use ($lowStockThreshold) {
             $component->status = $component->stock <= $lowStockThreshold ? 'Low' : 'Normal';
         });
 
+        // Paginate the collection
+        $perPage = 6; // Set the number of items per page
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $items = $componentss->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $components = new LengthAwarePaginator(
+            $items, 
+            $componentss->count(), 
+            $perPage, 
+            $currentPage, 
+            ['path' => Paginator::resolveCurrentPath()]
+        );
+
         return view('staff.inventory', compact('components'));
     }
+
 
     public function search (Request $request) {
         $lowStockThreshold = 5;

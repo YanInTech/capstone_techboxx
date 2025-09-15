@@ -31,9 +31,8 @@
         @foreach (['cpu', 'gpu', 'ram', 'motherboard', 'storage', 'psu', 'case', 'cooler'] as $type)
             <div x-show="componentModal === '{{ $type }}'" x-cloak x-transition class="modal modal-scroll">
                 <div class="new-component" @click.away="componentModal = null; showAddModal = true;">
-                    <button @click="componentModal = null; showAddModal = true;">
-                        <x-icons.arrow class="new-component-arrow"/>
-                    </button>
+                    
+
                     @include('staff.componentdetails.add.' . $type, [
                         'moboSpecs' => $moboSpecs,
                         'gpuSpecs' => $gpuSpecs,

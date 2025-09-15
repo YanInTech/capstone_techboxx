@@ -14,7 +14,7 @@ class OrderController extends Controller
     public function index()
     {
         //
-        $orders = OrderedBuild::with('userBuild')->get();
+        $orders = OrderedBuild::with('userBuild')->paginate(7);
         return view('staff.order', compact('orders'));
     }
 

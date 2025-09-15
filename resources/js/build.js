@@ -347,38 +347,6 @@ document.querySelectorAll('.catalog-item').forEach(item => {
     })
 });
 
-// VALIDATION
-document.getElementById('validateBuild').addEventListener('click', () => {
-    const selections = {};
-    
-    document.querySelectorAll('#buildSection button').forEach(button=> {
-        const type = button.getAttribute('data-type');
-        const selectedId = button.getAttribute('data-selected-id');
-        if (selectedId) {
-            selections[type + "_id"] = selectedId;
-        }
-    });
-
-    // SEND TO BACKEND
-    fetch('/techboxx/build/validate', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(selections)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.success) {
-            alert('Compatibility issues:\n' + data.errors.join("\n"));
-        }
-        else {
-            alert("Build is valid!");
-        }
-    })
-});
-
 document.getElementById('componentsTab').addEventListener('click', () => {
     document.getElementById('componentsSection').classList.remove('hidden');
     document.getElementById('summarySection').classList.add('hidden');

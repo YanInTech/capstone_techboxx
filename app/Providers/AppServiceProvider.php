@@ -40,21 +40,19 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('components.icons.checkout', 'x-icons.checkout');
         Blade::component('components.icons.purchase', 'x-icons.purchase');
         Blade::component('components.icons.supplier', 'x-icons.supplier');
+        Blade::component('components.icons.manage', 'x-icons.manage');
 
-        Storage::extend('google', function ($app, $config) {
-            $client = new Google_Client();
-            $client->setClientId($config['clientId']);
-            $client->setClientSecret($config['clientSecret']);
-            $client->refreshToken($config['refreshToken']);
+        // Storage::extend('google', function ($app, $config) {
+        //     $client = new Google_Client();
+        //     $client->setClientId($config['clientId']);
+        //     $client->setClientSecret($config['clientSecret']);
+        //     $client->refreshToken($config['refreshToken']);
 
-            $service = new Google_Service_Drive($client);
-            $adapter = new GoogleDriveAdapter($service, $config['folderId']);
-            $flysystem = new \League\Flysystem\Filesystem($adapter);
+        //     $service = new Google_Service_Drive($client);
+        //     $adapter = new GoogleDriveAdapter($service, $config['folderId']);
+        //     $flysystem = new \League\Flysystem\Filesystem($adapter);
 
-            return new FilesystemAdapter($flysystem, $adapter, []);
-        });
-
-
-        
+        //     return new FilesystemAdapter($flysystem, $adapter, []);
+        // });
     }
 }
