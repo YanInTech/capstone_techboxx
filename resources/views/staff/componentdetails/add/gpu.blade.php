@@ -19,7 +19,7 @@
         <div class="form-divider gpu">
             <div>
                 <label for="">Supplier</label>
-                <select required name="supplier" class="supplier-select">
+                <select required name="supplier_id" class="supplier-select">
                     <option disabled selected hidden value="">Select a supplier</option>
                     @foreach ($gpuSpecs['suppliers'] as $supplier)
                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
@@ -28,12 +28,7 @@
             </div>
             <div>
                 <label for="">Brand</label>
-                <select required name="brand" class="brand-select" disabled>
-                    <option disabled selected hidden value="">Select a supplier first</option>
-                    @foreach ($gpuSpecs['brands'] as $brand)
-                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
-                    @endforeach
-                </select>
+                <input name="brand" required type="text" placeholder="Enter Brand">
             </div>
 
             <div>
@@ -85,11 +80,6 @@
         {{-- INVENTORY --}}
         <div class="form-divider">
             <div>
-                <label for="">Price</label>
-                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
-            
-            <div>
                 <label for="">Build Category</label>
                 <select required name="build_category_id" id="build_category_id">
                     <option disabled selected hidden value="">Select build category</option>   
@@ -98,28 +88,14 @@
                     @endforeach 
                 </select>  
             </div>
-
+            <div>
+                <label for="">Price</label>
+                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
             <div>
                 <label for="">Stock</label>
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
-
-            {{-- <div>
-                <label for="product-img">Upload product image</label>    
-                
-                <div x-data="{ filename: 'Upload product image' }" class="product-img">
-                    <input type="file" id="image" name="image" accept="image/*"
-                        class="custom-file"
-                        @change="filename = $event.target.files[0]?.name || 'Upload product image'" />
-
-                    <label for="image">
-                        <x-icons.upload class="upload-product"/>
-                    </label>
-
-                    <p x-text="filename" :class="{ 'text-gray-500': filename === 'Upload product image' }" class="filename"></p>
-                </div>
-            </div> --}}
-
             <div>
                 <label for="">Upload product image</label>
                 <input type="file" name="image" multiple accept="image/*">

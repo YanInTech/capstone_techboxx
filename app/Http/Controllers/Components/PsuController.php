@@ -86,6 +86,7 @@ class PsuController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:20480',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         // Handle image upload
@@ -145,6 +146,7 @@ class PsuController extends Controller
 
         $psu->update([
             'brand' => $request->brand,
+            'supplier_id' => $request->supplier_id,
             'model' => $request->model,
             'wattage' => $request->wattage,
             'efficiency_rating' => $request->efficiency_rating,

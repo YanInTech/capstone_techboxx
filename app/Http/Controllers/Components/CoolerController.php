@@ -19,7 +19,6 @@ class CoolerController extends Controller
     {
         return[
             'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
-            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
             'cooler_types' => ['Air Cooler', 'Liquid Cooler'],
             'socket_compatibilities' => ['LGA 1700', 'AM5', 'AM4'],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),
@@ -67,6 +66,7 @@ class CoolerController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         $validated['socket_compatibility'] = $validated['socket_compatibility'];
@@ -116,6 +116,7 @@ class CoolerController extends Controller
 
         $cooler->update([
             'brand' => $request->brand, 
+            'supplier_id' => $request->supplier_id,
             'model' => $request->model,
             'cooler_type' => $request->cooler_type,
             'socket_compatibility' => $socket,

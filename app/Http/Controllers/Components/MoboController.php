@@ -108,6 +108,7 @@ class MoboController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         // Handle image upload
@@ -164,6 +165,7 @@ class MoboController extends Controller
 
         $mobo->update([
             'build_category_id' => $request->build_category_id,
+            'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
             'socket_type' => $request->socket_type,

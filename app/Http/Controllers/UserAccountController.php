@@ -85,7 +85,7 @@ class UserAccountController extends Controller
             'password' => $unverified->password,
             'role' => 'Customer',
             'status' => 'Active',
-            'is_first_login' => true,
+            'is_first_login' => false,
         ]);
             // optionally sent email or notifiation here
 

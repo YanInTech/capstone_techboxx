@@ -15,11 +15,44 @@
     <input type="hidden" name="component_type" value="case">
 
     <div class="form-container">
+        {{-- INVENTORY --}}
+        <div class="form-divider">
+            <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+
+            <div>
+                <label for="">Price</label>
+                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
+            
+            <div>
+                <label for="">Stock</label>
+                <input required name="stock" id="stock" type="number" placeholder="Enter stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
+
+            <div>
+                <label for="">Upload product image</label>
+                <input type="file" name="image" multiple accept="image/*">
+            </div>
+
+            <div>
+                <label for="">Upload product 3d model</label>
+                <input type="file" name="model_3d" accept=".glb">
+            </div>
+        </div>  
+        
         {{-- SPECS --}}
         <div class="form-divider">
             <div>
                 <label for="">Supplier</label>
-                <select required name="supplier" class="supplier-select">
+                <select required name="supplier_id" class="supplier-select">
                     <option disabled selected hidden value="">Select a supplier</option>
                     @foreach ($caseSpecs['suppliers'] as $supplier)
                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
@@ -28,12 +61,7 @@
             </div>
             <div>
                 <label for="">Brand</label>
-                <select required name="brand" class="brand-select" disabled>
-                    <option disabled selected hidden value="">Select a supplier first</option>
-                    @foreach ($caseSpecs['brands'] as $brand)
-                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
-                    @endforeach
-                </select>
+                <input name="brand" required type="text" placeholder="Enter Brand">
             </div>
             <div>
                 <label for="">Model</label>
@@ -117,41 +145,7 @@
                     + Add Radiator Support
                 </button>
             </div>
-
         </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
-            <div>
-                <label for="">Price</label>
-                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
-            
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
-            </div>
-
-            <div>
-                <label for="">Stock</label>
-                <input required name="stock" id="stock" type="number" placeholder="Enter stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
-
-            <div>
-                <label for="">Upload product image</label>
-                <input type="file" name="image" multiple accept="image/*">
-            </div>
-
-            <div>
-                <label for="">Upload product 3d model</label>
-                <input type="file" name="model_3d" accept=".glb">
-            </div>
-        </div>      
     </div>
     
     <button>Add Component</button>

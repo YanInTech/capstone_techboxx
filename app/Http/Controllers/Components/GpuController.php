@@ -83,6 +83,7 @@ class GpuController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         // Handle image upload
@@ -139,6 +140,7 @@ class GpuController extends Controller
 
         $gpu->update([
             'build_category_id' => $request->build_category_id,
+            'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
             'vram_gb' => $request->vram_gb,

@@ -10,6 +10,7 @@ use App\Http\Controllers\Components\MoboController;
 use App\Http\Controllers\Components\PsuController;
 use App\Http\Controllers\Components\RamController;
 use App\Http\Controllers\Components\StorageController;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use App\Services\GoogleDriveUploader;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -64,8 +65,16 @@ class ComponentDetailsController extends Controller
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
+        $suppliers = Supplier::with('brands')
+            ->orderByRaw("CASE WHEN is_active = 0 THEN 1 ELSE 0 END")
+            ->orderByDesc('created_at')
+            ->paginate(6);
+
         return view('staff.componentdetails', array_merge(
-            ['components' => $paginated],
+            [
+                'components' => $paginated,
+                'suppliers' => $suppliers,
+            ],
             $this->getAllSpecs()
         ));
     }
@@ -137,8 +146,17 @@ class ComponentDetailsController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
+        $suppliers = Supplier::with('brands')
+            ->orderByRaw("CASE WHEN is_active = 0 THEN 1 ELSE 0 END")
+            ->orderByDesc('created_at')
+            ->paginate(6);
+
+
         return view('staff.componentdetails', array_merge(
-            ['components' => $paginated],
+            [
+                'components' => $paginated,
+                'suppliers' => $suppliers,
+            ],
             $this->getAllSpecs()
         ));
     }

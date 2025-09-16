@@ -19,7 +19,6 @@
                     'children' => [
                         ['route' => route('admin.useraccount'), 'label' => 'Accounts', 'icon' => 'user'],
                         ['route' => route('staff.order'), 'label' => 'Order', 'icon' => 'order'],
-                        ['route' => route('staff.supplier'), 'label' => 'Supplier', 'icon' => 'supplier'],
                         ['route' => route('staff.componentdetails'), 'label' => 'Component', 'icon' => 'component'],
                         ['route' => route('staff.inventory'), 'label' => 'Inventory', 'icon' => 'inventory'],
                         ['route' => route('staff.software-details'), 'label' => 'Software', 'icon' => 'software'],
@@ -36,7 +35,6 @@
                     'icon' => 'manage',
                     'children' => [
                         ['route' => route('staff.order'), 'label' => 'Order', 'icon' => 'order'],
-                        ['route' => route('staff.supplier'), 'label' => 'Supplier', 'icon' => 'supplier'],
                         ['route' => route('staff.componentdetails'), 'label' => 'Component', 'icon' => 'component'],
                         ['route' => route('staff.inventory'), 'label' => 'Inventory', 'icon' => 'inventory'],
                         ['route' => route('staff.software-details'), 'label' => 'Software', 'icon' => 'software'],

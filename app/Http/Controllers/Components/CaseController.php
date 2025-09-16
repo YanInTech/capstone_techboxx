@@ -21,22 +21,12 @@ class CaseController extends Controller
     public function getCaseSpecs()
     {
         return[
-            'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
-            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
+            'suppliers' => Supplier::select('id', 'name')->get(),
             'form_factor_supports' => ['Micro-ATX', 'ATX', 'E-ATX', 'Mini-ITX', ],
             'locations' => ['Front', 'Top', 'Rear', 'Bottom', 'Side'],
             'buildCategories' => BuildCategory::select('id', 'name')->get(),
             
         ];
-    }
-
-    public function getBrandsBySupplier($supplierId)
-    {
-        $brands = Brand::select('id', 'name')
-            ->where('supplier_id', $supplierId)
-            ->get();
-
-        return response()->json($brands);
     }
 
     public function getFormattedCases()
@@ -128,6 +118,7 @@ class CaseController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         // Handle image upload
@@ -221,6 +212,7 @@ class CaseController extends Controller
 
         $case->update([
             'build_category_id' => $request->build_category_id, 
+            'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
             'form_factor_support' => $request->form_factor_support,

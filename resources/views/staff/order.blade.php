@@ -27,23 +27,44 @@
                 </thead>
                 <tbody>
                     @foreach ($orders as $order)
-                    <tr>
+                    <tr 
+                        @class([
+                            'bg-gray-200 text-gray-500 pointer-events-none' => $order->status === 'Declined',
+                        ])
+                    >
                         <td>{{ $order->id}}</td>
                         <td @click="showModal = true; selectedBuild = {{ $order->toJson() }};"
                             class="build-details">{{ $order->userBuild->build_name}}</td>
                         <td class="text-center !pr-[1.5%]">{{ $order->created_at ? $order->created_at->format('Y-m-d') : 'N/A' }}</td>
                         <td>{{ $order->status }}</td>
                         <td>{{ $order->pickup_status }}</td>
-                        <td>{{ $order->pickup_date ? $order->pickup_date : '-' }}</td>
+                        <td>{{ $order->pickup_date ? $order->pickup_date->format('Y-m-d') : '-' }}</td>
                         <td>{{ $order->payment_status }}</td>
                         <td>{{ $order->payment_method }}</td>
                         <td class="align-middle text-center">
                             <div class="flex justify-center gap-2">
                                 @if ($order->status === 'Pending')
-                                    <x-icons.check/>
-                                    <x-icons.close/>      
+                                    <form action={{ route('staff.order.approve', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <x-icons.check/>
+                                        </button>
+                                    </form>
+                                    <form action={{ route('staff.order.decline', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <x-icons.close/>      
+                                        </button>
+                                    </form>
+                                @elseif ($order->pickup_status === 'Picked up')
+                                    {{-- NO ACTION --}}
                                 @else
-                                    <x-icons.pickup/>    
+                                    <form action={{ route('staff.order.pickup', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit">
+                                            <x-icons.pickup/>    
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </td>
@@ -53,9 +74,16 @@
             </table>
 
             {{-- VIEW MODAL --}}
-            <div x-show="showModal" x-cloak x-transition class="modal">
+            <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll m-5">
                 <div class="add-component" @click.away="showModal = false">
                     <h2>Build Details</h2>
+                    <pre x-text="JSON.stringify(selectedBuild, null, 2)"></pre>
+                    <div>
+                        <div>
+                            <p>Name</p>
+                            <p x-text="selectedBuild.user.first_name + ' ' + selectedBuild.user.last_name"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

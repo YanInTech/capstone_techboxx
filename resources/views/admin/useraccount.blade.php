@@ -100,7 +100,6 @@
     <section class="section-style mb-[10%] !h-[100vh] pb-[1%]">
         <div class="header-container">
             <h2 class="section-header">User accounts</h2>
-            
             {{-- search bar --}}
             <form action="{{ route('admin.useraccount') }}" method="GET">
                 <input 

@@ -14,11 +14,20 @@
         {{-- SPECS --}}
         <div class="form-divider">
             <div>
+                <label for="">Supplier</label>
+                <select required name="supplier_id"  x-model="selectedComponent.supplier_id" class="supplier-select">
+                    <option disabled selected hidden value="">Select a supplier</option>
+                    @foreach ($cpuSpecs['suppliers'] as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label for="">Brand</label>
-                <select required name="brand" x-model="selectedComponent.brand" class="brand-select" disabled>
+                <select required name="brand" x-model="selectedComponent.brand">
                     <option disabled selected hidden value="">Select a supplier first</option>
                     @foreach ($cpuSpecs['brands'] as $brand)
-                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
+                        <option value="{{ $brand }}">{{ $brand }}</option>
                     @endforeach
                 </select>
             </div>

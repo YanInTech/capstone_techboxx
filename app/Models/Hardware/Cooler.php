@@ -3,6 +3,7 @@
 namespace App\Models\Hardware;
 
 use App\Models\BuildCategory;
+use App\Models\Supplier;
 use App\Models\UserBuild;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ class Cooler extends Model
         'stock',
         'image',
         'model_3d',
+        'supplier_id',
     ];
 
     // FETCHING IMAGE FROM DRIVE
@@ -44,5 +46,9 @@ class Cooler extends Model
 
     public function userBuild() {
         return $this->hasMany(UserBuild::class);
+    }
+
+    public function supplier() {
+        return $this->belongsTo(Supplier::class);
     }
 }

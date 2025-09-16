@@ -68,7 +68,7 @@
                 </div>
                 <div>
                     <label for="email">Email</label>
-                    <input type="email" name="email" x-model="user.email">
+                    <input type="email" name="email" x-model="user.email" readonly>
                 </div>
                 <div>
                     <label for="phone_number">Phone Number</label>

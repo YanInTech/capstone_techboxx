@@ -54,8 +54,9 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Name</th>
                         <th>Category</th>
+                        <th>Supplier</th>
+                        <th>Name</th>
                         <th>Price</th>
                         <th>Stock</th>
                         <th>Action</th>
@@ -64,8 +65,9 @@
                 <tbody>
                     @foreach ($components as $component)
                     <tr class="{{ $component->deleted_at ? 'bg-gray-300 opacity-50 cursor-not-allowed' : '' }}" >
-                        <td>{{ $component->brand}} {{ $component->model }}</td>
                         <td>{{ $component->buildCategory->name}}</td>
+                        <td>{{ $component->supplier->name}}</td>
+                        <td>{{ $component->brand}} {{ $component->model }}</td>
                         <td>₱{{ number_format($component->price, 2) }}</td>
                         <td>{{ $component->stock }}</td>
                         <td class="align-middle text-center">
@@ -185,61 +187,178 @@
         
     </section>
 
+    <h2>Supplier</h2>
+
+    <div class="header-container" x-data="{ showAddModal: false, showAddBrandModal: false }">
+        <div>
+            <button class="modal-button" @click="showAddModal = true">
+                Add Supplier
+            </button>
+        </div>
+        
+        {{-- STOCK-IN MODAL --}}
+        <div x-show="showAddModal" x-cloak x-transition class="modal">
+            <div class="add-component" @click.away="showAddModal = false">
+                <div class="relative !m-0">
+                    <h2 class="text-center w-[100%]">
+                        SUPPLIER FORM
+                        <x-icons.close class="close" @click="showAddModal = false"/>    
+                    </h2>
+                </div>
+                <form class="inventory-form" method="POST" action="{{ route('staff.supplier.store') }}">
+                    @csrf
+                    <div>
+                        <label for="">Supplier Name</label>
+                        <input required type="text" name="name">
+                    </div>
+                    <div>
+                        <label for="">Contact Person</label>
+                        <input required type="text" name="contact_person">
+                    </div>
+                    <div>
+                        <label for="">Email</label>
+                        <input required type="email" name="email">
+                    </div>
+                    <div>
+                        <label for="">Contact number</label>
+                        <input required name="phone" id="phone" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    </div>    
+                    <div>
+                        <button>Add Supplier</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <section class="section-style !pl-0 !pb-3 !h-[65vh]">
+        <div x-data="{ showViewModal: false, currentSupplier: null, showEditModal: false }" class="h-[75vh]">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Supplier Name</th>
+                        <th>Contact Person</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($suppliers as $supplier)
+                        <tr @if(!$supplier->is_active) class="bg-gray-200 opacity-60" @endif>
+                            <td>{{$supplier->name}}</td>
+                            <td>{{$supplier->contact_person}}</td>
+                            <td>{{$supplier->email}}</td>
+                            <td>{{$supplier->phone}}</td>
+                            <td>{{$supplier->is_active ? 'Active' : 'Inactive' }}</td>
+                            <td>
+                                <div class="flex justify-center gap-2">
+                                    @if (!$supplier->is_active)
+                                        <form action="{{ route('staff.supplier.restore', $supplier->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" title="Activate">
+                                                <x-icons.restore />
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button @click="
+                                            currentSupplier = {{ $supplier->toJson() }};
+                                            showViewModal = true
+                                        ">
+                                            <x-icons.view/>    
+                                        </button>
+                                        <button @click="
+                                            currentSupplier = {{ $supplier->toJson() }};
+                                            showEditModal = true
+                                        ">
+                                            <x-icons.edit/>    
+                                        </button>
+                                        <form action="{{ route('staff.supplier.delete', $supplier->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit">
+                                                <x-icons.delete/>    
+                                            </button>
+                                        </form>                                        
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>    
+
+            {{-- VIEW MODAL --}}
+            <div x-show="showViewModal" x-cloak x-transition class="modal">
+                <div class="modal-form" @click.away="showViewModal = false">
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Supplier Details
+                            <x-icons.close class="close" @click="showViewModal = false"/>    
+                        </h2>
+                    </div>
+
+                    <div class="supplier-container mt-3">
+                        <div>
+                            <p>Supplier Name</p>
+                            <p x-text="currentSupplier ? currentSupplier.name : ''"></p>    
+                        </div>
+                        <div>
+                            <p>Contact Person</p>
+                            <p x-text="currentSupplier ? currentSupplier.contact_person : ''"></p>    
+                        </div>
+                        <div>
+                            <p>Email</p>
+                            <p x-text="currentSupplier ? currentSupplier.email : ''"></p>    
+                        </div>
+                        <div>
+                            <p>Phone</p>
+                            <p x-text="currentSupplier ? currentSupplier.phone : ''"></p>    
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- EDIT MODAL --}}
+            <div x-show="showEditModal" x-cloak x-transition class="modal">
+                <div class="add-component" @click.away="showEditModal = false">
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Edit Details
+                            <x-icons.close class="close" @click="showEditModal = false"/>    
+                        </h2>
+                    </div>
+
+                    <form class="inventory-form" method="POST" :action="'{{ url('staff/supplier/update') }}/' + currentSupplier.id">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="id" x-model="currentSupplier.id">
+                        <div>
+                            <label for="">Supplier Name</label>
+                            <input required type="text" name="name" x-model="currentSupplier.name">
+                        </div>
+                        <div>
+                            <label for="">Contact Person</label>
+                            <input required type="text" name="contact_person" x-model="currentSupplier.contact_person">
+                        </div>
+                        <div>
+                            <label for="">Email</label>
+                            <input required type="email" name="email" x-model="currentSupplier.email">
+                        </div>
+                        <div>
+                            <label for="">Contact number</label>
+                            <input required name="phone" id="phone" type="number" x-model="currentSupplier.phone" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                        </div>    
+                        <div>
+                            <button>Update Details</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {{ $suppliers->links() }}
+    </section>    
 </x-dashboardlayout>
-
-{{-- 3D MODEL VIEW --}}
-{{-- <script type="module">
-        import * as THREE from 'https://esm.sh/three@0.155.0';
-        import { GLTFLoader } from 'https://esm.sh/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
-
-        // Store Three.js stuff to global scope
-        window.THREE = THREE;
-        window.GLTFLoader = GLTFLoader;
-</script>
-
-<script>
-
-    window.loadModel = function (canvasId, modelPath) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) {
-            console.warn(`Canvas with ID "${canvasId}" not found.`);
-            return;
-        }
-
-        if (!modelPath) {
-            console.warn("No 3D model path provided.");
-            return;
-        }
-
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.setSize(canvas.width, canvas.height);
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
-        camera.position.z = 5;
-
-        const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
-        scene.add(light);
-
-        const loader = new GLTFLoader();
-
-        loader.load(`/storage/${modelPath}`, function (gltf) {
-            const model = gltf.scene;
-            scene.add(model);
-            model.scale.setScalar(.5);
-            model.rotation.y = Math.PI;
-
-            function animate() {
-                requestAnimationFrame(animate);
-                model.rotation.y += 0.005;
-                renderer.render(scene, camera);
-            }
-
-            animate();
-        }, undefined, function (error) {
-            console.error("Error loading GLTF model:", error);
-        });
-    };
-
-
-</script> --}}

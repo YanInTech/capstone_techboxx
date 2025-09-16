@@ -19,7 +19,7 @@ class CpuController extends Controller
     {
         return [
             'suppliers' => Supplier::select('id', 'name')->where('is_active', true)->get(),
-            'brands' => Brand::select('id', 'name', 'supplier_id')->get(),
+            'brands' => ['AMD', 'Intel'],
             'socket_types' => ['LGA 1700', 'AM4', 'AM5', ],
             'integrated_displays' => ['Yes', 'No', ],
             'generations' => ['12th Gen', 'Ryzen 5000 Series', '13th Gen', 'Ryzen 7000 Series', ],
@@ -88,6 +88,7 @@ class CpuController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         // Handle image upload
@@ -144,6 +145,7 @@ class CpuController extends Controller
 
         $cpu->update([
             'build_category_id' => $request->build_category_id,
+            'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
             'socket_type' => $request->socket_type,

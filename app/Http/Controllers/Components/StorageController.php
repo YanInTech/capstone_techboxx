@@ -86,6 +86,7 @@ class StorageController extends Controller
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'model_3d' => 'nullable|file|mimes:glb|max:10240',
             'build_category_id' => 'required|exists:build_categories,id',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
         
         if ($request->hasFile('image')) {
@@ -141,6 +142,7 @@ class StorageController extends Controller
 
         $storage->update([
             'build_category_id' => $request->build_category_id,
+            'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
             'storage_type' => $request->storage_type,

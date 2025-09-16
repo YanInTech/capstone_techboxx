@@ -119,6 +119,9 @@ Route::prefix('staff')->name('staff.')->group(function () {
 
     // ORDER
     Route::get('order', [OrderController::class, 'index'])->name('order');
+    Route::post('order/approve/{id}', [OrderController::class, 'approve'])->name('order.approve');
+    Route::post('order/decline/{id}', [OrderController::class, 'decline'])->name('order.decline');
+    Route::post('order/pickup/{id}', [OrderController::class, 'pickup'])->name('order.pickup');
 });
 
 // CUSTOMER ROUTES

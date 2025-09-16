@@ -16,7 +16,7 @@
         <div class="form-divider">
             <div>
                 <label for="">Supplier</label>
-                <select required name="supplier" class="supplier-select">
+                <select required name="supplier_id" class="supplier-select">
                     <option disabled selected hidden value="">Select a supplier</option>
                     @foreach ($psuSpecs['suppliers'] as $supplier)
                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
@@ -25,12 +25,7 @@
             </div>
             <div>
                 <label for="">Brand</label>
-                <select required name="brand" class="brand-select" disabled>
-                    <option disabled selected hidden value="">Select a supplier first</option>
-                    @foreach ($psuSpecs['brands'] as $brand)
-                        <option value="{{ $brand->name }}">{{ $brand->name }}</option>
-                    @endforeach
-                </select>
+                <input name="brand" required type="text" placeholder="Enter Brand">
             </div>
 
              <div>
@@ -77,11 +72,6 @@
         {{-- INVENTORY --}}
         <div class="form-divider">
             <div>
-                <label for="">Price</label>
-                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
-            
-            <div>
                 <label for="">Build Category</label>
                 <select required name="build_category_id" id="build_category_id">
                     <option disabled selected hidden value="">Select build category</option>   
@@ -90,7 +80,10 @@
                     @endforeach 
                 </select>  
             </div>
-
+            <div>
+                <label for="">Price</label>
+                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
             <div>
                 <label for="">Stock</label>
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
