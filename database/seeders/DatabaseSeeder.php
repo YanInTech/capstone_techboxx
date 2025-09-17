@@ -19,11 +19,11 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             // UserVerificationSeeder::class, 
-            // UserBuildSeeder::class
+            // UserBuildSeeder::class,
 
-            // UserBuildSeeder::class
-            // OrderedBuildSeeder::class
-            SupplierSeeder::class 
+            // UserBuildSeeder::class,
+            OrderedBuildSeeder::class,
+            // SupplierSeeder::class,
         ]);
     }
 }

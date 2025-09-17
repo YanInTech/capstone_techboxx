@@ -21,11 +21,11 @@ class OrderedBuildFactory extends Factory
         return [
             //
             'user_build_id' => UserBuild::inRandomOrder()->first()->id,
-            'status' => fake()->randomElement(['Pending','Approved']),
-            'user_id' => User::whereIn('role', ['Admin', 'Staff'])->inRandomOrder()->first()->id,
+            'status' => 'Pending',
+            'user_id' => null,
             'payment_status' => fake()->randomElement(['Unpaid','Paid']),
             'payment_method' => fake()->randomElement(['Paypal', 'Cash']),
-            'pickup_status' => fake()->randomElement(['Pending', 'Picked up']),
+            'pickup_status' => null,
         ];
     }
 }

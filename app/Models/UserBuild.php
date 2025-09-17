@@ -36,36 +36,36 @@ class UserBuild extends Model
     }
 
     public function motherboard() {
-        return $this->belongsTo(Motherboard::class);
+        return $this->belongsTo(Motherboard::class, 'motherboard_id');
     }
 
-    public function cpus() {
-        return $this->belongsTo(Cpu::class);
+    public function cpu() {
+        return $this->belongsTo(Cpu::class, 'cpu_id');
     }
 
     public function case() {
-        return $this->belongsTo(PcCase::class);
+        return $this->belongsTo(PcCase::class, 'pc_case_id');
     }
 
     public function gpu() {
-        return $this->belongsTo(Gpu::class);
+        return $this->belongsTo(Gpu::class, 'gpu_id');
     }
 
     public function psu() {
-        return $this->belongsTo(Psu::class);
+        return $this->belongsTo(Psu::class, 'psu_id');
 
     }
 
     public function storage() {
-        return $this->belongsTo(Storage::class);
+        return $this->belongsTo(Storage::class, 'storage_id');
     }
 
     public function ram() {
-        return $this->belongsTo(Ram::class);
+        return $this->belongsTo(Ram::class, 'ram_id');
     }
     
     public function cooler() {
-        return $this->belongsTo(Cooler::class);
+        return $this->belongsTo(Cooler::class, 'cooler_id');
     }
 
     public function orderedBuild() {

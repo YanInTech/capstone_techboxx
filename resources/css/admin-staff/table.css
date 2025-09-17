@@ -60,6 +60,11 @@
     color: var(--blue);
 }
 
+.action-button:hover {
+    text-decoration: underline;
+}
+
+
 /* Customer profile dashboard */
 .builds-table {
     display: flex;

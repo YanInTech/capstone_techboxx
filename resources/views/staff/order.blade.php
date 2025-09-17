@@ -37,7 +37,7 @@
                             class="build-details">{{ $order->userBuild->build_name}}</td>
                         <td class="text-center !pr-[1.5%]">{{ $order->created_at ? $order->created_at->format('Y-m-d') : 'N/A' }}</td>
                         <td>{{ $order->status }}</td>
-                        <td>{{ $order->pickup_status }}</td>
+                        <td>{{ $order->pickup_status ? $order->pickup_status : '-' }}</td>
                         <td>{{ $order->pickup_date ? $order->pickup_date->format('Y-m-d') : '-' }}</td>
                         <td>{{ $order->payment_status }}</td>
                         <td>{{ $order->payment_method }}</td>
@@ -56,13 +56,18 @@
                                             <x-icons.close/>      
                                         </button>
                                     </form>
-                                @elseif ($order->pickup_status === 'Picked up')
-                                    {{-- NO ACTION --}}
-                                @else
+                                @elseif ($order->status === 'Approved' && $order->pickup_status === null)
+                                    <form action={{ route('staff.order.ready', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="action-button">
+                                            Build Completed 
+                                        </button>
+                                    </form>
+                                @elseif ($order->pickup_status === 'Pending' && $order->status === 'Approved')
                                     <form action={{ route('staff.order.pickup', $order->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit">
-                                            <x-icons.pickup/>    
+                                        <button type="submit" class="action-button">
+                                            Picked up    
                                         </button>
                                     </form>
                                 @endif
@@ -74,14 +79,78 @@
             </table>
 
             {{-- VIEW MODAL --}}
-            <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll m-5">
+            <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
                 <div class="add-component" @click.away="showModal = false">
-                    <h2>Build Details</h2>
-                    <pre x-text="JSON.stringify(selectedBuild, null, 2)"></pre>
-                    <div>
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Build Details
+                            <x-icons.close class="close" @click="showModal = false"/>    
+                        </h2>
+                    </div>
+                    {{-- <pre x-text="JSON.stringify(selectedBuild, null, 2)"></pre> --}}
+                    <div class="build-details-modal">
                         <div>
                             <p>Name</p>
                             <p x-text="selectedBuild.user.first_name + ' ' + selectedBuild.user.last_name"></p>
+                        </div>
+                        <div>
+                            <p>Contact No</p>
+                            <p x-text="selectedBuild.user.phone"></p>
+                        </div>
+                        <div>
+                            <p>Email</p>
+                            <p x-text="selectedBuild.user.email"></p>
+                        </div>
+                        <div>
+                            <p>Build Name</p>
+                            <p x-text="selectedBuild.user_build.build_name"></p>
+                        </div>
+                    </div>
+                    <div class="build-details-modal">
+                        <div class="build-details-header">
+                            <h4>Component</h4>
+                        </div>
+                        <div>
+                            <p>Case</p>
+                            <p x-text="selectedBuild.user_build.case.brand + '' + selectedBuild.user_build.case.model "></p>
+                        </div>
+                        <div>
+                            <p>CPU</p>
+                            <p x-text="selectedBuild.user_build.cpu.brand + '' + selectedBuild.user_build.cpu.model "></p>
+                        </div>
+                        <div>
+                            <p>RAM</p>
+                            <p x-text="selectedBuild.user_build.ram.brand + '' + selectedBuild.user_build.ram.model "></p>
+                        </div>
+                        <div>
+                            <p>SSD</p>
+                            <p x-text="selectedBuild.user_build.storage.brand + '' + selectedBuild.user_build.storage.model "></p>
+                        </div>
+                        <div>
+                            <p>Motherboard</p>
+                            <p x-text="selectedBuild.user_build.motherboard.brand + '' + selectedBuild.user_build.motherboard.model "></p>
+                        </div>
+                        <div>
+                            <p>GPU</p>
+                            <p x-text="selectedBuild.user_build.gpu.brand + '' + selectedBuild.user_build.gpu.model "></p>
+                        </div>
+                        <div>
+                            <p>HDD</p>
+                            <p x-text="selectedBuild.user_build.storage.brand + '' + selectedBuild.user_build.storage.model "></p>
+                        </div>
+                        <div>
+                            <p>PSU</p>
+                            <p x-text="selectedBuild.user_build.psu.brand + '' + selectedBuild.user_build.psu.model "></p>
+                        </div>
+                        <div>
+                            <p>Cooler</p>
+                            <p x-text="selectedBuild.user_build.cooler.brand + '' + selectedBuild.user_build.cooler.model "></p>
+                        </div>
+                    </div>
+                    <div class="build-details-modal">
+                        <div class="build-details-price">
+                            <h4>Build Price:</h4>
+                            <h4 x-text="'₱' + (parseFloat(selectedBuild.user_build.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
                         </div>
                     </div>
                 </div>

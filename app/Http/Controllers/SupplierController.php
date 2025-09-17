@@ -10,10 +10,7 @@ class SupplierController extends Controller
 {
     //
     public function index() {
-        $suppliers = Supplier::with('brands')
-            ->orderByRaw("CASE WHEN is_active = 0 THEN 1 ELSE 0 END")
-            ->orderByDesc('created_at')
-            ->paginate(5);
+        $suppliers = Supplier::paginate(5);
 
         return view('staff.supplier', compact('suppliers'));
     }
@@ -36,20 +33,6 @@ class SupplierController extends Controller
         ]); 
     }
 
-    public function storeBrand(Request $request) {
-        $validate = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'name' => 'required|string|max:255',
-        ]);
-
-        Brand::create($validate);
-
-        return redirect()->route('staff.supplier')->with([
-            'message' => 'Brand added',
-            'type' => 'success',
-        ]); 
-    }
-
     public function update(Request $request, string $id)  {
         $supplier = Supplier::findOrFail($id);
 
@@ -59,14 +42,6 @@ class SupplierController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
         ]);
-
-        foreach ($request->brands as $brandData) {
-            if (!empty(trim($brandData['name']))) {
-                Brand::where('id', $brandData['id'])->update([
-                    'name' => $brandData['name'],
-                ]);
-            }
-        }
 
         return redirect()->route('staff.supplier')->with([
             'message' => 'Supplier details updated',
@@ -81,8 +56,6 @@ class SupplierController extends Controller
             'is_active' => false
         ]);
 
-        $supplier->brands()->delete();
-
         return redirect()->route('staff.supplier')->with([
             'message' => 'Supplier status has been inactive',
             'type' => 'success',
@@ -95,8 +68,6 @@ class SupplierController extends Controller
         $supplier->update([
             'is_active' => true
         ]);
-
-        $supplier->brands()->restore();
 
         return redirect()->route('staff.supplier')->with([
             'message' => 'Supplier status has been inactive',

@@ -1,5 +1,5 @@
 <x-dashboardlayout>
-    <h2>Inventory Dashboard</h2>
+    <h2>Inventory</h2>
 
     <div class="header-container" x-data="{ showStockInModal: false, showStockOutModal: false, componentModal: null }">
         <div>

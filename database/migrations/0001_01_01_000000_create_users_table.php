@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('last_login')->nullable();
             $table->string('status');
             $table->boolean('is_first_login')->default(true);
+            $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
         });

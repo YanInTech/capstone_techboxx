@@ -12,29 +12,39 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index()
-{
-    $orders = OrderedBuild::with(['userBuild', 'user'])
-        ->where(function ($query) {
-            $query->where('status', 'Pending')
-                  ->orWhere('user_id', Auth::id());
-        })
-        ->orderByRaw("
-            CASE 
-                WHEN status = 'Approved' AND pickup_date IS NULL THEN 1
-                WHEN status = 'Pending' AND pickup_date IS NULL THEN 2
-                WHEN status = 'Picked Up' AND pickup_date IS NULL THEN 3
-                WHEN status = 'Picked Up' AND pickup_date IS NOT NULL THEN 4
-                WHEN status = 'Approved' AND pickup_date IS NOT NULL THEN 5
-                WHEN status = 'Declined' THEN 6
-                ELSE 7
-            END
-        ")
-        ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
-        ->paginate(7);
+    public function index()
+    {
+        $orders = OrderedBuild::with([
+            'userBuild.case',
+            'userBuild.cpu',
+            'userBuild.motherboard',
+            'userBuild.gpu',
+            'userBuild.ram',
+            'userBuild.storage',
+            'userBuild.psu',
+            'userBuild.cooler', 
+            'user',
+            ])
+            ->where(function ($query) {
+                $query->where('status', 'Pending')
+                    ->orWhere('user_id', Auth::id());
+            })
+            ->orderByRaw("
+                CASE 
+                    WHEN status = 'Approved' AND pickup_date IS NULL THEN 1
+                    WHEN status = 'Pending' AND pickup_date IS NULL THEN 2
+                    WHEN status = 'Picked Up' AND pickup_date IS NULL THEN 3
+                    WHEN status = 'Picked Up' AND pickup_date IS NOT NULL THEN 4
+                    WHEN status = 'Approved' AND pickup_date IS NOT NULL THEN 5
+                    WHEN status = 'Declined' THEN 6
+                    ELSE 7
+                END
+            ")
+            ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
+            ->paginate(5);
 
-    return view('staff.order', compact('orders'));
-}
+        return view('staff.order', compact('orders'));
+    }
 
 
     public function approve($id) {
@@ -61,6 +71,19 @@ public function index()
 
         return redirect()->route('staff.order')->with([
             'message' => 'Order declined',
+            'type' => 'success',
+        ]);
+    }
+
+    public function ready($id) {
+        $order = OrderedBuild::findOrFail($id);
+
+        $order->update([
+            'pickup_status' => 'Pending',
+        ]);
+
+        return redirect()->route('staff.order')->with([
+            'message' => 'Order ready for pickup',
             'type' => 'success',
         ]);
     }

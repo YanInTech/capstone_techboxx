@@ -28,8 +28,8 @@ class UserBuildFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()->id,
             'build_name' => fake()->word(),
-            'case_id' => PcCase::query()->inRandomOrder()->value('id'),
-            'mobo_id' => Motherboard::query()->inRandomOrder()->value('id'),
+            'pc_case_id' => PcCase::query()->inRandomOrder()->value('id'),
+            'motherboard_id' => Motherboard::query()->inRandomOrder()->value('id'),
             'cpu_id' => Cpu::query()->inRandomOrder()->value('id'),
             'storage_id' => Storage::query()->inRandomOrder()->value('id'),
             'ram_id' => Ram::query()->inRandomOrder()->value('id'),

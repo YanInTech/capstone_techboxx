@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('user_build_id')->constrained()->onDelete('cascade');
-            $table->string('status');
+            $table->string('status')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->nullable();
             $table->string('payment_status');
             $table->string('payment_method');
-            $table->string('pickup_status');
+            $table->string('pickup_status')->nullable();
             $table->timestamp('pickup_date')->nullable();
             $table->softDeletes();
         });

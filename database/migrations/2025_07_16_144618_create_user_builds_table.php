@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreignId('ram_id')->constrained()->onDelete('cascade');
             $table->foreignId('psu_id')->constrained()->onDelete('cascade');
             $table->foreignId('cooler_id')->constrained()->onDelete('cascade');
-            $table->string('total_price');
+            $table->decimal('total_price',10,2);
             $table->string('status');
         });
     }

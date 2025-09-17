@@ -33,6 +33,7 @@ class UserFactory extends Factory
             'phone_number' => 00000000000,
             'remember_token' => Str::random(10),
             'status' => 'Active',
+            'is_first_login' => false
         ];
     }
 
