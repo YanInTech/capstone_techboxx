@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Checkout;
 use App\Models\OrderedBuild;
 use App\Models\UserBuild;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class OrderController extends Controller
             'userBuild.storage',
             'userBuild.psu',
             'userBuild.cooler', 
-            'user',
+            'userBuild.user',
             ])
             ->where(function ($query) {
                 $query->where('status', 'Pending')
@@ -43,7 +44,19 @@ class OrderController extends Controller
             ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
             ->paginate(5);
 
-        return view('staff.order', compact('orders'));
+        $checkouts = Checkout::
+            orderByRaw("
+                CASE 
+                    WHEN pickup_status = 'Pending' AND pickup_date IS NULL THEN 1
+                    WHEN pickup_status IS NULL AND pickup_date IS NULL THEN 2
+                    WHEN pickup_status = 'Picked up' AND pickup_date IS NOT NULL THEN 3
+                    ELSE 4
+                END
+            ")
+            ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
+            ->paginate(5);
+
+        return view('staff.order', compact('orders', 'checkouts'));
     }
 
 
@@ -88,8 +101,35 @@ class OrderController extends Controller
         ]);
     }
 
+    public function readyComponents($id) {
+        $order = Checkout::findOrFail($id);
+
+        $order->update([
+            'pickup_status' => 'Pending',
+        ]);
+
+        return redirect()->route('staff.order')->with([
+            'message' => 'Order ready for pickup',
+            'type' => 'success',
+        ]);
+    }
+
     public function pickup($id) {
         $order = OrderedBuild::findOrFail($id);
+
+        $order->update([
+            'pickup_status' => 'Picked up',
+            'pickup_date' =>now(),
+        ]);
+
+        return redirect()->route('staff.order')->with([
+            'message' => 'Order marked as picked up',
+            'type' => 'success',
+        ]);
+    }
+
+    public function pickupComponents($id) {
+        $order = Checkout::findOrFail($id);
 
         $order->update([
             'pickup_status' => 'Picked up',

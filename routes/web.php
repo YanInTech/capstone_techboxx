@@ -122,7 +122,9 @@ Route::prefix('staff')->name('staff.')->group(function () {
     Route::post('order/approve/{id}', [OrderController::class, 'approve'])->name('order.approve');
     Route::post('order/decline/{id}', [OrderController::class, 'decline'])->name('order.decline');
     Route::post('order/ready/{id}', [OrderController::class, 'ready'])->name('order.ready');
+    Route::post('order/ready-components/{id}', [OrderController::class, 'readyComponents'])->name('order.ready-components');
     Route::post('order/pickup/{id}', [OrderController::class, 'pickup'])->name('order.pickup');
+    Route::post('order/pickup-components/{id}', [OrderController::class, 'pickupComponents'])->name('order.pickup-components');
 });
 
 // CUSTOMER ROUTES

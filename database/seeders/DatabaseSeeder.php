@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\CartItem;
 use App\Models\User;
 use App\Models\UserBuild;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -22,8 +23,11 @@ class DatabaseSeeder extends Seeder
             // UserBuildSeeder::class,
 
             // UserBuildSeeder::class,
-            OrderedBuildSeeder::class,
+            // OrderedBuildSeeder::class,
             // SupplierSeeder::class,
+            // ShoppingCartSeeder::class,
+            // CartItemSeeder::class,
+            CheckoutSeeder::class,
         ]);
     }
 }

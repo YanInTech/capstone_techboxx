@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\ShoppingCart;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,11 @@ class CartItemFactory extends Factory
     {
         return [
             //
+            'shopping_cart_id' => ShoppingCart::inRandomOrder()->first()->id,
+            'product_id' => fake()->numberBetween(1, 5),
+            'product_type' => fake()->randomElement(['case','cooler','cpu','motherboard','psu','ram','storage']),
+            'quantity' => fake()->numberBetween(1,5),
+            'total_price' => fake()->randomFloat(2,1000,50000),
         ];
     }
 }

@@ -2,14 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
-use App\Models\UserBuild;
+use App\Models\CartItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\OrderedBuild>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Checkout>
  */
-class OrderedBuildFactory extends Factory
+class CheckoutFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -20,12 +19,13 @@ class OrderedBuildFactory extends Factory
     {
         return [
             //
-            'user_build_id' => UserBuild::inRandomOrder()->first()->id,
-            'status' => 'Pending',
-            'user_id' => null,
-            'payment_status' => 'Paid',
+            'cart_item_id' => CartItem::inRandomOrder()->first()->id,
+            'checkout_date' => now(),
+            'total_cost' => fake()->randomFloat(2,1000,50000),
             'payment_method' => fake()->randomElement(['Paypal', 'Cash']),
+            'payment_status' => 'Paid',
             'pickup_status' => null,
+            'pickup_date' => null,
         ];
     }
 }

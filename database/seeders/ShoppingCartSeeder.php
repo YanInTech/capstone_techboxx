@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ShoppingCart;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,5 +14,6 @@ class ShoppingCartSeeder extends Seeder
     public function run(): void
     {
         //
+        ShoppingCart::factory()->count(5)->create();
     }
 }

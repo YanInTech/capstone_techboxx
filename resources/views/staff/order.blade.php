@@ -3,12 +3,13 @@
 
     <div class="header-container">
         <div class="order-tab">
-            <button class="active">Order Builds</button>
-            <button>Check-out Components</button>
+            <button class="active" id="orderBuilds">Order Builds</button>
+            <button id="checkOutComponents">Check-out Components</button>
         </div>
     </div>
 
-    <section class="section-style !pl-0 !h-[65vh]">
+    {{-- ORDER BUILDS --}}
+    <section class="section-style !pl-0 !h-[65vh]" id="orderBuildsSection">
         <div x-data="{ showModal: false, selectedBuild:{} }" 
             class="h-[55vh]">
             <table class="table mb-3">
@@ -30,7 +31,9 @@
                     <tr 
                         @class([
                             'bg-gray-200 text-gray-500 pointer-events-none' => $order->status === 'Declined',
+                            'hover:opacity-50',
                         ])
+                        @click="showModal = true; selectedBuild = {{ $order->toJson() }};"
                     >
                         <td>{{ $order->id}}</td>
                         <td @click="showModal = true; selectedBuild = {{ $order->toJson() }};"
@@ -89,17 +92,20 @@
                     </div>
                     {{-- <pre x-text="JSON.stringify(selectedBuild, null, 2)"></pre> --}}
                     <div class="build-details-modal">
+                        <div class="build-details-header">
+                            <h4>Customer Information</h4>
+                        </div>
                         <div>
                             <p>Name</p>
-                            <p x-text="selectedBuild.user.first_name + ' ' + selectedBuild.user.last_name"></p>
+                            <p x-text="selectedBuild.user_build.user.first_name + ' ' + selectedBuild.user_build.user.last_name"></p>
                         </div>
                         <div>
                             <p>Contact No</p>
-                            <p x-text="selectedBuild.user.phone"></p>
+                            <p x-text="selectedBuild.user_build.user.phone"></p>
                         </div>
                         <div>
                             <p>Email</p>
-                            <p x-text="selectedBuild.user.email"></p>
+                            <p x-text="selectedBuild.user_build.user.email"></p>
                         </div>
                         <div>
                             <p>Build Name</p>
@@ -157,7 +163,67 @@
             </div>
         </div>
     {{ $orders->links() }}
+    </section>
+
+    {{-- CHECK OUT COMPONENTS --}}
+    <section class="section-style !pl-0 !h-[65vh] hide" id="checkOutComponentsSection">
+        <div class="h-[55vh]">
+            <table class="table mb-3">
+                <thead>
+                    <tr>
+                        <th>Check-Out ID</th>
+                        <th>Check-Out Date</th>
+                        <th>Total Cost</th>
+                        <th>Pickup Status</th>
+                        <th>Payment Method</th>
+                        <th>Payment Status</th>
+                        <th>Pickup Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($checkouts as $checkout)
+                    <tr 
+                        @class([
+                            'bg-gray-200 text-gray-500 pointer-events-none' => $checkout->status === 'Declined',
+                            'hover:opacity-50'
+                        ])
+                        @click="showModal = true; selectedBuild = {{ $checkout->toJson() }};"
+                    >
+                        <td>{{ $checkout->id}}</td>
+                        <td>{{ $checkout->checkout_date ? $checkout->checkout_date->format('Y-m-d') : '-' }}</td>
+                        <td class="text-center !pr-[1.5%]">{{ $checkout->total_cost}}</td>
+                        <td>{{ $checkout->pickup_status ? $checkout->pickup_status : '-' }}</td>
+                        <td>{{ $checkout->payment_method }}</td>
+                        <td>{{ $checkout->payment_status }}</td>
+                        <td>{{ $checkout->pickup_date ? $checkout->pickup_date->format('Y-m-d') : '-' }}</td>
+                        <td class="align-middle text-center">
+                            <div class="flex justify-center gap-2">
+                                @if ($checkout->pickup_status === null)
+                                    <form action={{ route('staff.order.ready-components', $checkout->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="action-button">
+                                            Ready for pickup 
+                                        </button>
+                                    </form>
+                                @elseif ($checkout->pickup_status === 'Pending')
+                                    <form action={{ route('staff.order.pickup-components', $checkout->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="action-button">
+                                            Picked up    
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>    
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    {{ $checkouts->links() }}
 
     </section>
 
 </x-dashboardlayout>
+
