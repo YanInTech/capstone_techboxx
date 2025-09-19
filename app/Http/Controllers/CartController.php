@@ -80,9 +80,6 @@ class CartController extends Controller
         ]);
     }
 
-
-
-
     // Update quantity
     public function update(Request $request, $id)
     {

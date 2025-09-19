@@ -44,8 +44,18 @@ class OrderController extends Controller
             ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
             ->paginate(5);
 
-        $checkouts = Checkout::
-            orderByRaw("
+        $checkouts = Checkout::with([
+                'cartItem.shoppingCart.user',
+                'cartItem.case',
+                'cartItem.cpu',
+                'cartItem.motherboard',
+                'cartItem.gpu',
+                'cartItem.ram',
+                'cartItem.storage',
+                'cartItem.psu',
+                'cartItem.cooler', 
+            ])
+            ->orderByRaw("
                 CASE 
                     WHEN pickup_status = 'Pending' AND pickup_date IS NULL THEN 1
                     WHEN pickup_status IS NULL AND pickup_date IS NULL THEN 2

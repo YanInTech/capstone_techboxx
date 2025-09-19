@@ -167,7 +167,8 @@
 
     {{-- CHECK OUT COMPONENTS --}}
     <section class="section-style !pl-0 !h-[65vh] hide" id="checkOutComponentsSection">
-        <div class="h-[55vh]">
+        <div x-data="{ showModal: false, selectedOrder:{} }" 
+            class="h-[55vh]">
             <table class="table mb-3">
                 <thead>
                     <tr>
@@ -188,7 +189,7 @@
                             'bg-gray-200 text-gray-500 pointer-events-none' => $checkout->status === 'Declined',
                             'hover:opacity-50'
                         ])
-                        @click="showModal = true; selectedBuild = {{ $checkout->toJson() }};"
+                        @click="showModal = true; selectedOrder = {{ $checkout->toJson() }};"
                     >
                         <td>{{ $checkout->id}}</td>
                         <td>{{ $checkout->checkout_date ? $checkout->checkout_date->format('Y-m-d') : '-' }}</td>
@@ -220,6 +221,123 @@
                     @endforeach
                 </tbody>
             </table>
+
+            <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
+                <div class="add-component" @click.away="showModal = false">
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Order Details
+                            <x-icons.close class="close" @click="showModal = false"/>    
+                        </h2>
+                    </div>
+                    {{-- <pre x-text="JSON.stringify(selectedOrder, null, 2)"></pre> --}}
+                    <div class="build-details-modal">
+                        <div class="build-details-header">
+                            <h4>Customer Information</h4>
+                        </div>
+                        <div>
+                            <p>Name</p>
+                            <p x-text="selectedOrder.cart_item.shopping_cart.user.first_name + ' ' + selectedOrder.cart_item.shopping_cart.user.last_name"></p>
+                        </div>
+                        <div>
+                            <p>Contact No</p>
+                            <p x-text="selectedOrder.cart_item.shopping_cart.user.phone"></p>
+                        </div>
+                        <div>
+                            <p>Email</p>
+                            <p x-text="selectedOrder.cart_item.shopping_cart.user.email"></p>
+                        </div>
+                        <div>
+                            <p>Checkout Date</p>
+                            <p x-text="new Date(selectedOrder.checkout_date).toLocaleDateString()"></p>
+                        </div>
+                    </div>
+                    <div class="build-details-modal">
+                        <table class="table mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-if="selectedOrder.cart_item.product_type === 'case'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.case.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'cooler'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.cooler.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'cpu'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.cpu.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'gpu'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.gpu.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'motherboard'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.motherboard.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'psu'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.psu.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'ram'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.ram.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="selectedOrder.cart_item.product_type === 'storage'">
+                                    <tr>
+                                        <td x-text="selectedOrder.cart_item.storage.model"></td>
+                                        <td x-text="selectedOrder.cart_item.product_type"></td>
+                                        <td x-text="selectedOrder.cart_item.quantity"></td>
+                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        </div>
+                    <div class="build-details-modal">
+                        <div class="build-details-price !border-none">
+                            <h4>Total Cost:</h4>
+                            <h4 x-text="'₱' + (parseFloat(selectedOrder.total_cost)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     {{ $checkouts->links() }}
 

@@ -17,21 +17,16 @@
                 <span>Email</span>
                 <span>:</span>
                 <span>{{ Auth::user()->email }}</span>
-                <span class="email-row">
-                    @if (! Auth::user()->hasVerifiedEmail())
-                        <form action="{{ route('verification.send') }}" method="POST">
-                            @csrf
-                            <button type="submit">
-                                <u>(Verifiy Email)</u>
-                            </button>
-                        </form>
-                    @endif    
-                </span>
             </div>
             <div>
                 <span>Contact</span>
                 <span>:</span>
-                <span>{{ Auth::user()->phone_number }}</span>
+                <span>{{ Auth::user()->phone_number ? Auth::user()->phone_number : '-'}}</span>
+                <span class="email-row">
+                    @if (Auth::user()->phone_number === null)
+                        <u @click="showEditModal = true ">(Add Contact Number)</u>
+                    @endif    
+                </span>
             </div>
             <div>
                 {{-- change status to Verified --}}
@@ -53,7 +48,12 @@
     {{-- Edit Modal --}}
     <div x-show="showEditModal" x-cloak x-transition class="modal">
         <div class="modal-form" @click.away="showEditModal = false">
-            <h2 class="text-center">Edit User</h2>
+            <div class="relative !m-0">
+                <h2 class="text-center w-[100%]">
+                    Edit Information
+                    <x-icons.close class="close" @click="showEditModal = false"/>    
+                </h2>
+            </div>
 
             <form action="{{ route('customer.profile.update') }}" method="POST">
                 @csrf
@@ -120,6 +120,7 @@
             </tbody>
         </table>
     </div>
+    {{ $userBuilds->links() }}
 </section>
 
 </x-dashboardlayout>

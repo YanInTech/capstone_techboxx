@@ -19,6 +19,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PasswordChangeController;
+use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SoftwareDetailsController;
@@ -147,3 +148,8 @@ Route::post('/cart/add', [CartController::class, 'add'])->middleware('auth')->na
 Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
 
 Route::get('/brands-by-supplier/{supplierId}', [CaseController::class, 'getBrandsBySupplier']);
+
+Route::match(['get','post'], '/paypal/create', [PayPalController::class, 'create'])->name('paypal.create');
+Route::post('/paypal/capture', [PayPalController::class, 'capture'])->name('paypal.capture');
+Route::get('/paypal/success', [PayPalController::class, 'success'])->name('paypal.success');
+Route::get('/paypal/cancel', [PayPalController::class, 'cancel'])->name('paypal.cancel');

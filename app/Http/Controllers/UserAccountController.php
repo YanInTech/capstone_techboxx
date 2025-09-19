@@ -53,6 +53,7 @@ class UserAccountController extends Controller
             'phone_number' => 'required|string|max:11',
             'address' => 'required|string|max:255',
             'role' => 'required|string',
+            'email_verified_at' => now(),
         ]);
 
         // save password in a hash

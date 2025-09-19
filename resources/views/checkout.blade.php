@@ -40,134 +40,179 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-sm">
-                        @foreach($selectedItems as $item)
-                            @php
-                                $itemTotal = $item->product ? $item->product->price * $item->quantity : 0;
-                            @endphp
-                            <tr class="hover:bg-gray-50 transition">
-                                <!-- Product -->
-                                <td class="p-4">
-                                    <div class="flex items-center gap-4">
-                                        <img src="{{ $item->product->image ?? 'https://via.placeholder.com/72' }}" 
-                                            alt="{{ $item->product->brand }} {{ $item->product->model }}" 
-                                            class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border border-gray-200 shadow-sm" />
-                                        <div>
-                                            <div class="font-semibold text-gray-800">{{ $item->product->brand }} {{ $item->product->model }}</div>
-                                            @if($item->product->sku)
-                                                <div class="text-xs text-gray-500">SKU: {{ $item->product->sku }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="p-4 text-gray-600">{{ ucfirst($item->product_type) ?? '—' }}</td>
-                                <td class="p-4 text-center text-gray-800">₱{{ number_format($item->product->price, 2) }}</td>
-                                <td class="p-4 text-center">
-                                    <span class="px-4 font-semibold text-gray-900 select-none">{{ $item->quantity }}</span>
-                                </td>
-                                <td class="p-4 text-center font-semibold text-gray-900">₱{{ number_format($itemTotal, 2) }}</td>
-                            </tr>
-                        @endforeach
+                        @php
+                            $rows = $selectedItems ?? null;
+                        @endphp
 
+                        @if($rows)
+                            @foreach($rows as $item)
+                                @php $itemTotal = $item->product ? $item->product->price * $item->quantity : 0; @endphp
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-4">
+                                            <img src="{{ $item->product->image ?? 'https://via.placeholder.com/72' }}"
+                                                alt="{{ $item->product->brand }} {{ $item->product->model }}"
+                                                class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                                            <div>
+                                                <div class="font-semibold text-gray-800">{{ $item->product->brand }} {{ $item->product->model }}</div>
+                                                @if($item->product->sku)
+                                                    <div class="text-xs text-gray-500">SKU: {{ $item->product->sku }}</div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-gray-600">{{ ucfirst($item->product_type) ?? '—' }}</td>
+                                    <td class="p-4 text-center text-gray-800">₱{{ number_format($item->product->price, 2) }}</td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-4 font-semibold text-gray-900 select-none">{{ $item->quantity }}</span>
+                                    </td>
+                                    <td class="p-4 text-center font-semibold text-gray-900">₱{{ number_format($itemTotal, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        @else
+                            @php $cart = session('cart', []); @endphp
+                            @foreach($cart as $id => $item)
+                                @php $itemTotal = $item['price'] * $item['quantity']; @endphp
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-4">
+                                            <img src="{{ $item['image'] ?? 'https://via.placeholder.com/72' }}"
+                                                alt="{{ $item['name'] }}"
+                                                class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                                            <div>
+                                                <div class="font-semibold text-gray-800">{{ $item['name'] }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-gray-600">{{ $item['category'] ?? '—' }}</td>
+                                    <td class="p-4 text-center text-gray-800">₱{{ number_format($item['price'], 2) }}</td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-4 font-semibold text-gray-900 select-none">{{ $item['quantity'] }}</span>
+                                    </td>
+                                    <td class="p-4 text-center font-semibold text-gray-900">₱{{ number_format($itemTotal, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
                     </tbody>
                 </table>
             </div>
 
-            <!-- Order Total (below table, aligned right) -->
+            <!-- Order Total -->
             <div class="flex justify-end items-center text-sm font-semibold text-gray-900 mb-6">
                 @php
-                    $grandTotal = collect($selectedItems)->sum(fn($i) => $i->product->price * $i->quantity);
+                    if(isset($rows)) {
+                        $grandTotal = collect($rows)->sum(fn($i) => $i->product->price * $i->quantity);
+                        $qty = collect($rows)->sum('quantity');
+                    } else {
+                        $cart = session('cart', []);
+                        $grandTotal = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
+                        $qty = collect($cart)->sum('quantity');
+                    }
                 @endphp
-                <span class="mr-2">Order Total ({{ collect($selectedItems)->sum('quantity') }} items):</span>
+                <span class="mr-2">Order Total ({{ $qty }} items):</span>
                 <span class="text-lg font-bold">₱{{ number_format($grandTotal, 2) }}</span>
             </div>
 
+            <!-- Checkout Form -->
+            <div class="border border-gray-200 rounded-xl p-5">
+                <form id="checkout-form" action="{{ route('checkout.process') }}" method="POST">
+                    @csrf
 
-    <div class="border border-gray-200 rounded-xl p-5">
-    <form action="{{ route('checkout.process') }}" method="POST">
-        @csrf
+                    <!-- Hidden inputs for backend -->
+                    @php
+                        if (isset($rows) && $rows) {
+                            $selectedIdsJson = collect($rows)->pluck('id')->toJson();
+                        } else {
+                            $cart = session('cart', []);
+                            $selectedIdsJson = json_encode(array_keys($cart));
+                        }
+                    @endphp
 
-        <!-- Name -->
-        <div class="flex items-center mb-3">
-            <span class="w-32 text-gray-700 font-medium">Name:</span>
-            <input type="text" name="guest_name" class="flex-1 border rounded p-2" required>
-        </div>
+                    <input type="hidden" name="selected_items" value='{{ $selectedIdsJson }}'>
+                    <input type="hidden" name="payment_method" id="payment_method" required>
 
-        <!-- Contact Info -->
-        <div class="flex items-center mb-3">
-            <span class="w-32 text-gray-700 font-medium">Email:</span>
-            <input type="email" name="guest_email" class="flex-1 border rounded p-2" required>
-        </div>
-        <div class="flex items-center mb-3">
-            <span class="w-32 text-gray-700 font-medium">Phone:</span>
-            <input type="text" name="guest_phone" class="flex-1 border rounded p-2" required>
-        </div>
-        <div class="flex items-center mb-3">
-            <span class="w-32 text-gray-700 font-medium">Address:</span>
-            <input type="text" name="address" class="flex-1 border rounded p-2" required>
-        </div>
+                    <!-- Name -->
+                    <div class="flex items-center mb-3">
+                        <span class="w-32 text-gray-700 font-medium">Name:</span>
+                        <span class="flex-1 text-gray-900 font-semibold">
+                            {{ Auth::user()->first_name ?? '' }} {{ Auth::user()->last_name ?? '' }}
+                        </span>
+                    </div>
 
-        <!-- Payment Methods -->
-        <div class="flex items-center mb-6">
-            <p class="w-40 text-gray-700 font-medium">Payment Method:</p>
-            <div class="flex gap-4">
-                <!-- Hidden input to store selected method -->
-                <input type="hidden" name="payment_method" id="payment_method" required>
+                    <!-- Contact Info -->
+                    <div class="flex items-center mb-3">
+                        <span class="w-32 text-gray-700 font-medium">Contact Info:</span>
+                        <span class="flex-1 text-gray-900 font-semibold">
+                            {{ Auth::user()->phone_number ?? '' }}
+                        </span>
+                    </div>
 
-                <!-- PayPal button -->
-                <button 
-                    type="button" 
-                    onclick="selectPayment('PayPal', this)" 
-                    class="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-semibold hover:bg-yellow-500">
-                    PayPal
-                </button>
+                    <!-- Payment Methods -->
+                    <div class="flex items-center mb-6">
+                        <p class="w-40 text-gray-700 font-medium">Payment Method:</p>
+                        <div class="flex gap-4">
+                            <button
+                                type="button"
+                                onclick="selectPayment('PayPal', this)"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
+                                PayPal
+                            </button>
+                            <button
+                                type="button"
+                                onclick="selectPayment('Cash on Pickup', this)"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
+                                Cash On Pickup
+                            </button>
+                        </div>
+                    </div>
 
-                <!-- Cash On Pickup button -->
-                <button 
-                    type="button" 
-                    onclick="selectPayment('Cash on Pickup', this)" 
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">
-                    Cash On Pickup
-                </button>
+                    <!-- Total Payment -->
+                    <div class="flex justify-end mb-4">
+                        <span class="text-gray-700 mr-2">Total Payment:</span>
+                        <span class="text-pink-600 font-bold text-lg">
+                            ₱{{ number_format($grandTotal, 2) }}
+                        </span>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <div class="flex justify-end mb-6">
+                        <button id="checkout-btn" type="submit"
+                            class="bg-pink-400 hover:bg-pink-600 text-white px-6 py-3 rounded font-semibold transition">
+                            Check Out
+                        </button>
+                    </div>
+                </form>
             </div>
+
         </div>
     </div>
-        
 
-        <!-- Total Payment -->
-        <div class="flex justify-end mb-4">
-            <span class="text-gray-700 mr-2">Total Payment:</span>
-            <span class="text-pink-600 font-bold text-lg">
-                ₱{{ number_format($grandTotal, 2) }}
-            </span>
-        </div>
+    <!-- Scripts -->
+    <script>
+        let selectedPayment = null;
 
-        <!-- Checkout Button -->
-        <div class="flex justify-end">
-            <button type="submit"
-                class="bg-pink-400 hover:bg-pink-600 text-white px-6 py-3 rounded font-semibold transition">
-                Check Out
-            </button>
-        </div>
-    </form>
-</div>
+        function selectPayment(method, btn) {
+            selectedPayment = method;
+            document.getElementById('payment_method').value = method;
 
-<script>
-    function selectPayment(method, btn) {
-        // Set hidden input value
-        document.getElementById('payment_method').value = method;
+            // reset styles
+            document.querySelectorAll('[onclick^="selectPayment"]').forEach(b => {
+                b.classList.remove('bg-yellow-400', 'text-gray-900');
+                b.classList.add('bg-gray-200', 'text-gray-700');
+            });
 
-        // Reset button styles
-        document.querySelectorAll('[onclick^="selectPayment"]').forEach(b => {
-            b.classList.remove('bg-yellow-400', 'text-gray-900');
-            b.classList.add('bg-gray-200', 'text-gray-700');
+            // highlight
+            btn.classList.remove('bg-gray-200', 'text-gray-700');
+            btn.classList.add('bg-yellow-400', 'text-gray-900');
+        }
+
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            if (!selectedPayment) {
+                e.preventDefault();
+                alert('Please select a payment method before checking out.');
+                return false;
+            }
         });
-
-        // Highlight selected button
-        btn.classList.remove('bg-gray-200', 'text-gray-700');
-        btn.classList.add('bg-yellow-400', 'text-gray-900');
-    }
-</script>
-
-
+    </script>
 </body>
 </html>

@@ -19,9 +19,11 @@ class EmailVerificationNotificationController extends Controller
 
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with([
-            'message' => 'A new verififcation link has been sent to your email address.',
-            'type' => 'success',
-        ]);
+        // return back()->with([
+        //     'message' => 'A new verififcation link has been sent to your email address.',
+        //     'type' => 'success',
+        // ]);
+
+        return back()->with('status', 'verification-link-sent');
     }
 }

@@ -26,6 +26,8 @@ class Checkout extends Model
     ];
 
     public function cartItem() {
-        return $this->hasMany(CartItem::class);
+        return $this->belongsTo(CartItem::class, 'cart_item_id');
     }
+
+    
 }
