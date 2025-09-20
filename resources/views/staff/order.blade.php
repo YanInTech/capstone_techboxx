@@ -167,7 +167,7 @@
 
     {{-- CHECK OUT COMPONENTS --}}
     <section class="section-style !pl-0 !h-[65vh] hide" id="checkOutComponentsSection">
-        <div x-data="{ showModal: false, selectedOrder:{} }" 
+        <div x-data="orderModal()" 
             class="h-[55vh]">
             <table class="table mb-3">
                 <thead>
@@ -183,43 +183,54 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($checkouts as $checkout)
-                    <tr 
-                        @class([
-                            'bg-gray-200 text-gray-500 pointer-events-none' => $checkout->status === 'Declined',
-                            'hover:opacity-50'
-                        ])
-                        @click="showModal = true; selectedOrder = {{ $checkout->toJson() }};"
-                    >
-                        <td>{{ $checkout->id}}</td>
-                        <td>{{ $checkout->checkout_date ? $checkout->checkout_date->format('Y-m-d') : '-' }}</td>
-                        <td class="text-center !pr-[1.5%]">{{ $checkout->total_cost}}</td>
-                        <td>{{ $checkout->pickup_status ? $checkout->pickup_status : '-' }}</td>
-                        <td>{{ $checkout->payment_method }}</td>
-                        <td>{{ $checkout->payment_status }}</td>
-                        <td>{{ $checkout->pickup_date ? $checkout->pickup_date->format('Y-m-d') : '-' }}</td>
-                        <td class="align-middle text-center">
-                            <div class="flex justify-center gap-2">
-                                @if ($checkout->pickup_status === null)
-                                    <form action={{ route('staff.order.ready-components', $checkout->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="action-button">
-                                            Ready for pickup 
-                                        </button>
-                                    </form>
-                                @elseif ($checkout->pickup_status === 'Pending')
-                                    <form action={{ route('staff.order.pickup-components', $checkout->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="action-button">
-                                            Picked up    
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>    
+                    @foreach ($shoppingCarts as $cart)
+                        @php
+                            $checkout = $cart->cartItem->flatMap->checkout;
+                            $totalCost = $checkout->sum('total_cost');
+                            $checkoutDate = $checkout->min('checkout_date');
+                            $pickupStatus = $checkout->pluck('pickup_status')->unique()->implode('');
+                            $paymentMethod = $checkout->pluck('payment_method')->unique()->implode('');
+                            $paymentStatus = $checkout->pluck('payment_status')->unique()->implode('');
+                            $pickupDate = $checkout->min('pickup_date');
+                        @endphp
+
+                        <tr 
+                            @class([
+                                'bg-gray-200 text-gray-500 pointer-events-none' => $pickupStatus === 'Declined',
+                                'hover:opacity-50'
+                            ])
+                            @click="showModal = true; selectedOrder = {{ $cart->toJson() }};"
+                        >
+                            <td>{{ $cart->id }}</td>
+                            <td>{{ $checkoutDate ? \Carbon\Carbon::parse($checkoutDate)->format('Y-m-d') : '-' }}</td>
+                            <td class="text-center !pr-[1.5%]">{{ $totalCost }}</td>
+                            <td>{{ $pickupStatus ?: '-' }}</td>
+                            <td>{{ $paymentMethod }}</td>
+                            <td>{{ $paymentStatus }}</td>
+                            <td>{{ $pickupDate ? \Carbon\Carbon::parse($pickupDate)->format('Y-m-d') : '-' }}</td>
+                            <td class="align-middle text-center">
+                                <div class="flex justify-center gap-2">
+                                    @if (empty($pickupStatus) || is_null($pickupStatus))
+                                        <form action="{{ route('staff.order.ready-components', $cart->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-button">
+                                                Ready for pickup 
+                                            </button>
+                                        </form>
+                                    @elseif (str_contains($pickupStatus, 'Pending'))
+                                        <form action="{{ route('staff.order.pickup-components', $cart->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-button">
+                                                Picked up    
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>    
                     @endforeach
                 </tbody>
+
             </table>
 
             <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
@@ -237,19 +248,19 @@
                         </div>
                         <div>
                             <p>Name</p>
-                            <p x-text="selectedOrder.cart_item.shopping_cart.user.first_name + ' ' + selectedOrder.cart_item.shopping_cart.user.last_name"></p>
+                            <p x-text="selectedOrder.user.first_name + ' ' + selectedOrder.user.last_name"></p>
                         </div>
                         <div>
                             <p>Contact No</p>
-                            <p x-text="selectedOrder.cart_item.shopping_cart.user.phone"></p>
+                            <p x-text="selectedOrder.user.phone_number"></p>
                         </div>
                         <div>
                             <p>Email</p>
-                            <p x-text="selectedOrder.cart_item.shopping_cart.user.email"></p>
+                            <p x-text="selectedOrder.user.email"></p>
                         </div>
                         <div>
                             <p>Checkout Date</p>
-                            <p x-text="new Date(selectedOrder.checkout_date).toLocaleDateString()"></p>
+                            <p x-text="new Date(selectedOrder.cart_item[0]?.checkout[0]?.checkout_date).toLocaleDateString()"></p>
                         </div>
                     </div>
                     <div class="build-details-modal">
@@ -263,68 +274,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template x-if="selectedOrder.cart_item.product_type === 'case'">
+                                <template x-for="item in selectedOrder.cart_item" :key="item.id">
                                     <tr>
-                                        <td x-text="selectedOrder.cart_item.case.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'cooler'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.cooler.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'cpu'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.cpu.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'gpu'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.gpu.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'motherboard'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.motherboard.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'psu'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.psu.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'ram'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.ram.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
-                                    </tr>
-                                </template>
-                                <template x-if="selectedOrder.cart_item.product_type === 'storage'">
-                                    <tr>
-                                        <td x-text="selectedOrder.cart_item.storage.model"></td>
-                                        <td x-text="selectedOrder.cart_item.product_type"></td>
-                                        <td x-text="selectedOrder.cart_item.quantity"></td>
-                                        <td x-text="selectedOrder.cart_item.total_price"></td>
+                                        <td x-text="getComponentModel(item)"></td>
+                                        <td x-text="item.product_type"></td>
+                                        <td x-text="item.quantity"></td>
+                                        <td x-text="item.total_price"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -333,15 +288,41 @@
                     <div class="build-details-modal">
                         <div class="build-details-price !border-none">
                             <h4>Total Cost:</h4>
-                            <h4 x-text="'₱' + (parseFloat(selectedOrder.total_cost)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                            <h4
+                                x-text="'₱' + (
+                                    selectedOrder.cart_item
+                                    ?.flatMap(item => item.checkout || [])
+                                    .reduce((sum, checkout) => sum + parseFloat(checkout.total_cost || 0), 0)
+                                ).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                                ></h4>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    {{ $checkouts->links() }}
+    {{ $shoppingCarts->links() }}
 
     </section>
 
 </x-dashboardlayout>
+
+<script>
+    function orderModal() {
+        return {
+            showModal: false,
+            selectedOrder: {},
+            getComponentModel(item) {
+                if (item.product_type === 'case' && item.case) return item.case.model;
+                if (item.product_type === 'cpu' && item.cpu) return item.cpu.model;
+                if (item.product_type === 'gpu' && item.gpu) return item.gpu.model;
+                if (item.product_type === 'motherboard' && item.motherboard) return item.motherboard.model;
+                if (item.product_type === 'ram' && item.ram) return item.ram.model;
+                if (item.product_type === 'storage' && item.storage) return item.storage.model;
+                if (item.product_type === 'psu' && item.psu) return item.psu.model;
+                if (item.product_type === 'cooler' && item.cooler) return item.cooler.model;
+                return 'Unknown';
+            }
+        }
+    }
+</script>
 

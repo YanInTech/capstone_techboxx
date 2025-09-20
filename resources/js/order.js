@@ -16,3 +16,4 @@ checkOutComponents.addEventListener('click', function() {
     orderBuildsSection.classList.add('hide');
     checkOutComponentsSection.classList.remove('hide');
 })
+

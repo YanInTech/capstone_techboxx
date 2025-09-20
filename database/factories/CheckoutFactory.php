@@ -22,8 +22,8 @@ class CheckoutFactory extends Factory
             'cart_item_id' => CartItem::inRandomOrder()->first()->id,
             'checkout_date' => now(),
             'total_cost' => fake()->randomFloat(2,1000,50000),
-            'payment_method' => fake()->randomElement(['Paypal', 'Cash']),
-            'payment_status' => 'Paid',
+            'payment_method' => 'Cash',
+            'payment_status' => 'Pending',
             'pickup_status' => null,
             'pickup_date' => null,
         ];

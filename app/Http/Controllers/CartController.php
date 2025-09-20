@@ -18,7 +18,7 @@ class CartController extends Controller
         $shoppingCart = $user ? $user->shoppingCart : null;
 
         // If the user has a shopping cart, fetch the cart items
-        $cart = $shoppingCart ? $shoppingCart->cartItem : [];
+        $cart = $shoppingCart ? $shoppingCart->cartItem()->where('processed', false)->get() : [];
 
         // Fetch product data dynamically based on product type
         foreach ($cart as $item) {
@@ -47,19 +47,24 @@ class CartController extends Controller
         $cart = $user->shoppingCart;
 
         if ($cart) {
-            // Cart exists — check if item is already in cart
-            $cartItem = $cart->cartItem()->where('product_id', $request->input('product_id'))->first();
+            // Cart exists — check if the item with both product_id and product_type is already in the cart
+            $cartItem = $cart->cartItem()->where('product_id', $request->input('product_id'))
+                                        ->where('product_type', $request->input('component_type'))
+                                        ->first();
 
             if ($cartItem) {
+                // If item already exists, increment quantity and update the total price
                 $cartItem->increment('quantity');
-                $newTotalPrice = $cartItem->total_price * 2;
+                $newTotalPrice = $cartItem->total_price * $cartItem->quantity;
                 $cartItem->update(['total_price' => $newTotalPrice]);
             } else {
+                // If item does not exist, create a new cart item
                 $cart->cartItem()->create([
                     'product_id' => $request->input('product_id'),
                     'product_type' => $request->input('component_type'),
                     'quantity' => 1,
                     'total_price' => $request->input('price'),
+                    'processed' => false,
                 ]);
             }
         } else {
@@ -71,8 +76,10 @@ class CartController extends Controller
                 'product_type' => $request->input('component_type'),
                 'quantity' => 1,
                 'total_price' => $request->input('price'),
+                'processed' => false,
             ]);
         }
+
 
         return back()->with([
             'message' => $request->input('name') . ' added to cart!',

@@ -52,6 +52,7 @@ return [
     'notify_url'     => env('PAYPAL_NOTIFY_URL', ''), 
     'locale'         => 'en_US',
     'validate_ssl'   => true,
-    ],
+],
+
 
 ];

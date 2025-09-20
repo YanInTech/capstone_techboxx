@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('product_type');
             $table->integer('quantity');
             $table->decimal('total_price',10,2);
+            $table->boolean('processed')->default(false);
         });
     }
 

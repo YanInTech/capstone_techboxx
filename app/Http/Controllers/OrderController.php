@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Checkout;
 use App\Models\OrderedBuild;
+use App\Models\ShoppingCart;
 use App\Models\UserBuild;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -44,8 +46,16 @@ class OrderController extends Controller
             ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
             ->paginate(5);
 
-        $checkouts = Checkout::with([
-                'cartItem.shoppingCart.user',
+        $shoppingCarts = ShoppingCart::select('shopping_carts.*', 'checkouts.pickup_status', 'checkouts.pickup_date')
+            ->distinct()
+            ->join('cart_items', 'cart_items.shopping_cart_id', '=', 'shopping_carts.id')
+            ->join('checkouts', 'checkouts.cart_item_id', '=', 'cart_items.id')
+            ->with([
+                'user',
+                'cartItem' => function ($query) {
+                    $query->whereHas('checkout'); // ✅ only include cartItem that have checkout
+                },
+                'cartItem.checkout',
                 'cartItem.case',
                 'cartItem.cpu',
                 'cartItem.motherboard',
@@ -53,20 +63,26 @@ class OrderController extends Controller
                 'cartItem.ram',
                 'cartItem.storage',
                 'cartItem.psu',
-                'cartItem.cooler', 
+                'cartItem.cooler',
             ])
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('checkouts')
+                    ->whereColumn('checkouts.cart_item_id', 'cart_items.id');
+            })
             ->orderByRaw("
                 CASE 
-                    WHEN pickup_status = 'Pending' AND pickup_date IS NULL THEN 1
-                    WHEN pickup_status IS NULL AND pickup_date IS NULL THEN 2
-                    WHEN pickup_status = 'Picked up' AND pickup_date IS NOT NULL THEN 3
+                    WHEN checkouts.pickup_status = 'Pending' AND checkouts.pickup_date IS NULL THEN 1
+                    WHEN checkouts.pickup_status IS NULL AND checkouts.pickup_date IS NULL THEN 2
+                    WHEN checkouts.pickup_status = 'Picked up' AND checkouts.pickup_date IS NOT NULL THEN 3
                     ELSE 4
                 END
             ")
-            ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
+            ->orderBy('shopping_carts.created_at', 'asc')
             ->paginate(5);
 
-        return view('staff.order', compact('orders', 'checkouts'));
+
+        return view('staff.order', compact('orders', 'shoppingCarts'));
     }
 
 
@@ -111,18 +127,40 @@ class OrderController extends Controller
         ]);
     }
 
-    public function readyComponents($id) {
-        $order = Checkout::findOrFail($id);
+    // public function readyComponents($id) {
+    //     $order = Checkout::findOrFail($id);
 
-        $order->update([
-            'pickup_status' => 'Pending',
-        ]);
+    //     $order->update([
+    //         'pickup_status' => 'Pending',
+    //     ]);
+
+    //     return redirect()->route('staff.order')->with([
+    //         'message' => 'Order ready for pickup',
+    //         'type' => 'success',
+    //     ]);
+    // }
+    
+    public function readyComponents($cartId)
+    {
+        // Find the shopping cart by ID
+        $cart = ShoppingCart::with('cartItem.checkout')->findOrFail($cartId);
+
+        // Loop through each cart item and update its related checkout
+        foreach ($cart->cartItem as $cartItem) {
+            foreach ($cartItem->checkout as $checkouts) {
+                $checkouts->update([
+                    'pickup_status' => 'Pending',
+                ]);
+            }
+        }
 
         return redirect()->route('staff.order')->with([
-            'message' => 'Order ready for pickup',
+            'message' => 'All related cart items are now ready for pickup',
             'type' => 'success',
         ]);
     }
+
+
 
     public function pickup($id) {
         $order = OrderedBuild::findOrFail($id);
@@ -138,19 +176,27 @@ class OrderController extends Controller
         ]);
     }
 
-    public function pickupComponents($id) {
-        $order = Checkout::findOrFail($id);
+    public function pickupComponents($cartId)
+    {
+        // Find the shopping cart by ID and load related cart items and their checkouts
+        $cart = ShoppingCart::with('cartItem.checkout')->findOrFail($cartId);
 
-        $order->update([
-            'pickup_status' => 'Picked up',
-            'pickup_date' =>now(),
-        ]);
+        // Loop through each cart item and update its related checkout to "Picked up"
+        foreach ($cart->cartItem as $cartItem) {
+            foreach ($cartItem->checkout as $checkouts) {
+                $checkouts->update([
+                    'pickup_status' => 'Picked up',
+                    'pickup_date' => now(),
+                ]);
+            }
+        }
 
         return redirect()->route('staff.order')->with([
-            'message' => 'Order marked as picked up',
+            'message' => 'All related cart items have been marked as picked up',
             'type' => 'success',
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

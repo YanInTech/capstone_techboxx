@@ -18,6 +18,10 @@ class CheckoutController extends Controller
         $selectedIds = json_decode($selectedItemsRaw, true) ?: [];
         $paymentMethod = $request->input('payment_method', 'Cash on Pickup');
 
+        if (strtolower($paymentMethod) === 'cash on pickup') {
+            $paymentMethod = 'Cash';
+        }
+
         if ($user) {
             $shoppingCart = $user->shoppingCart;
             if (!$shoppingCart) {
@@ -37,83 +41,38 @@ class CheckoutController extends Controller
 
             $grandTotal = $cartItems->sum(fn($i) => ($i->product->price ?? 0) * ($i->quantity ?? 0));
 
-            // $order = Order::create([
-            //     'user_id' => $user->id,
-            //     'payment_method' => $paymentMethod,
-            //     'total' => $grandTotal,
-            //     'status' => 'pending',
-            // ]);
-
+            // Iterate through selected cart items and create Checkout records
             foreach ($cartItems as $ci) {
                 $product = $ci->product;
                 $name = $product->brand ?? ($product->name ?? ($product->model ?? 'Product'));
-                Checkout::create([
+
+                // Prepare the data before creating the Checkout record
+                $data = [
                     'cart_item_id' => $ci->id,
-                    'product_id' => $ci->product_id,
-                    'name' => $name,
-                    'quantity' => $ci->quantity,
-                    'price' => $product->price ?? 0,
-                    'subtotal' => ($product->price ?? 0) * $ci->quantity,
+                    'checkout_date' => now()->toDateTimeString(),
+                    'total_cost' => $ci->total_price,
+                    'payment_method' => $paymentMethod,
+                    'payment_status' => $paymentMethod === 'Cash' ? 'Pending' : 'Paid',
+                ];
+
+                // Create the Checkout record for each cart item
+                Checkout::create($data);
+
+                $ci->update(['processed' => true]);
+            }
+
+            // Redirect to PayPal payment page if PayPal is selected
+            if ($paymentMethod === 'PayPal') {
+                return redirect()->route('paypal.create', [
+                    'amount' => $grandTotal,
                 ]);
             }
 
-            // if ($paymentMethod === 'PayPal') {
-            //     return redirect()->route('paypal.create', [
-            //         'order_id' => $order->id,
-            //         'amount' => $grandTotal,
-            //     ]);
-            // }
-
-            foreach ($cartItems as $ci) {
-                $ci->delete();
-            }
-
+            // If payment is Cash on Pickup, no need to delete the cart items
+            // Just show the success message
             return redirect()->route('cart.index')->with('success', 'Order placed successfully!');
+
         }
-
-        $sessionCart = session()->get('cart', []);
-        if (empty($sessionCart)) {
-            return redirect()->back()->with('error', 'Your cart is empty!');
-        }
-
-        $items = [];
-        foreach ($selectedIds as $k) {
-            if (isset($sessionCart[$k])) {
-                $items[$k] = $sessionCart[$k];
-            }
-        }
-
-        $grandTotal = collect($items)->sum(fn($i) => $i['price'] * $i['quantity']);
-
-        $order = Order::create([
-            'user_id' => null,
-            'payment_method' => $paymentMethod,
-            'total' => $grandTotal,
-            'status' => 'pending',
-        ]);
-
-        foreach ($items as $productId => $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $productId,
-                'name' => $item['name'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'subtotal' => $item['price'] * $item['quantity'],
-            ]);
-        }
-
-        if ($paymentMethod === 'PayPal') {
-            return redirect()->route('paypal.create', [
-                'order_id' => $order->id,
-                'amount' => $grandTotal,
-            ]);
-        }
-
-        foreach ($selectedIds as $id) {
-            unset($sessionCart[$id]);
-        }
-        session()->put('cart', $sessionCart);
 
         return redirect()->route('cart.index')->with('success', 'Order placed successfully!');
     }
