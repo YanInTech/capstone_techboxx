@@ -114,7 +114,7 @@ interact('.component-button').draggable({
             }
 
             if (draggingId === 'motherboard' && caseModel) {
-                const moboSlot = caseModel.getObjectByName('Slot_GPU');
+                const moboSlot = caseModel.getObjectByName('Slot_Mobo');
                 if (moboSlot) {
                     moboMarker = new THREE.Mesh(
                     new THREE.BoxGeometry(3, 3, 0.1),
@@ -204,7 +204,7 @@ async function spawnCase(position, modelUrl) {
         controls.target.copy(model.position);
         controls.update();
 
-        const gpuSlot = model.getObjectByName('Slot_GPU');
+        const gpuSlot = model.getObjectByName('Slot_Mobo');
         if (gpuSlot) {
         moboSlotPosition = new THREE.Vector3();
         gpuSlot.getWorldPosition(moboSlotPosition);

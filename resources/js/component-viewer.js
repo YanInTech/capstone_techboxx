@@ -6,10 +6,13 @@ import interact from 'https://esm.sh/interactjs@1.10.17';
 
 let scene, camera, renderer, controls;
 let caseModel = null;
-let gpuModel = null;
-let gpuSlotPosition = null;
+let moboModel = null;
+let cpuModel = null;
+let moboSlotPosition = null;
+let cpuSlotPosition = null;
 let selectedCaseModelUrl = null;
-let selectedGpuModelUrl = null;
+let selectedMoboModelUrl = null;
+let selectedCpuModelUrl = null;
 
 function setupCatalogClickHandlers() {
   document.querySelectorAll('.catalog-item').forEach(item => {
@@ -29,8 +32,11 @@ function setupCatalogClickHandlers() {
         // SPAWNS CASE IN THE SCENE
         spawnCase(new THREE.Vector3(0,0,0), selectedCaseModelUrl);
       } else if (type === 'motherboard') {
-        selectedGpuModelUrl = modelUrl;
-        console.log('Selected model URL for dragging:', selectedGpuModelUrl);
+        selectedMoboModelUrl = modelUrl;
+        console.log('Selected model URL for dragging:', selectedMoboModelUrl);
+      } else if (type === 'cpu') {
+        selectedCpuModelUrl = modelUrl;
+        console.log('Selected model URL for draggin:', selectedCpuModelUrl);
       }
 
     })
@@ -93,8 +99,9 @@ function setupDragAndDrop() {
   let draggingId = null;
   let draggingEl = null;
   let originalSlotMaterial = null;
-  let gpumarker = null;
+  let mobomarker = null;
   let casemarker = null;
+  let cpumarker = null;
   let wasDroppedSuccessfully = false; // Track if the drop was successful
 
   interact('.draggable').draggable({
@@ -107,13 +114,13 @@ function setupDragAndDrop() {
         // Change the cursor to grabbing when drag starts
         document.body.style.cursor = 'grabbing'; 
 
-        // If dragging GPU, highlight the GPU slot
+        // If dragging Mobo, highlight the Mobo slot
         if (draggingId === 'motherboard' && caseModel) {
-          const gpuSlot = caseModel.getObjectByName('Slot_GPU');
-          if (gpuSlot) {
+          const moboSlot = caseModel.getObjectByName('Slot_Mobo');
+          if (moboSlot) {
             // Save the original material and change to the highlighted one
-            originalSlotMaterial = gpuSlot.material; // Store the original material
-            gpuSlot.material = new THREE.MeshStandardMaterial({
+            originalSlotMaterial = moboSlot.material; // Store the original material
+            moboSlot.material = new THREE.MeshStandardMaterial({
               color: 0x00ff00,        // Bright green to show it's active
               emissive: 0x003300,     // A little glowing effect
               transparent: true,
@@ -121,7 +128,7 @@ function setupDragAndDrop() {
             });
 
             // Optionally, create a visible marker at the slot position
-            gpumarker = new THREE.Mesh(
+            mobomarker = new THREE.Mesh(
               new THREE.BoxGeometry(2, 2, 0.1),
               new THREE.MeshStandardMaterial({
                 color: 0x00ff00,
@@ -133,13 +140,49 @@ function setupDragAndDrop() {
 
             
             // Rotate 45 degrees on the X axis
-            gpumarker.rotation.x = 0; // No rotation on the Y axis
-            gpumarker.rotation.y = Math.PI / 2;  // 90 degrees        
-            gpumarker.rotation.z = 0;          // No rotation on the Z axis
-            gpumarker.position.set(gpuSlotPosition.x, gpuSlotPosition.y + -1, gpuSlotPosition.z + -1.4); // Position the gpumarker
-            scene.add(gpumarker);
+            mobomarker.rotation.x = 0; // No rotation on the Y axis
+            mobomarker.rotation.y = Math.PI / 2;  // 90 degrees        
+            mobomarker.rotation.z = 0;          // No rotation on the Z axis
+            mobomarker.position.set(moboSlotPosition.x, moboSlotPosition.y + -1, moboSlotPosition.z + -1.4); // Position the mobomarker
+            scene.add(mobomarker);
+          }
+        } 
+
+        // If dragging Mobo, highlight the Mobo slot
+        if (draggingId === 'cpu' && moboModel) {
+          const cpuSlot = moboModel.getObjectByName('Slot_Cpu');
+          if (cpuSlot) {
+            // Save the original material and change to the highlighted one
+            originalSlotMaterial = cpuSlot.material; // Store the original material
+            cpuSlot.material = new THREE.MeshStandardMaterial({
+              color: 0x00ff00,        // Bright green to show it's active
+              emissive: 0x003300,     // A little glowing effect
+              transparent: true,
+              opacity: 0.4,           // Semi-transparent
+            });
+
+            // Optionally, create a visible marker at the slot position
+            cpumarker = new THREE.Mesh(
+              new THREE.BoxGeometry(2, 2, 0.1),
+              new THREE.MeshStandardMaterial({
+                color: 0x00ff00,
+                emissive: 0x003300,
+                transparent: true,
+                opacity: 0.4,
+              })
+            );
+
+            
+            // Rotate 45 degrees on the X axis
+            cpumarker.rotation.x = 0; // No rotation on the Y axis
+            cpumarker.rotation.y = Math.PI / 2;  // 90 degrees        
+            cpumarker.rotation.z = 0;          // No rotation on the Z axis
+            cpumarker.position.set(moboSlotPosition.x, moboSlotPosition.y + -1, moboSlotPosition.z + -1.4); // Position the cpumarker
+            scene.add(cpumarker);
           }
         }
+
+
       },
       move(event) {
         // Optional: Add extra visual feedback during dragging if necessary
@@ -163,9 +206,12 @@ function setupDragAndDrop() {
             console.warn('No model Url provided for case');
           }
         } else if (dropPos && draggingId === 'motherboard' && caseModel) {
-          spawnGPUAtSlot();
+          spawnMoboAtSlot();
           wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
-        }
+        } else if (dropPos && draggingId === 'cpu' && moboModel) {
+          spawnCpuAtSlot();
+          wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
+        } 
 
         // If drop was unsuccessful, remove the dragged model (if any)
         if (!wasDroppedSuccessfully) {
@@ -173,9 +219,13 @@ function setupDragAndDrop() {
             scene.remove(caseModel);  // Remove the case if it was dropped unsuccessfully
             caseModel = null;
           }
-          if (draggingId === 'motherboard' && gpuModel) {
-            scene.remove(gpuModel);  // Remove the GPU if it was dropped unsuccessfully
-            gpuModel = null;
+          if (draggingId === 'motherboard' && moboModel) {
+            scene.remove(moboModel);  // Remove the GPU if it was dropped unsuccessfully
+            moboModel = null;
+          }
+          if (draggingId === 'cpu' && cpuModel) {
+            scene.remove(cpuModel);  // Remove the GPU if it was dropped unsuccessfully
+            cpuModel = null;
           }
 
           // Reset the marker to the center when the drop fails
@@ -189,15 +239,19 @@ function setupDragAndDrop() {
           scene.remove(casemarker);
           casemarker = null;
         }
-        if (gpumarker) {
-          scene.remove(gpumarker);
-          gpumarker = null;
+        if (mobomarker) {
+          scene.remove(mobomarker);
+          mobomarker = null;
+        }
+        if (cpumarker) {
+          scene.remove(cpumarker);
+          cpumarker = null;
         }
 
         if (originalSlotMaterial) {
-          const gpuSlot = caseModel.getObjectByName('Slot_GPU');
-          if (gpuSlot) {
-            gpuSlot.material = originalSlotMaterial; // Restore the original material
+          const moboSlot = caseModel.getObjectByName('Slot_Mobo');
+          if (moboSlot) {
+            moboSlot.material = originalSlotMaterial; // Restore the original material
           }
         }
 
@@ -251,13 +305,13 @@ async function spawnCase(position, modelUrl) {
     controls.target.copy(model.position);
     controls.update();
 
-    const gpuSlot = model.getObjectByName('Slot_GPU');
-    if (gpuSlot) {
-      gpuSlotPosition = new THREE.Vector3();
-      gpuSlot.getWorldPosition(gpuSlotPosition);
-      console.log('GPU slot position:', gpuSlotPosition);
+    const moboSlot = model.getObjectByName('Slot_Mobo');
+    if (moboSlot) {
+      moboSlotPosition = new THREE.Vector3();
+      moboSlot.getWorldPosition(moboSlotPosition);
+      console.log('GPU slot position:', moboSlotPosition);
     } else {
-      gpuSlotPosition = new THREE.Vector3(0, 0, 0);
+      moboSlotPosition = new THREE.Vector3(0, 0, 0);
       console.warn('GPU slot not found in case model');
     }
   } catch (error) {
@@ -265,27 +319,65 @@ async function spawnCase(position, modelUrl) {
   }
 }
 
-async function spawnGPUAtSlot() {
-  if (!gpuSlotPosition) {
+async function spawnMoboAtSlot() {
+  if (!moboSlotPosition) {
     alert('GPU slot position unknown');
     return;
   }
 
-  if (!selectedGpuModelUrl) {
+  if (!selectedMoboModelUrl) {
     alert('Please select a GPU model first.');
     return;
   }
 
-  if (gpuModel) {
-    scene.remove(gpuModel);
-    gpuModel = null;
+  if (moboModel) {
+    scene.remove(moboModel);
+    moboModel = null;
   }
+  
   try {
-    const model = await loadGLTFModel(selectedGpuModelUrl);
-    model.position.copy(gpuSlotPosition);
+    const model = await loadGLTFModel(selectedMoboModelUrl);
+    model.position.copy(moboSlotPosition);
     scene.add(model);
-    gpuModel = model;
+    moboModel = model;
+
+    const cpuSlot = model.getObjectByName('Slot_Cpu');
+    if (cpuSlot) {
+      cpuSlotPosition = new THREE.Vector3();
+      cpuSlot.getWorldPosition(cpuSlotPosition);
+      console.log('CPU slot position:', cpuSlotPosition);
+    } else {
+      cpuSlotPosition = new THREE.Vector3(0, 0, 0);
+      console.warn('CPU slot not found in GPU model');
+    }
   } catch (error) {
     console.error('Failed to load GPU model', error);
   }
 }
+
+async function spawnCpuAtSlot() {
+  if (!cpuSlotPosition) {
+    alert('CPU slot position unknown');
+    return;
+  }
+
+  if (!selectedCpuModelUrl) {
+    alert('Please select a CPU model first.');
+    return;
+  }
+
+  if (cpuModel) {
+    scene.remove(cpuModel);
+    cpuModel = null;
+  }
+  
+  try {
+    const model = await loadGLTFModel(selectedCpuModelUrl);
+    model.position.copy(cpuSlotPosition);
+    scene.add(model);
+    cpuModel = model;
+  } catch (error) {
+    console.error('Failed to load CPU model', error);
+  }
+}
+
