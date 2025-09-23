@@ -50,6 +50,7 @@ class CartController extends Controller
             // Cart exists — check if the item with both product_id and product_type is already in the cart
             $cartItem = $cart->cartItem()->where('product_id', $request->input('product_id'))
                                         ->where('product_type', $request->input('component_type'))
+                                        ->where('processed',false)
                                         ->first();
 
             if ($cartItem) {

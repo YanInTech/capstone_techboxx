@@ -3,13 +3,13 @@
         <img src="{{ asset('images/Logo.png') }}" alt="Logo" class="logo">
         
         @auth
-            @if (auth()->user()->role === 'Customer')
-                <a href="{{ route('home') }}"><h2>Madoxx.qwe</h2></a>
-            @else
+            @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Admin')
                 <h2>Madoxx.qwe</h2> {{-- No link for non-customers --}}
+            @else
+                <a href="{{ route('home') }}"><h2>Madoxx.qwe</h2></a>
             @endif
         @else
-            <h2>Madoxx.qwe</h2> {{-- No link if not logged in --}}
+            <a href="{{ route('home') }}"><h2>Madoxx.qwe</h2></a>
         @endauth
     </div>
 

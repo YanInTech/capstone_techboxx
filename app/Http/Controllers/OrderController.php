@@ -7,6 +7,8 @@ use App\Models\OrderedBuild;
 use App\Models\ShoppingCart;
 use App\Models\UserBuild;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -46,43 +48,62 @@ class OrderController extends Controller
             ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
             ->paginate(5);
 
-        $shoppingCarts = ShoppingCart::select('shopping_carts.*', 'checkouts.pickup_status', 'checkouts.pickup_date')
-            ->distinct()
-            ->join('cart_items', 'cart_items.shopping_cart_id', '=', 'shopping_carts.id')
-            ->join('checkouts', 'checkouts.cart_item_id', '=', 'cart_items.id')
-            ->with([
-                'user',
-                'cartItem' => function ($query) {
-                    $query->whereHas('checkout'); // ✅ only include cartItem that have checkout
-                },
-                'cartItem.checkout',
-                'cartItem.case',
-                'cartItem.cpu',
-                'cartItem.motherboard',
-                'cartItem.gpu',
-                'cartItem.ram',
-                'cartItem.storage',
-                'cartItem.psu',
-                'cartItem.cooler',
-            ])
-            ->whereExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('checkouts')
-                    ->whereColumn('checkouts.cart_item_id', 'cart_items.id');
-            })
-            ->orderByRaw("
-                CASE 
-                    WHEN checkouts.pickup_status = 'Pending' AND checkouts.pickup_date IS NULL THEN 1
-                    WHEN checkouts.pickup_status IS NULL AND checkouts.pickup_date IS NULL THEN 2
-                    WHEN checkouts.pickup_status = 'Picked up' AND checkouts.pickup_date IS NOT NULL THEN 3
-                    ELSE 4
-                END
-            ")
-            ->orderBy('shopping_carts.created_at', 'asc')
-            ->paginate(5);
+        $allCheckouts = Checkout::with([
+            'cartItem' => fn ($q) => $q->with([
+                'case', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'cooler',
+                'shoppingCart.user',
+            ]),
+        ])
+        ->orderByRaw("
+            CASE 
+                WHEN pickup_status = 'Pending' AND pickup_date IS NULL THEN 1
+                WHEN pickup_status IS NULL AND pickup_date IS NULL THEN 2
+                WHEN pickup_status = 'Picked up' AND pickup_date IS NOT NULL THEN 3
+                ELSE 4
+            END
+        ")
+        ->orderBy('checkout_date', 'asc')
+        ->get();
+
+        // Step 1: Group by ShoppingCart ID + Checkout Timestamp
+        $grouped = $allCheckouts->groupBy(function ($checkout) {
+            return $checkout->cartItem->shopping_cart_id . '|' . $checkout->checkout_date->format('Y-m-d H:i:s');
+        });
+
+        // Step 2: Transform each group into a custom object
+        $groupedOrders = $grouped->map(function ($checkouts) {
+            $first = $checkouts->first();
+            $cartItems = $checkouts->map->cartItem;
+
+            return [
+                'shopping_cart_id' => $first->cartItem->shopping_cart_id,
+                'checkout_date' => $first->checkout_date,
+                'total_cost' => $checkouts->sum('total_cost'),
+                'payment_method' => $checkouts->pluck('payment_method')->unique()->implode(', '),
+                'payment_status' => $checkouts->pluck('payment_status')->unique()->implode(', '),
+                'pickup_status' => $checkouts->pluck('pickup_status')->unique()->implode(', '),
+                'pickup_date' => $checkouts->min('pickup_date'),
+                'user' => $first->cartItem->shoppingCart->user,
+                'cart_items' => $cartItems->values()
+            ];
+        })->values();
+
+        // Step 3: Manual Pagination
+        $page = request()->get('page', 1);
+        $perPage = 5;
+        $paginatedGroupedOrders = new LengthAwarePaginator(
+            $groupedOrders->forPage($page, $perPage),
+            $groupedOrders->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
 
-        return view('staff.order', compact('orders', 'shoppingCarts'));
+        return view('staff.order', [
+            'orders' => $orders,
+            'groupedCheckouts' => $paginatedGroupedOrders
+        ]);
     }
 
 
@@ -140,22 +161,28 @@ class OrderController extends Controller
     //     ]);
     // }
     
-    public function readyComponents($cartId)
+    public function readyComponents($cartId, $date)
     {
-        // Find the shopping cart by ID
-        $cart = ShoppingCart::with('cartItem.checkout')->findOrFail($cartId);
+        // Convert the 'date' to a Carbon instance (including time)
+        $checkoutDate = Carbon::parse($date);
+        // Find the specific checkout records grouped by cartId and checkoutDate
+        $checkouts = Checkout::with('cartItem')
+            ->whereHas('cartItem', function($query) use ($cartId) {
+                $query->where('shopping_cart_id', $cartId);
+            })
+            ->whereDate('checkout_date', $checkoutDate->toDateString()) // Filter by the date part
+            ->whereTime('checkout_date', $checkoutDate->toTimeString()) // Filter by the time part
+            ->get();
 
-        // Loop through each cart item and update its related checkout
-        foreach ($cart->cartItem as $cartItem) {
-            foreach ($cartItem->checkout as $checkouts) {
-                $checkouts->update([
-                    'pickup_status' => 'Pending',
-                ]);
-            }
+        // Update the pickup_status to 'Pending' for each of the checkouts in this group
+        foreach ($checkouts as $checkout) {
+            $checkout->update([
+                'pickup_status' => 'Pending',
+            ]);
         }
 
         return redirect()->route('staff.order')->with([
-            'message' => 'All related cart items are now ready for pickup',
+            'message' => 'The selected items are now ready for pickup.',
             'type' => 'success',
         ]);
     }
@@ -176,23 +203,31 @@ class OrderController extends Controller
         ]);
     }
 
-    public function pickupComponents($cartId)
+    
+    public function pickupComponents($cartId, $date)
     {
-        // Find the shopping cart by ID and load related cart items and their checkouts
-        $cart = ShoppingCart::with('cartItem.checkout')->findOrFail($cartId);
+        // Convert the 'date' to a Carbon instance (including time)
+        $checkoutDate = Carbon::parse($date);
 
-        // Loop through each cart item and update its related checkout to "Picked up"
-        foreach ($cart->cartItem as $cartItem) {
-            foreach ($cartItem->checkout as $checkouts) {
-                $checkouts->update([
-                    'pickup_status' => 'Picked up',
-                    'pickup_date' => now(),
-                ]);
-            }
+        // Find the specific checkout records grouped by cartId and checkoutDate
+        $checkouts = Checkout::with('cartItem')
+            ->whereHas('cartItem', function($query) use ($cartId) {
+                $query->where('shopping_cart_id', $cartId);
+            })
+            ->whereDate('checkout_date', $checkoutDate->toDateString()) // Filter by the date part
+            ->whereTime('checkout_date', $checkoutDate->toTimeString()) // Filter by the time part
+            ->get();
+
+        // Loop through each matching checkout and update its related pickup status
+        foreach ($checkouts as $checkout) {
+            $checkout->update([
+                'pickup_status' => 'Picked up',
+                'pickup_date' => now(),
+            ]);
         }
 
         return redirect()->route('staff.order')->with([
-            'message' => 'All related cart items have been marked as picked up',
+            'message' => 'The selected items have been marked as picked up.',
             'type' => 'success',
         ]);
     }

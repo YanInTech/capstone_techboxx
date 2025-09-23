@@ -36,7 +36,8 @@ class CheckoutController extends Controller
             $modelMap = config('components', []);
             foreach ($cartItems as $ci) {
                 $model = $modelMap[$ci->product_type] ?? null;
-                $ci->product = $model ? $model::find($ci->product_id) : null;
+                $product = $model ? $model::find($ci->product_id) : null;
+                $ci->setRelation('product', $product);
             }
 
             $grandTotal = $cartItems->sum(fn($i) => ($i->product->price ?? 0) * ($i->quantity ?? 0));
@@ -56,7 +57,7 @@ class CheckoutController extends Controller
                 ];
 
                 // Create the Checkout record for each cart item
-                Checkout::create($data);
+                $checkout = Checkout::create($data);
 
                 $ci->update(['processed' => true]);
             }
@@ -64,6 +65,7 @@ class CheckoutController extends Controller
             // Redirect to PayPal payment page if PayPal is selected
             if ($paymentMethod === 'PayPal') {
                 return redirect()->route('paypal.create', [
+                    'checkout_id' => $checkout->id,
                     'amount' => $grandTotal,
                 ]);
             }

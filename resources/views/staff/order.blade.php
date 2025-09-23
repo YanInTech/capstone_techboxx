@@ -1,15 +1,20 @@
+@php
+    $activeTab = request()->query('tab', 'order'); // default to 'order' tab
+@endphp
+
 <x-dashboardlayout>
     <h2>Order Processing</h2>
 
     <div class="header-container">
         <div class="order-tab">
-            <button class="active" id="orderBuilds">Order Builds</button>
-            <button id="checkOutComponents">Check-out Components</button>
+            <button class="{{ $activeTab === 'order' ? 'active' : '' }}" id="orderBuilds">Order Builds</button>
+            <button class="{{ $activeTab === 'checkout' ? 'active' : '' }}" id="checkOutComponents">Check-out Components</button>
         </div>
     </div>
 
     {{-- ORDER BUILDS --}}
-    <section class="section-style !pl-0 !h-[65vh]" id="orderBuildsSection">
+    <section class="section-style !pl-0 !h-[65vh] {{ $activeTab !== 'order' ? 'hide' : '' }}" 
+        id="orderBuildsSection">
         <div x-data="{ showModal: false, selectedBuild:{} }" 
             class="h-[55vh]">
             <table class="table mb-3">
@@ -162,11 +167,12 @@
                 </div>
             </div>
         </div>
-    {{ $orders->links() }}
+        {{ $orders->appends(['tab' => 'order'])->links() }}
     </section>
 
     {{-- CHECK OUT COMPONENTS --}}
-    <section class="section-style !pl-0 !h-[65vh] hide" id="checkOutComponentsSection">
+    <section class="section-style !pl-0 !h-[65vh] {{ $activeTab !== 'checkout' ? 'hide' : '' }}" 
+    id="checkOutComponentsSection">
         <div x-data="orderModal()" 
             class="h-[55vh]">
             <table class="table mb-3">
@@ -183,42 +189,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($shoppingCarts as $cart)
-                        @php
-                            $checkout = $cart->cartItem->flatMap->checkout;
-                            $totalCost = $checkout->sum('total_cost');
-                            $checkoutDate = $checkout->min('checkout_date');
-                            $pickupStatus = $checkout->pluck('pickup_status')->unique()->implode('');
-                            $paymentMethod = $checkout->pluck('payment_method')->unique()->implode('');
-                            $paymentStatus = $checkout->pluck('payment_status')->unique()->implode('');
-                            $pickupDate = $checkout->min('pickup_date');
-                        @endphp
-
-                        <tr 
+                    @foreach ($groupedCheckouts as $group)
+                        <tr
                             @class([
-                                'bg-gray-200 text-gray-500 pointer-events-none' => $pickupStatus === 'Declined',
+                                'bg-gray-200 text-gray-500 pointer-events-none' => $group['pickup_status'] === 'Declined',
                                 'hover:opacity-50'
                             ])
-                            @click="showModal = true; selectedOrder = {{ $cart->toJson() }};"
+                            @click="setSelectedOrder({{ json_encode($group) }})"
                         >
-                            <td>{{ $cart->id }}</td>
-                            <td>{{ $checkoutDate ? \Carbon\Carbon::parse($checkoutDate)->format('Y-m-d') : '-' }}</td>
-                            <td class="text-center !pr-[1.5%]">{{ $totalCost }}</td>
-                            <td>{{ $pickupStatus ?: '-' }}</td>
-                            <td>{{ $paymentMethod }}</td>
-                            <td>{{ $paymentStatus }}</td>
-                            <td>{{ $pickupDate ? \Carbon\Carbon::parse($pickupDate)->format('Y-m-d') : '-' }}</td>
+                            <td>{{ $group['shopping_cart_id'] }}</td>
+                            <td>{{ $group['checkout_date'] ? ($group['checkout_date'])->format('Y-m-d') : '-' }}</td>
+                            <td class="text-center">{{ number_format($group['total_cost'], 2) }}</td>
+                            <td>{{ $group['pickup_status'] ?? '-' }}</td>
+                            <td>{{ $group['payment_method'] ?? '-' }}</td>
+                            <td>{{ $group['payment_status'] ?? '-' }}</td>
+                            <td>{{ $group['pickup_date'] ? ($group['pickup_date'])->format('Y-m-d') : '-' }}</td>
                             <td class="align-middle text-center">
                                 <div class="flex justify-center gap-2">
-                                    @if (empty($pickupStatus) || is_null($pickupStatus))
-                                        <form action="{{ route('staff.order.ready-components', $cart->id) }}" method="POST">
+                                    @if (empty($group['pickup_status']))
+                                        <form action="{{ route('staff.order.ready-components', ['id' => $group['shopping_cart_id'], 'date' => \Carbon\Carbon::parse($group['checkout_date'])->format('Y-m-d H:i:s')]) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="action-button">
                                                 Ready for pickup 
                                             </button>
                                         </form>
-                                    @elseif (str_contains($pickupStatus, 'Pending'))
-                                        <form action="{{ route('staff.order.pickup-components', $cart->id) }}" method="POST">
+                                    @elseif (str_contains($group['pickup_status'], 'Pending'))
+                                        <form action="{{ route('staff.order.pickup-components',  ['id' => $group['shopping_cart_id'], 'date' => \Carbon\Carbon::parse($group['checkout_date'])->format('Y-m-d H:i:s')]) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="action-button">
                                                 Picked up    
@@ -227,7 +223,7 @@
                                     @endif
                                 </div>
                             </td>
-                        </tr>    
+                        </tr>
                     @endforeach
                 </tbody>
 
@@ -260,7 +256,7 @@
                         </div>
                         <div>
                             <p>Checkout Date</p>
-                            <p x-text="new Date(selectedOrder.cart_item[0]?.checkout[0]?.checkout_date).toLocaleDateString()"></p>
+                            <p x-text="new Date(selectedOrder.checkout_date).toLocaleDateString()"></p>
                         </div>
                     </div>
                     <div class="build-details-modal">
@@ -274,7 +270,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template x-for="item in selectedOrder.cart_item" :key="item.id">
+                                <template x-for="(item, index) in selectedOrder.cart_items" :key="`${item.id}-${index}`">
                                     <tr>
                                         <td x-text="getComponentModel(item)"></td>
                                         <td x-text="item.product_type"></td>
@@ -288,19 +284,13 @@
                     <div class="build-details-modal">
                         <div class="build-details-price !border-none">
                             <h4>Total Cost:</h4>
-                            <h4
-                                x-text="'₱' + (
-                                    selectedOrder.cart_item
-                                    ?.flatMap(item => item.checkout || [])
-                                    .reduce((sum, checkout) => sum + parseFloat(checkout.total_cost || 0), 0)
-                                ).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-                                ></h4>
+                            <h4 x-text="'₱' + (selectedOrder.total_cost.toFixed(2)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    {{ $shoppingCarts->links() }}
+        {{ $groupedCheckouts->appends(['tab' => 'checkout'])->links() }}
 
     </section>
 
@@ -311,7 +301,18 @@
         return {
             showModal: false,
             selectedOrder: {},
+            setSelectedOrder(order) {
+                // Force a full reactivity reset
+                this.selectedOrder = {};
+                this.showModal = false;
+
+                setTimeout(() => {
+                    this.selectedOrder = JSON.parse(JSON.stringify(order));
+                    this.showModal = true;
+                }, 50);
+            },
             getComponentModel(item) {
+                console.log(item);
                 if (item.product_type === 'case' && item.case) return item.case.model;
                 if (item.product_type === 'cpu' && item.cpu) return item.cpu.model;
                 if (item.product_type === 'gpu' && item.gpu) return item.gpu.model;

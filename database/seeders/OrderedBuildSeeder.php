@@ -14,7 +14,7 @@ class OrderedBuildSeeder extends Seeder
     public function run(): void
     {
         //
-        OrderedBuild::factory()->count(50)->create();
+        OrderedBuild::factory()->count(10)->create();
 
     }
 }

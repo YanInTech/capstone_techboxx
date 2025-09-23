@@ -55,6 +55,9 @@
                     <x-icons.expand />
                 </button>
             </form>
+            <button id="reloadButton">
+                <x-icons.reload />
+            </button>
 
         </section>
         <section class="buttons-section">

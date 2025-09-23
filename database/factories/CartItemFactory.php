@@ -24,6 +24,7 @@ class CartItemFactory extends Factory
             'product_type' => fake()->randomElement(['case','cooler','cpu','motherboard','psu','ram','storage']),
             'quantity' => fake()->numberBetween(1,5),
             'total_price' => fake()->randomFloat(2,1000,50000),
+            'processed' => true
         ];
     }
 }

@@ -70,10 +70,20 @@ canvas {
     z-index: 1000;
 }
 
-.expand-icon:hover {
+.expand-icon:hover,
+.reload-icon:hover {
     opacity: .5;
     cursor: pointer;
 }
+
+.reload-icon {
+    color: white;
+    position: absolute;
+    right: 40px;
+    bottom: 10px;
+    z-index: 99;
+}
+
 
 /* BUTTONS */
 .buttons-section {

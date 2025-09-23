@@ -105,9 +105,9 @@ class PayPalController extends Controller
         if ($checkoutId) {
             $checkout = Checkout::find($checkoutId);
             if ($checkout) {
-                $checkout->update(['payment_status' => 'Cancelled']);
+                $checkout->delete();
             }
         }
-        return redirect()->route('cart.index')->with('error', 'Payment was cancelled.');
+        return redirect()->route('cart.index')->with('success', 'Payment was cancelled.');
     }
 }

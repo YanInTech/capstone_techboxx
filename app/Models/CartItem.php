@@ -24,6 +24,7 @@ class CartItem extends Model
         'product_type',
         'quantity',
         'total_price',
+        'processed',
     ];
 
     public function shoppingCart() {

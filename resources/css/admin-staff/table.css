@@ -88,10 +88,6 @@
     color: var(--blue);
 }
 
-.build-details {
-    text-decoration-line: underline;
-}
-
 .build-details:hover {
     cursor: pointer;
     opacity: 0.5;
