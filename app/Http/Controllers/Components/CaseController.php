@@ -210,8 +210,9 @@ class CaseController extends Controller
         //
         $case = PcCase::findOrFail($id);
 
-        $case->update([
-            'build_category_id' => $request->build_category_id, 
+        // Prepare data for update
+        $data = [
+            'build_category_id' => $request->build_category_id,
             'supplier_id' => $request->supplier_id,
             'brand' => $request->brand,
             'model' => $request->model,
@@ -221,7 +222,22 @@ class CaseController extends Controller
             'fan_mounts' => $request->fan_mounts,
             'price' => $request->price,
             'stock' => $request->stock,
-        ]);
+        ];
+
+        // Only update image if new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('cases/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if new file is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('cases/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the case with the updated data
+        $case->update($data);
 
         // Delete old supports
         $case->radiatorSupports()->delete();

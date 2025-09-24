@@ -26,6 +26,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($cpuSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <select required name="brand">
                     <option disabled selected hidden value="">Select a brand</option>
@@ -70,6 +79,11 @@
                 <input required name="boost_clock" id="boost_clock" type="number" step="0.01" placeholder="0.00 GHz" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
 
+            
+        </div>
+
+        {{-- INVENTORY --}}
+        <div class="form-divider">
             <div>
                 <label for="">TDP</label>
                 <input required name="tdp" id="tdp" type="number" placeholder="00 W" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -94,19 +108,6 @@
                     @endforeach
                 </select>  
             </div>
-        </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($cpuSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
-            </div>
             <div>
                 <label for="">Price</label>
                 <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -117,12 +118,12 @@
             </div>
 
             <div>
-                <label for="">Upload product image</label>
+                <label for="">Upload image</label>
                 <input type="file" name="image" multiple accept="image/*">
             </div>
 
             <div>
-                <label for="">Upload product 3d model</label>
+                <label for="">Upload 3d model</label>
                 <input type="file" name="model_3d" accept=".glb">
             </div>
         </div>        

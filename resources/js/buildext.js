@@ -242,6 +242,33 @@ async function spawnGPUAtSlot() {
     }
 }
 
+function reloadScene() {
+    // Remove case model
+    if (caseModel) {
+        scene.remove(caseModel);
+        caseModel = null;
+    }
+
+    // Remove motherboard model
+    if (moboModel) {
+        scene.remove(moboModel);
+        moboModel = null;
+    }
+
+    // Remove CPU model
+    if (cpuModel) {
+        scene.remove(cpuModel);
+        cpuModel = null;
+    }
+
+    // Reset the camera controls target to the origin (or wherever you prefer)
+    controls.target.set(0, 0, 0);
+    controls.update();
+
+    // Log to confirm scene is reset
+    console.log('Scene has been reloaded.');
+}
+
 
 // LAYOUT JS
 document.addEventListener('DOMContentLoaded', () => {
@@ -331,5 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Build is valid!");
             }
         })
+    });
+
+    document.getElementById('reloadButton').addEventListener('click', function() {
+        reloadScene();
     });
 });

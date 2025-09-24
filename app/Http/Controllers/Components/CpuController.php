@@ -140,31 +140,48 @@ class CpuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Find the CPU instance
         $cpu = Cpu::findOrFail($id);
 
-        $cpu->update([
-            'build_category_id' => $request->build_category_id,
-            'supplier_id' => $request->supplier_id,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'socket_type' => $request->socket_type,
-            'cores' => $request->cores,
-            'threads' => $request->threads,
-            'base_clock' => $request->base_clock,
-            'boost_clock' => $request->boost_clock,
-            'tdp' => $request->tdp,
+        // Prepare data for update
+        $data = [
+            'build_category_id'   => $request->build_category_id,
+            'supplier_id'         => $request->supplier_id,
+            'brand'               => $request->brand,
+            'model'               => $request->model,
+            'socket_type'         => $request->socket_type,
+            'cores'               => $request->cores,
+            'threads'             => $request->threads,
+            'base_clock'          => $request->base_clock,
+            'boost_clock'         => $request->boost_clock,
+            'tdp'                 => $request->tdp,
             'integrated_graphics' => $request->integrated_graphics,
-            'generation' => $request->generation,
-            'price' => $request->price,
-            'stock' => $request->stock,
-        ]);
+            'generation'          => $request->generation,
+            'price'               => $request->price,
+            'stock'               => $request->stock,
+        ];
+
+        // Only update image if new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('cpus/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if new file is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('cpus/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the CPU with the prepared data
+        $cpu->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'CPU updated',
             'type' => 'success',
         ]); 
     }
+
 
     /**
      * Remove the specified resource from storage.

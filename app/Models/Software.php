@@ -9,6 +9,7 @@ class Software extends Model
 {
     /** @use HasFactory<\Database\Factories\SoftwareFactory> */
     use HasFactory;
+    // use SoftDeletes;
 
     protected $fillable = [
         'name',

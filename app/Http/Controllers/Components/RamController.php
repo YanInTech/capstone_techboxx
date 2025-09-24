@@ -138,30 +138,46 @@ class RamController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
         $ram = Ram::findOrFail($id);
 
-        $ram->update([
-            'build_category_id' => $request->build_category_id,
-            'supplier_id' => $request->supplier_id,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'ram_type' => $request->ram_type,
-            'speed_mhz' => $request->speed_mhz,
-            'size_per_module_gb' => $request->size_per_module_gb,
-            'total_capacity_gb' => $request->total_capacity_gb,
-            'module_count' => $request->module_count,
-            'is_ecc' => $request->is_ecc,
-            'is_rgb' => $request->is_rgb,
-            'price' => $request->price,
-            'stock' => $request->stock,
-        ]);
+        // Prepare data for update
+        $data = [
+            'build_category_id'    => $request->build_category_id,
+            'supplier_id'          => $request->supplier_id,
+            'brand'                => $request->brand,
+            'model'                => $request->model,
+            'ram_type'             => $request->ram_type,
+            'speed_mhz'            => $request->speed_mhz,
+            'size_per_module_gb'   => $request->size_per_module_gb,
+            'total_capacity_gb'    => $request->total_capacity_gb,
+            'module_count'         => $request->module_count,
+            'is_ecc'               => $request->is_ecc,
+            'is_rgb'               => $request->is_rgb,
+            'price'                => $request->price,
+            'stock'                => $request->stock,
+        ];
+
+        // Only update image if a new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('ram/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if a new 3D model is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('ram/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the RAM with the prepared data
+        $ram->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'RAM updated',
             'type' => 'success',
-        ]); 
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

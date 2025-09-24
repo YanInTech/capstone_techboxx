@@ -19,6 +19,25 @@ canvas {
 }
 
 /* LAYOUT */
+.ext-icons {
+    /* background-color: aliceblue; */
+    position: absolute;
+    display: flex;
+    gap: 8px;
+}
+
+.ext-arrow {
+    rotate: 90deg;
+    height: 24px;
+    width: 24px;
+}
+
+.ext-arrow:hover,
+.ext-save:hover,
+.ext-cart:hover {
+    opacity: 0.5;
+}
+
 .build-name {
     background-color: transparent; 
     font-size: 1.5rem;

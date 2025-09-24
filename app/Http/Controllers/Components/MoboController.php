@@ -160,35 +160,52 @@ class MoboController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Find the motherboard instance
         $mobo = Motherboard::findOrFail($id);
 
-        $mobo->update([
-            'build_category_id' => $request->build_category_id,
-            'supplier_id' => $request->supplier_id,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'socket_type' => $request->socket_type,
-            'chipset' => $request->chipset,
-            'form_factor' => $request->form_factor,
-            'ram_type' => $request->ram_type,
-            'max_ram' => $request->max_ram,
-            'ram_slots' => $request->ram_slots,
-            'max_ram_speed' => $request->max_ram_speed,
-            'pcie_slots' => $request->pcie_slots,
-            'm2_slots' => $request->m2_slots,
-            'sata_ports' => $request->sata_ports,
-            'usb_ports' => $request->usb_ports,
-            'wifi_onboard' => $request->wifi_onboard,
-            'price' => $request->price,
-            'stock' => $request->stock,
-        ]);
+        // Prepare data for update
+        $data = [
+            'build_category_id'      => $request->build_category_id,
+            'supplier_id'            => $request->supplier_id,
+            'brand'                  => $request->brand,
+            'model'                  => $request->model,
+            'socket_type'            => $request->socket_type,
+            'chipset'                => $request->chipset,
+            'form_factor'            => $request->form_factor,
+            'ram_type'               => $request->ram_type,
+            'max_ram'                => $request->max_ram,
+            'ram_slots'              => $request->ram_slots,
+            'max_ram_speed'          => $request->max_ram_speed,
+            'pcie_slots'             => $request->pcie_slots,
+            'm2_slots'               => $request->m2_slots,
+            'sata_ports'             => $request->sata_ports,
+            'usb_ports'             => $request->usb_ports,
+            'wifi_onboard'           => $request->wifi_onboard,
+            'price'                  => $request->price,
+            'stock'                  => $request->stock,
+        ];
+
+        // Only update image if a new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('motherboards/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if a new 3D model is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('motherboards/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the motherboard with the prepared data
+        $mobo->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Motherboard updated',
             'type' => 'success',
-        ]); 
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

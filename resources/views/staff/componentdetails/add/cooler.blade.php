@@ -27,6 +27,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($coolerSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <input name="brand" required type="text" placeholder="Enter Brand">
             </div>
@@ -34,7 +43,6 @@
                 <label for="">Model</label>
                 <input name="model" required type="text" placeholder="Enter Model">
             </div>
-
             <div>
                 <label for="">Cooler Type</label>
                 <select required name="cooler_type" id="cooler_type">
@@ -43,6 +51,11 @@
                         <option value="{{ $cooler_type }}">{{ $cooler_type }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label for="">Max Tdp</label>
+                <input required name="max_tdp" id="max_tdp" type="number" placeholder="00 W" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
 
             <div class="flex flex-col"
@@ -76,11 +89,14 @@
                 </button>
             </div>
 
-            <div>
-                <label for="">Max Tdp</label>
-                <input required name="max_tdp" id="max_tdp" type="number" placeholder="00 W" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
+            
 
+            
+
+        </div>
+
+        {{-- INVENTORY --}}
+        <div class="form-divider">
             <div>
                 <label for="">Radiator Size</label>
                 <input name="radiator_size_mm" id="radiator_size_mm" type="number" placeholder="00 mm (if liquid cooler)" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -95,20 +111,6 @@
                 <label for="">Height</label>
                 <input required name="height_mm" id="height_mm" type="number" placeholder="00 mm" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
-
-        </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($coolerSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
-            </div>
             <div>
                 <label for="">Price</label>
                 <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -119,12 +121,12 @@
             </div>
 
             <div>
-                <label for="">Upload product image</label>
+                <label for="">Upload image</label>
                 <input type="file" name="image" multiple accept="image/*">
             </div>
 
             <div>
-                <label for="">Upload product 3d model</label>
+                <label for="">Upload 3d model</label>
                 <input type="file" name="model_3d" accept=".glb">
             </div>
         </div>      

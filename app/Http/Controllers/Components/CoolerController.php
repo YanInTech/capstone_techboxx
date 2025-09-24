@@ -100,34 +100,38 @@ class CoolerController extends Controller
 
     public function update(Request $request, string $id) 
     {
+        // Find the cooler instance
         $cooler = Cooler::findOrFail($id);
 
-        $socket = $request['socket_compatibility'];
+        // Prepare data for update
+        $data = [
+            'brand'                => $request->brand, 
+            'supplier_id'          => $request->supplier_id,
+            'model'                => $request->model,
+            'cooler_type'          => $request->cooler_type,
+            'socket_compatibility' => $request->socket_compatibility,
+            'max_tdp'              => $request->max_tdp,
+            'radiator_size_mm'     => $request->radiator_size_mm,
+            'fan_count'            => $request->fan_count,
+            'height_mm'            => $request->height_mm,
+            'price'                => $request->price,
+            'stock'                => $request->stock,
+        ];
 
-        // handle image upload
+        // Only update image if new image is uploaded
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) 
-                        . '.' . $file->getClientOriginalExtension();
-            $imagePath = $file->storeAs('cooler', $filename, 'public');
-        } else {
-            $imagePath = $cooler->image; // keep old image if none uploaded
+            $imagePath = $request->file('image')->store('coolers/images', 'public');
+            $data['image'] = $imagePath;
         }
 
-        $cooler->update([
-            'brand' => $request->brand, 
-            'supplier_id' => $request->supplier_id,
-            'model' => $request->model,
-            'cooler_type' => $request->cooler_type,
-            'socket_compatibility' => $socket,
-            'max_tdp' => $request->max_tdp,
-            'radiator_size_mm' => $request->radiator_size_mm,
-            'fan_count' => $request->fan_count,
-            'height_mm' => $request->height_mm,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imagePath,
-        ]);
+        // Only update model_3d if new file is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('coolers/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the cooler with the prepared data
+        $cooler->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Cooler updated',

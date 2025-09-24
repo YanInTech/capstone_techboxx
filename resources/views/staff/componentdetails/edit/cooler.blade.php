@@ -25,6 +25,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <input name="brand" required type="text" x-model="selectedComponent.brand" placeholder="Enter Brand">
             </div>
@@ -43,7 +52,10 @@
                     @endforeach
                 </select>
             </div>
-
+            <div>
+                <label for="">Max Tdp</label>
+                <input required name="max_tdp" id="max_tdp" type="number" placeholder="00 W" x-model="selectedComponent.max_tdp" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
             <div class="flex flex-col"
                 x-data="{ slots:[{}] }">
                 <template x-for="(slot, index) in selectedComponent.socket_compatibility" 
@@ -75,11 +87,14 @@
                 </button>
             </div>
 
-            <div>
-                <label for="">Max Tdp</label>
-                <input required name="max_tdp" id="max_tdp" type="number" placeholder="00 W" x-model="selectedComponent.max_tdp" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
+            
 
+            
+
+        </div>
+
+        {{-- INVENTORY --}}
+        <div class="form-divider">
             <div>
                 <label for="">Radiator Size</label>
                 <input name="radiator_size_mm" id="radiator_size_mm" type="number" x-model="selectedComponent.radiator_size_mm" placeholder="00 mm (if liquid cooler)" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -94,34 +109,25 @@
                 <label for="">Height</label>
                 <input required name="height_mm" id="height_mm" type="number" placeholder="00 mm" x-model="selectedComponent.height_mm" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
-
-        </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
             <div>
                 <label for="">Price</label>
                 <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" x-model="selectedComponent.price" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
             
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
-            </div>
+            
 
             <div>
                 <label for="">Stock</label>
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" x-model="selectedComponent.stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
+            <div>
+                <label for="">Upload image</label>
+                <input type="file" name="image" multiple accept="image/*">
+            </div>
 
             <div>
-                <label for="">Upload product image</label>
-                <input type="file" name="image" multiple accept="image/*">
+                <label for="">Upload 3d model</label>
+                <input type="file" name="model_3d" accept=".glb">
             </div>
         </div>      
     </div>

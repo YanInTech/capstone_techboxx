@@ -142,28 +142,43 @@ class PsuController extends Controller
     public function update(Request $request, $id)
     {
         $psu = Psu::findOrFail($id);
-        // dd($request->all());
 
-        $psu->update([
-            'brand' => $request->brand,
-            'supplier_id' => $request->supplier_id,
-            'model' => $request->model,
-            'wattage' => $request->wattage,
-            'efficiency_rating' => $request->efficiency_rating,
-            'modular' => $request->modular,
-            'pcie_connectors' => $request->pcie_connectors,
-            'sata_connectors' => $request->sata_connectors,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'build_category_id' => $request->build_category_id,
-        ]); 
+        // Prepare data for update
+        $data = [
+            'brand'                 => $request->brand,
+            'supplier_id'           => $request->supplier_id,
+            'model'                 => $request->model,
+            'wattage'               => $request->wattage,
+            'efficiency_rating'     => $request->efficiency_rating,
+            'modular'               => $request->modular,
+            'pcie_connectors'       => $request->pcie_connectors,
+            'sata_connectors'       => $request->sata_connectors,
+            'price'                 => $request->price,
+            'stock'                 => $request->stock,
+            'build_category_id'     => $request->build_category_id,
+        ];
+
+        // Only update image if a new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('psus/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if a new 3D model is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('psus/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the PSU with the prepared data
+        $psu->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'PSU updated',
             'type' => 'success',
         ]);
-
     }
+
 
 
 

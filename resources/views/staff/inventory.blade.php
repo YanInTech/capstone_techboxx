@@ -164,7 +164,7 @@
                 <div class="relative !m-0">
                     <h2 class="text-center w-[100%]">
                         STOCK-IN FORM
-                        <x-icons.close class="close" @click="showStockInModal = false"/>    
+                        <x-icons.close class="close" @click="showStockInCompModal = false"/>    
                     </h2>
                 </div>
                     <form class="inventory-form" method="POST" action="{{ route('staff.inventory.stock-in') }}">
@@ -194,7 +194,10 @@
             {{-- STOCK-OUT MODAL --}}
             <div x-show="showStockOutCompModal" x-cloak x-transition class="modal">
                 <div class="add-component" @click.away="showStockOutCompModal = false">
-                    <h2 class="text-center">STOCK-IN FORM</h2>
+                    <h2 class="text-center w-[100%]">
+                        STOCK-OUT FORM
+                        <x-icons.close class="close" @click="showStockOutCompModal = false"/>    
+                    </h2>
                     <form class="inventory-form" method="POST" action="{{ route('staff.inventory.stock-out') }}">
                         @csrf
                         <input type="hidden" name="stockOutId" :value="selectedComponent.id">

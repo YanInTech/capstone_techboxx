@@ -21,6 +21,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($psuSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <input name="brand" required type="text" x-model="selectedComponent.brand" placeholder="Enter Brand">
             </div>
@@ -55,6 +64,11 @@
                 </select>
             </div>
 
+            
+        </div>
+
+        {{-- INVENTORY --}}
+        <div class="form-divider">
             <div>
                 <label for="">PCIe Connectors</label>
                 <input required name="pcie_connectors" id="pcie_connectors" type="number" placeholder="00 W" x-model="selectedComponent.pcie_connectors" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -64,31 +78,28 @@
                 <label for="">Sata Connectors</label>
                 <input required name="sata_connectors" id="sata_connectors" type="number" placeholder="00 W" x-model="selectedComponent.sata_connectors" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
-        </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
             <div>
                 <label for="">Price</label>
                 <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" x-model="selectedComponent.price" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
             
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($psuSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
-            </div>
+            
 
             <div>
                 <label for="">Stock</label>
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" x-model="selectedComponent.stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
+            <div>
+                <label for="">Upload image</label>
+                <input type="file" name="image" multiple accept="image/*">
+            </div>
+
+            <div>
+                <label for="">Upload 3d model</label>
+                <input type="file" name="model_3d" accept=".glb">
+            </div>
         </div>    
     </div>
     
-    <button>Add Component</button>
+    <button>Update Component</button>
 </form>

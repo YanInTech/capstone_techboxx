@@ -24,6 +24,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <input name="brand" required type="text" x-model="selectedComponent.brand" placeholder="Enter Brand">
             </div>
@@ -52,28 +61,7 @@
                 <input required name="max_cooler_height_mm" id="max_cooler_height_mm" type="number" x-model="selectedComponent.max_cooler_height_mm" placeholder="Enter Max Cooler Height" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
 
-            <div>
-                <label for="">Fan Mount</label>
-                <input required name="fan_mounts" id="fan_mounts" type="number" placeholder="00 GB" x-model="selectedComponent.fan_mounts" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
             
-            <div>
-                <label for="">Drive Bay</label>
-                <div class="w-[80%]">
-                    <input required name='3_5_bays' id='3_5_bays' type="number" placeholder='No. of 3.5" bays' x-model="selectedComponent['3_5_bays']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                    <input required name='2_5_bays' id='2_5_bays' type="number" placeholder='No. of 2.5" bays' x-model="selectedComponent['2_5_bays']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                </div>
-            </div>
-
-            <div>
-                <label for="">Front USB Port</label>
-                <div class="w-[80%]">
-                    <input required name='usb_3_0_type-A' id='usb_3_0_type-A' type="number" placeholder='USB 3.0' x-model="selectedComponent['usb_3_0_type-A']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                    <input required name='usb_2_0' id='usb_2_0' type="number" placeholder='USB 2.0' x-model="selectedComponent['usb_2_0']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                    <input required name='usb-c' id='usb-c' type="number" placeholder='USB-C' x-model="selectedComponent['usb-c']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                    <input required name='audio_jacks' id='audio_jacks' type="number" placeholder='Audio jacks' x-model="selectedComponent['audio_jacks']" onkeydown="return !['e','E','+','-'].includes(event.key)">
-                </div>
-            </div>
             
 
             <div class="flex flex-col"
@@ -114,25 +102,44 @@
         {{-- INVENTORY --}}
         <div class="form-divider">
             <div>
-                <label for="">Price</label>
-                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" x-model="selectedComponent.price" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                <label for="">Fan Mount</label>
+                <input required name="fan_mounts" id="fan_mounts" type="number" placeholder="00 GB" x-model="selectedComponent.fan_mounts" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
             
             <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id" x-model="selectedComponent.build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($caseSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
+                <label for="">Drive Bay</label>
+                <div class="w-[80%]">
+                    <input required name='3_5_bays' id='3_5_bays' type="number" placeholder='No. of 3.5" bays' x-model="selectedComponent['3_5_bays']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='2_5_bays' id='2_5_bays' type="number" placeholder='No. of 2.5" bays' x-model="selectedComponent['2_5_bays']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                </div>
             </div>
 
+            <div>
+                <label for="">Front USB Port</label>
+                <div class="w-[80%]">
+                    <input required name='usb_3_0_type-A' id='usb_3_0_type-A' type="number" placeholder='USB 3.0' x-model="selectedComponent['usb_3_0_type-A']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='usb_2_0' id='usb_2_0' type="number" placeholder='USB 2.0' x-model="selectedComponent['usb_2_0']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='usb-c' id='usb-c' type="number" placeholder='USB-C' x-model="selectedComponent['usb-c']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='audio_jacks' id='audio_jacks' type="number" placeholder='Audio jacks' x-model="selectedComponent['audio_jacks']" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                </div>
+            </div>
+            <div>
+                <label for="">Price</label>
+                <input required name="price" id="price" type="number" step="0.01" placeholder="Enter price" x-model="selectedComponent.price" onkeydown="return !['e','E','+','-'].includes(event.key)">
+            </div>
             <div>
                 <label for="">Stock</label>
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" x-model="selectedComponent.stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
+            <div>
+                <label for="">Upload image</label>
+                <input type="file" name="image" multiple accept="image/*">
+            </div>
 
+            <div>
+                <label for="">Upload 3d model</label>
+                <input type="file" name="model_3d" accept=".glb">
+            </div>
             
         </div>      
     </div>

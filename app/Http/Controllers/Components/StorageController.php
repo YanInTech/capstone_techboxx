@@ -137,32 +137,45 @@ class StorageController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
         $storage = Storage::findOrFail($id);
 
-        $storage->update([
-            'build_category_id' => $request->build_category_id,
-            'supplier_id' => $request->supplier_id,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'storage_type' => $request->storage_type,
-            'interface' => $request->interface,
-            'capacity_gb' => $request->capacity_gb,
-            'form_factor' => $request->form_factor,
-            'read_speed_mbps' => $request->read_speed_mbps,
-            'write_speed_mbps' => $request->write_speed_mbps,
-            'price' => $request->price,
-            'stock' => $request->stock,
-        ]);
-        // dd($request->all());
+        // Prepare data for update
+        $data = [
+            'build_category_id'    => $request->build_category_id,
+            'supplier_id'          => $request->supplier_id,
+            'brand'                => $request->brand,
+            'model'                => $request->model,
+            'storage_type'         => $request->storage_type,
+            'interface'            => $request->interface,
+            'capacity_gb'          => $request->capacity_gb,
+            'form_factor'          => $request->form_factor,
+            'read_speed_mbps'      => $request->read_speed_mbps,
+            'write_speed_mbps'     => $request->write_speed_mbps,
+            'price'                => $request->price,
+            'stock'                => $request->stock,
+        ];
 
+        // Only update image if a new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('storage/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if a new 3D model is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('storage/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the Storage component with the prepared data
+        $storage->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Storage updated',
             'type' => 'success',
-        ]); 
-
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

@@ -26,6 +26,15 @@
                 </select>
             </div>
             <div>
+                <label for="">Build Category</label>
+                <select required name="build_category_id" id="build_category_id">
+                    <option disabled selected hidden value="">Select build category</option>   
+                    @foreach ($storageSpecs['buildCategories'] as $buildCategory)
+                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
+                    @endforeach 
+                </select>  
+            </div>
+            <div>
                 <label for="">Brand</label>
                 <input name="brand" required type="text" placeholder="Enter Brand">
             </div>
@@ -70,6 +79,11 @@
                 </select>
             </div>
 
+            
+        </div>
+
+        {{-- INVENTORY --}}
+        <div class="form-divider">
             <div>
                 <label for="">Read Speed Mbps</label>
                 <input required name="read_speed_mbps" id="read_speed_mbps" type="number" placeholder="000 MB/s" onkeydown="return !['e','E','+','-'].includes(event.key)">
@@ -78,19 +92,6 @@
             <div>
                 <label for="">Write Speed Mbps</label>
                 <input required name="write_speed_mbps" id="write_speed_mbps" type="number" placeholder="000 MB/s" onkeydown="return !['e','E','+','-'].includes(event.key)">
-            </div>
-        </div>
-
-        {{-- INVENTORY --}}
-        <div class="form-divider">
-            <div>
-                <label for="">Build Category</label>
-                <select required name="build_category_id" id="build_category_id">
-                    <option disabled selected hidden value="">Select build category</option>   
-                    @foreach ($storageSpecs['buildCategories'] as $buildCategory)
-                        <option value="{{ $buildCategory->id }}">{{ $buildCategory->name }}</option>
-                    @endforeach 
-                </select>  
             </div>
             <div>
                 <label for="">Price</label>
@@ -101,12 +102,12 @@
                 <input required name="stock" id="stock" type="number" placeholder="Enter stock" onkeydown="return !['e','E','+','-'].includes(event.key)">
             </div>
             <div>
-                <label for="">Upload product image</label>
+                <label for="">Upload image</label>
                 <input type="file" name="image" multiple accept="image/*">
             </div>
 
             <div>
-                <label for="">Upload product 3d model</label>
+                <label for="">Upload 3d model</label>
                 <input type="file" name="model_3d" accept=".glb">
             </div>
         </div>      

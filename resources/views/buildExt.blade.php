@@ -33,9 +33,20 @@
     </header>
 
     <main class="main-content header overflow-hidden">
+        <div class="ext-icons">
+            <button>
+                <x-icons.arrow class="ext-arrow"/>
+            </button>
+            <button>
+                <x-icons.save class="ext-save"/>
+            </button>
+            <button>
+                <x-icons.cart class="ext-save"/>
+            </button>
+        </div>
+        
         <form action="" class="build-name">
             <input type="text" value="YOUR PC">
-
         </form>
 
         <section class="model-section">
@@ -64,7 +75,9 @@
                 <div>
                     <h4>COMPATIBILITY CHECK</h4>
                     <button id="validateBuild">Validate Build</button>
-
+                    <button id="reloadButton">
+                        <x-icons.reload />
+                    </button>
                 </div>
             </section>
 

@@ -135,29 +135,46 @@ class GpuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Find the GPU instance
         $gpu = Gpu::findOrFail($id);
 
-        $gpu->update([
-            'build_category_id' => $request->build_category_id,
-            'supplier_id' => $request->supplier_id,
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'vram_gb' => $request->vram_gb,
-            'power_draw_watts' => $request->power_draw_watts,
-            'recommended_psu_watt' => $request->recommended_psu_watt,
-            'length_mm' => $request->length_mm,
-            'pcie_interface' => $request->pcie_interface,
-            'connectors_required' => $request->connectors_required,
-            'price' => $request->price,
-            'stock' => $request->stock,
-        ]);
+        // Prepare data for update
+        $data = [
+            'build_category_id'      => $request->build_category_id,
+            'supplier_id'            => $request->supplier_id,
+            'brand'                  => $request->brand,
+            'model'                  => $request->model,
+            'vram_gb'                => $request->vram_gb,
+            'power_draw_watts'       => $request->power_draw_watts,
+            'recommended_psu_watt'   => $request->recommended_psu_watt,
+            'length_mm'              => $request->length_mm,
+            'pcie_interface'         => $request->pcie_interface,
+            'connectors_required'    => $request->connectors_required,
+            'price'                  => $request->price,
+            'stock'                  => $request->stock,
+        ];
+
+        // Only update image if a new image is uploaded
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('gpus/images', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        // Only update model_3d if a new 3D model is uploaded
+        if ($request->hasFile('model_3d')) {
+            $modelPath = $request->file('model_3d')->store('gpus/models', 'public');
+            $data['model_3d'] = $modelPath;
+        }
+
+        // Update the GPU with the prepared data
+        $gpu->update($data);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'GPU updated',
             'type' => 'success',
         ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
