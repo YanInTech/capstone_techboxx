@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SoftwareRequiremnts extends Model
+class SoftwareRequirement extends Model
 {
-    /** @use HasFactory<\Database\Factories\SoftwareRequiremntsFactory> */
+    /** @use HasFactory<\Database\Factories\SoftwareRequirementFactory> */
     use HasFactory;
 
     protected $fillable = [
         'software_id',
+        'os_min',
         'cpu_min',
         'cpu_reco',
         'ram_min',
@@ -19,6 +20,10 @@ class SoftwareRequiremnts extends Model
         'gpu_min',
         'gpu_reco',
         'storage_min',
-        'storgae_reco',
+        'storage_reco',
     ];
+
+    public function software() {
+        return $this->belongsTo(Software::class);
+    }
 }

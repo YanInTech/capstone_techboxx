@@ -6,12 +6,6 @@ main {
     margin-bottom: 20px;
 }
 
-.software-form {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
 
 .form {
     display: flex;
@@ -66,25 +60,6 @@ main {
 .modal-button:hover {
     background-color: black;
     color: white;
-}
-
-/* SOFTWARE DETAILS */
-.software-form div {
-    width: 100%;
-}
-
-.software-form .input-label{
-
-}
-
-.software-form .input-label label {
-    width: 30%;
-}
-
-.software-form .input-label input,
-.software-form .input-label select {
-    border-radius: 4px;
-    width: 70%;
 }
 
 /* ORDER */

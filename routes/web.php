@@ -117,6 +117,7 @@ Route::prefix('staff')->name('staff.')->group(function () {
 
     // SOFTWARE DETAILS
     Route::get('software-details', [SoftwareDetailsController::class, 'index'])->name('software-details');
+    Route::post('software-details/store', [SoftwareDetailsController::class, 'store'])->name('software-details.store');
 
     // ORDER
     Route::get('order', [OrderController::class, 'index'])->name('order');

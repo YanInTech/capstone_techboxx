@@ -1,4 +1,4 @@
-{{-- <pre x-text="JSON.stringify(selectedComponent, null, 2)"></pre> --}}
+<pre x-text="JSON.stringify(selectedComponent, null, 2)"></pre>
 <div class="relative !m-0">
     <h2 class="text-center w-[100%]">
         VIEW

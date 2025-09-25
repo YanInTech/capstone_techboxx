@@ -13,10 +13,15 @@ class Software extends Model
 
     protected $fillable = [
         'name',
+        'icon',
         'build_category_id',
     ];
 
     public function buildCategory() {
         return $this->belongsTo(BuildCategory::class);
+    }
+
+    public function specs() {
+        return $this->hasOne(SoftwareRequirement::class);
     }
 }

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
+            $table->string('icon')->nullable();
+            $table->foreignId('build_category_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
         });
     }
