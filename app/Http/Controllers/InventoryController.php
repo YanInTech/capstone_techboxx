@@ -42,14 +42,26 @@ class InventoryController extends Controller
         $lowStockThreshold = 5;
         $searchTerm = strtolower($request->input('search'));
 
-        $components = app(ComponentDetailsController::class)->getAllFormattedComponents()->filter(function ($component) use ($searchTerm) {
+        $componentss = app(ComponentDetailsController::class)->getAllFormattedComponents()->filter(function ($component) use ($searchTerm) {
             return str_contains(strtolower($component['model']), $searchTerm)
                 || str_contains(strtolower($component['brand']), $searchTerm);
         });
 
-        $components->each(function ($component) use ($lowStockThreshold) {
+        $componentss->each(function ($component) use ($lowStockThreshold) {
             $component->status = $component->stock <= $lowStockThreshold ? 'Low' : 'Normal';
         });
+
+        // Paginate the collection
+        $perPage = 6; // Set the number of items per page
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $items = $componentss->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $components = new LengthAwarePaginator(
+            $items, 
+            $componentss->count(), 
+            $perPage, 
+            $currentPage, 
+            ['path' => Paginator::resolveCurrentPath()]
+        );
 
         return view('staff.inventory', array_merge(
             ['components' => $components],

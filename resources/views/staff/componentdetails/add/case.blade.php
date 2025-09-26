@@ -127,9 +127,9 @@
             <div>
                 <label for="">Front USB Port</label>
                 <div class="w-[80%]">
-                    <input required name='usb_3_0_type-A' id='usb_3_0_type-A' type="number" placeholder='USB 3.0' onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='usb_3_0_type_A' id='usb_3_0_type_A' type="number" placeholder='USB 3.0' onkeydown="return !['e','E','+','-'].includes(event.key)">
                     <input required name='usb_2_0' id='usb_2_0' type="number" placeholder='USB 2.0' onkeydown="return !['e','E','+','-'].includes(event.key)">
-                    <input required name='usb-c' id='usb-c' type="number" placeholder='USB-C' onkeydown="return !['e','E','+','-'].includes(event.key)">
+                    <input required name='usb_c' id='usb_c' type="number" placeholder='USB-C' onkeydown="return !['e','E','+','-'].includes(event.key)">
                     <input required name='audio_jacks' id='audio_jacks' type="number" placeholder='Audio jacks' onkeydown="return !['e','E','+','-'].includes(event.key)">
                 </div>
             </div>
@@ -147,7 +147,7 @@
             {{-- Image and 3D Model Upload --}}
             <div>
                 <label for="">Upload image</label>
-                <input type="file" name="image" multiple accept="image/*">
+                <input type="file" name="image" accept="image/*">
             </div>
 
             <div>

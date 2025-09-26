@@ -64,7 +64,7 @@ class CoolerController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:10240',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -120,13 +120,13 @@ class CoolerController extends Controller
 
         // Only update image if new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('coolers/images', 'public');
+            $imagePath = $request->file('image')->store('cooler', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if new file is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('coolers/models', 'public');
+            $modelPath = $request->file('model_3d')->store('cooler', 'public');
             $data['model_3d'] = $modelPath;
         }
 

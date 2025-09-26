@@ -31,7 +31,7 @@ class PsuController extends Controller
 
     public function getFormattedPsus()
     {
-        $psus = Psu::all();
+        $psus = Psu::withTrashed()->get();
 
         $psuSales = DB::table('user_builds')
                 ->select('psu_id', DB::raw('COUNT(*) as sold_count'))
@@ -84,7 +84,7 @@ class PsuController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:20480',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -160,13 +160,13 @@ class PsuController extends Controller
 
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('psus/images', 'public');
+            $imagePath = $request->file('image')->store('psu', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('psus/models', 'public');
+            $modelPath = $request->file('model_3d')->store('psu', 'public');
             $data['model_3d'] = $modelPath;
         }
 

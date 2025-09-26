@@ -33,9 +33,9 @@ class Gpu extends Model
     ];
 
     // FETCHING IMAGE FROM DRIVE
-    protected $casts = [
-        'image' => 'array',
-    ];
+// protected $casts = [
+    //     'image' => 'array',
+    // ];
 
     public function buildCategory() {
         return $this->belongsTo(BuildCategory::class);

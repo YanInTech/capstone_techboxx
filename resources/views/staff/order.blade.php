@@ -54,27 +54,27 @@
                                 @if ($order->status === 'Pending')
                                     <form action={{ route('staff.order.approve', $order->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit">
+                                        <button type="submit" @click.stop>
                                             <x-icons.check/>
                                         </button>
                                     </form>
                                     <form action={{ route('staff.order.decline', $order->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit">
+                                        <button type="submit" @click.stop>
                                             <x-icons.close/>      
                                         </button>
                                     </form>
                                 @elseif ($order->status === 'Approved' && $order->pickup_status === null)
                                     <form action={{ route('staff.order.ready', $order->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="action-button">
+                                        <button @click.stop type="submit" class="action-button">
                                             Build Completed 
                                         </button>
                                     </form>
                                 @elseif ($order->pickup_status === 'Pending' && $order->status === 'Approved')
                                     <form action={{ route('staff.order.pickup', $order->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="action-button">
+                                        <button @click.stop type="submit" class="action-button">
                                             Picked up    
                                         </button>
                                     </form>
@@ -209,14 +209,14 @@
                                     @if (empty($group['pickup_status']))
                                         <form action="{{ route('staff.order.ready-components', ['id' => $group['shopping_cart_id'], 'date' => \Carbon\Carbon::parse($group['checkout_date'])->format('Y-m-d H:i:s')]) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="action-button">
+                                            <button @click.stop type="submit" class="action-button">
                                                 Ready for pickup 
                                             </button>
                                         </form>
                                     @elseif (str_contains($group['pickup_status'], 'Pending'))
                                         <form action="{{ route('staff.order.pickup-components',  ['id' => $group['shopping_cart_id'], 'date' => \Carbon\Carbon::parse($group['checkout_date'])->format('Y-m-d H:i:s')]) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="action-button">
+                                            <button @click.stop type="submit" class="action-button">
                                                 Picked up    
                                             </button>
                                         </form>

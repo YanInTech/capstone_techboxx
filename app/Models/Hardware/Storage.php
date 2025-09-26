@@ -33,9 +33,9 @@ class Storage extends Model
     ];
 
     // FETCHING IMAGE FROM DRIVE
-    protected $casts = [
-        'image' => 'array',
-    ];
+// protected $casts = [
+    //     'image' => 'array',
+    // ];
 
     // DEFINE RELATIONSHIP
     public function buildCategory() {

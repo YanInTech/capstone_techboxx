@@ -31,7 +31,7 @@ class CaseController extends Controller
 
     public function getFormattedCases()
     {
-        $cases = PcCase::all();
+        $cases = PcCase::withTrashed()->get();
         
         $caseSales = DB::table('user_builds')
                 ->select('pc_case_id', DB::raw('COUNT(*) as sold_count'))
@@ -58,16 +58,16 @@ class CaseController extends Controller
 
             // FLATTEN NESTED DATA TO ACCESS FOR THE EDIT FORM
             $usbPort = $case->usbPorts->first();
-            $case->setAttribute('usb_3_0_type-A', optional($usbPort)->{'usb_3_0_type-A'} ?? 0);
+            $case->setAttribute('usb_3_0_type_A', optional($usbPort)->{'usb_3_0_type_A'} ?? 0);
             $case->setAttribute('usb_2_0', optional($usbPort)->{'usb_2_0'} ?? 0);
-            $case->setAttribute('usb-c', optional($usbPort)->{'usb-c'} ?? 0);
+            $case->setAttribute('usb_c', optional($usbPort)->{'usb_c'} ?? 0);
             $case->setAttribute('audio_jacks', optional($usbPort)->{'audio_jacks'} ?? 0);
 
             // USB PORTS
             $case->usb_display = $case->usbPorts->map(function ($usbPort) {
-                return $usbPort->{'usb_3_0_type-A'} . ' USB 3.0 Type-A' . '<br>' . 
+                return $usbPort->{'usb_3_0_type_A'} . ' USB 3.0 Type-A' . '<br>' . 
                        $usbPort->{'usb_2_0'} . ' USB 2.0' .'<br>' .
-                       $usbPort->{'usb-c'} . ' USB-C' .'<br>' .
+                       $usbPort->{'usb_c'} . ' USB-C' .'<br>' .
                        $usbPort->{'audio_jacks'} . ' Audio Jacks';
                 
             })->implode('<br>');
@@ -116,7 +116,7 @@ class CaseController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:10240',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -138,7 +138,7 @@ class CaseController extends Controller
         } else {
             $validated['model_3d'] = null;
         }
-        // dd($request->all());
+        dd($request->all());
 
         $case = PcCase::create($validated);
 
@@ -170,9 +170,9 @@ class CaseController extends Controller
 
         // Validate front usb port
         $usbValidated = $request->validate([
-            'usb_3_0_type-A' => 'required|integer|max:255',
+            'usb_3_0_type_A' => 'required|integer|max:255',
             'usb_2_0' => 'required|integer|max:255',
-            'usb-c' => 'required|integer|max:255',
+            'usb_c' => 'required|integer|max:255',
             'audio_jacks' => 'required|integer|max:255',
         ]);
         $usbValidated['pc_case_id'] = $case->id;
@@ -226,13 +226,13 @@ class CaseController extends Controller
 
         // Only update image if new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('cases/images', 'public');
+            $imagePath = $request->file('image')->store('cases', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if new file is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('cases/models', 'public');
+            $modelPath = $request->file('model_3d')->store('case', 'public');
             $data['model_3d'] = $modelPath;
         }
 
@@ -261,9 +261,9 @@ class CaseController extends Controller
         PcCaseFrontUsbPorts::updateOrCreate(
             ['pc_case_id' => $case->id],
             [
-                'usb_3_0_type-A' => $request->input('usb_3_0_type-A', 0),
+                'usb_3_0_type_A' => $request->input('usb_3_0_type_A', 0),
                 'usb_2_0' => $request->input('usb_2_0', 0),
-                'usb-c' => $request->input('usb-c', 0),
+                'usb_c' => $request->input('usb_c', 0),
                 'audio_jacks' => $request->input('audio_jacks', 0),
             ]
         );

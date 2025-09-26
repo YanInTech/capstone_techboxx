@@ -27,7 +27,7 @@ class RamController extends Controller
 
     public function getFormattedRams() 
     {
-        $rams = Ram::all();
+        $rams = Ram::withTrashed()->get();
 
         $ramSales = DB::table('user_builds')
                 ->select('ram_id', DB::raw('COUNT(*) as sold_count'))
@@ -84,7 +84,7 @@ class RamController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:10240',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -159,13 +159,13 @@ class RamController extends Controller
 
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('ram/images', 'public');
+            $imagePath = $request->file('image')->store('ram', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('ram/models', 'public');
+            $modelPath = $request->file('model_3d')->store('ram', 'public');
             $data['model_3d'] = $modelPath;
         }
 

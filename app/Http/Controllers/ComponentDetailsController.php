@@ -12,7 +12,6 @@ use App\Http\Controllers\Components\RamController;
 use App\Http\Controllers\Components\StorageController;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use App\Services\GoogleDriveUploader;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage as FacadesStorage;
 
@@ -53,7 +52,7 @@ class ComponentDetailsController extends Controller
     public function index() {
         $components = $this->getAllFormattedComponents();
 
-        $perPage = 6;
+        $perPage = 5;
         $currentPage = request()->get('page', 1);
         $currentPageItems = $components->forPage($currentPage, $perPage);
 
@@ -134,7 +133,7 @@ class ComponentDetailsController extends Controller
         });
 
         // Pagination
-        $perPage = 6;
+        $perPage = 5;
         $currentPage = $request->get('page', 1);
         $currentPageItems = $components->slice(($currentPage - 1) * $perPage, $perPage)->values();
 

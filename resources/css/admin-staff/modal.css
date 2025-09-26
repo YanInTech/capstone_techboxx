@@ -481,11 +481,20 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: aliceblue;
 }
 
 .software-name img{
     width: 50px;
     height: 50px;
     object-fit: cover;
+}
+
+.software-specs div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.software-specs h4 {
+    margin-top: 12px ;
 }

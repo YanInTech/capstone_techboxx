@@ -30,7 +30,7 @@ class CpuController extends Controller
 
     public function getFormattedCpus() 
     {
-        $cpus = Cpu::all();
+        $cpus = Cpu::withTrashed()->get();
 
         $cpuSales = DB::table('user_builds')
                 ->select('cpu_id', DB::raw('COUNT(*) as sold_count'))
@@ -86,7 +86,7 @@ class CpuController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:10240',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -163,13 +163,13 @@ class CpuController extends Controller
 
         // Only update image if new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('cpus/images', 'public');
+            $imagePath = $request->file('image')->store('cpu', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if new file is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('cpus/models', 'public');
+            $modelPath = $request->file('model_3d')->store('cpu', 'public');
             $data['model_3d'] = $modelPath;
         }
 

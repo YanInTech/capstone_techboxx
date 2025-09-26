@@ -117,7 +117,11 @@ Route::prefix('staff')->name('staff.')->group(function () {
 
     // SOFTWARE DETAILS
     Route::get('software-details', [SoftwareDetailsController::class, 'index'])->name('software-details');
+    Route::get('software-details/search', [SoftwareDetailsController::class, 'search'])->name('software-details.search');
     Route::post('software-details/store', [SoftwareDetailsController::class, 'store'])->name('software-details.store');
+    Route::post('software-details/update/{id}', [SoftwareDetailsController::class, 'update'])->name('software-details.update');
+    Route::post('software-details/delete/{id}', [SoftwareDetailsController::class, 'destroy'])->name('software-details.delete');
+    Route::patch('software-details/restore/{id}', [SoftwareDetailsController::class, 'restore'])->name('software-details.restore');
 
     // ORDER
     Route::get('order', [OrderController::class, 'index'])->name('order');

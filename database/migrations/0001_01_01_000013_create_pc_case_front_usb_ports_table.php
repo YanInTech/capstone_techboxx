@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('pc_case_id')->constrained()->onDelete('cascade');
-            $table->integer('usb_3_0_type-A');
+            $table->integer('usb_3_0_type_A');
             $table->integer('usb_2_0');
-            $table->integer('usb-c');
+            $table->integer('usb_c');
             $table->integer('audio_jacks');
             $table->softDeletes();
         });

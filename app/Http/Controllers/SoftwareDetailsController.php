@@ -6,6 +6,8 @@ use App\Models\BuildCategory;
 use App\Models\Software;
 use App\Models\SoftwareRequirement;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 
@@ -17,10 +19,54 @@ class SoftwareDetailsController extends Controller
     public function index()
     {
         //
-        $softwares = Software::paginate(8);
+        $softwares = Software::withTrashed()
+            ->with('specs')
+            ->orderByRaw('CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END') // Not deleted first
+            ->orderByDesc('created_at')
+            ->paginate(7);
         $buildCategories = BuildCategory::select('id', 'name')->get()->toArray();
         return view('staff.softwaredetails', compact('buildCategories', 'softwares'));
 
+    }
+
+    public function search(Request $request)
+    {
+        $searchTerm = strtolower($request->input('search'));
+        $buildCategories = BuildCategory::select('id', 'name')->get()->toArray();
+
+        $software = Software::with('specs')->get()->filter(function ($software) use ($searchTerm) {
+            return str_contains(strtolower($software['name']), $searchTerm);
+        });
+
+        // Pagination
+        $perPage = 6;
+        $currentPage = $request->get('page', 1);
+        $currentPageItems = $software->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $paginated = new LengthAwarePaginator(
+            $currentPageItems,
+            $software->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('staff.softwaredetails',
+            [
+                'softwares' => $paginated,
+                'buildCategories' => $buildCategories,
+            ],
+        );
+    }
+
+    public function restore (string $id) {
+        $software = Software::withTrashed()->findOrFail($id);
+        $software->restore();
+
+        return back()->with([
+            'message' => 'Sofware has been restored.',
+            'type' => 'success',
+        ]);
     }
 
     /**
@@ -99,6 +145,39 @@ class SoftwareDetailsController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $software = Software::findOrFail($id);
+
+        $data = [
+            'name' => $request->name,
+            'icon' => $request->icon,
+            'build_category_id' => $request->build_category_id,
+        ];
+
+        if ($request->hasFile('icon')) {
+            $imagePath = $request->file('icon')->store('softwareIcon', 'public');
+            $data['icon'] = $imagePath;
+        }
+
+        $software->update($data);
+
+        SoftwareRequirement::updateOrCreate(
+            ['software_id' => $software->id],
+            [
+                'os_min' => $request->input('os_min') ?: $software->softwareRequirement->os_min,     
+                'cpu_min' => $request->input('cpu_min') ?: $software->softwareRequirement->cpu_min,     
+                'gpu_min' => $request->input('gpu_min') ?: $software->softwareRequirement->gpu_min,     
+                'ram_min' => $request->input('ram_min') ?: $software->softwareRequirement->ram_min,     
+                'storage_min' => $request->input('storage_min') ?: $software->softwareRequirement->storage_min,     
+                'cpu_reco' => $request->input('cpu_reco') ?: $software->softwareRequirement->cpu_reco,     
+                'gpu_reco' => $request->input('gpu_reco') ?: $software->softwareRequirement->gpu_reco,     
+                'ram_reco' => $request->input('ram_reco') ?: $software->softwareRequirement->ram_reco,     
+                'storage_reco' => $request->input('storage_reco') ?: $software->softwareRequirement->storage_reco,     
+            ]
+        );
+        return redirect()->route('staff.software-details')->with([
+            'message' => 'Software updated',
+            'type' => 'success',
+        ]); 
     }
 
     /**
@@ -107,5 +186,17 @@ class SoftwareDetailsController extends Controller
     public function destroy(string $id)
     {
         //
+        $software = Software::findOrFail($id);
+
+        if ($software->icon) {
+            Storage::disk('public')->delete($software->icon);
+        }
+
+        $software->delete();
+
+        return redirect()->route('staff.software-details')->with([
+            'message' => 'Software deleted',
+            'type' => 'success',
+        ]); 
     }
 }

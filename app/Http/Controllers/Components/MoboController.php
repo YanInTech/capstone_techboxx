@@ -37,7 +37,7 @@ class MoboController extends Controller
 
     public function getFormattedMobos()
     {
-        $mobos = Motherboard::all();
+        $mobos = Motherboard::withTrashed()->get();
 
         $moboSales = DB::table('user_builds')
                 ->select('motherboard_id', DB::raw('COUNT(*) as sold_count'))
@@ -106,7 +106,7 @@ class MoboController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer|min:1|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'model_3d' => 'nullable|file|mimes:glb|max:10240',
+            'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
@@ -187,13 +187,13 @@ class MoboController extends Controller
 
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('motherboards/images', 'public');
+            $imagePath = $request->file('image')->store('mobo', 'public');
             $data['image'] = $imagePath;
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('motherboards/models', 'public');
+            $modelPath = $request->file('model_3d')->store('mobo', 'public');
             $data['model_3d'] = $modelPath;
         }
 

@@ -1,4 +1,4 @@
-<pre x-text="JSON.stringify(selectedComponent, null, 2)"></pre>
+{{-- <pre x-text="JSON.stringify(selectedComponent, null, 2)"></pre> --}}
 <div class="relative !m-0">
     <h2 class="text-center w-[100%]">
         VIEW
@@ -9,7 +9,9 @@
 <div class="view-container">
     {{-- IMAGE --}}
     <div class="image-container">
-        <img :src="`/${selectedComponent.image}`" alt="Product Image" >
+        {{-- <img :src="`/${selectedComponent.image}`" alt="Product Image" > --}}
+        <img :src="'/storage/' + selectedComponent.image" alt="Product Image">
+
     </div>
 
     <div x-show="!selectedComponent.image || selectedComponent.image.length === 0">

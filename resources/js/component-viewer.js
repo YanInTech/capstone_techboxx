@@ -8,11 +8,14 @@ let scene, camera, renderer, controls;
 let caseModel = null;
 let moboModel = null;
 let cpuModel = null;
+let psuModel = null;
 let moboSlotPosition = null;
 let cpuSlotPosition = null;
+let psuSlotPosition = null;
 let selectedCaseModelUrl = null;
 let selectedMoboModelUrl = null;
 let selectedCpuModelUrl = null;
+let selectedPsuModelUrl = null;
 
 function setupCatalogClickHandlers() {
   document.querySelectorAll('.catalog-item').forEach(item => {
@@ -37,6 +40,9 @@ function setupCatalogClickHandlers() {
       } else if (type === 'cpu') {
         selectedCpuModelUrl = modelUrl;
         console.log('Selected model URL for draggin:', selectedCpuModelUrl);
+      } else if (type === 'psu') {
+        selectedPsuModelUrl = modelUrl;
+        console.log('Selected model URL for draggin:', selectedPsuModelUrl);
       }
 
     })
@@ -102,6 +108,7 @@ function setupDragAndDrop() {
   let mobomarker = null;
   let casemarker = null;
   let cpumarker = null;
+  let psumarker = null;
   let wasDroppedSuccessfully = false; // Track if the drop was successful
 
   interact('.draggable').draggable({
@@ -149,6 +156,40 @@ function setupDragAndDrop() {
         } 
 
         // If dragging Mobo, highlight the Mobo slot
+        if (draggingId === 'psu' && caseModel) {
+          const psuSlot = caseModel.getObjectByName('Slot_Psu');
+          if (psuSlot) {
+            // Save the original material and change to the highlighted one
+            originalSlotMaterial = psuSlot.material; // Store the original material
+            psuSlot.material = new THREE.MeshStandardMaterial({
+              color: 0x00ff00,        // Bright green to show it's active
+              emissive: 0x003300,     // A little glowing effect
+              transparent: true,
+              opacity: 0.4,           // Semi-transparent
+            });
+
+            // Optionally, create a visible marker at the slot position
+            psumarker = new THREE.Mesh(
+              new THREE.BoxGeometry(2, 2, 0.1),
+              new THREE.MeshStandardMaterial({
+                color: 0x00ff00,
+                emissive: 0x003300,
+                transparent: true,
+                opacity: 0.4,
+              })
+            );
+
+            
+            // Rotate 45 degrees on the X axis
+            psumarker.rotation.x = 0; // No rotation on the Y axis
+            psumarker.rotation.y = Math.PI / 2;  // 90 degrees        
+            psumarker.rotation.z = 0;          // No rotation on the Z axis
+            psumarker.position.set(psuSlotPosition.x, psuSlotPosition.y + -1, psuSlotPosition.z + -1.4); // Position the psumarker
+            scene.add(psumarker);
+          }
+        } 
+
+        // If dragging Mobo, highlight the Mobo slot
         if (draggingId === 'cpu' && moboModel) {
           const cpuSlot = moboModel.getObjectByName('Slot_Cpu');
           if (cpuSlot) {
@@ -177,7 +218,7 @@ function setupDragAndDrop() {
             cpumarker.rotation.x = 0; // No rotation on the Y axis
             cpumarker.rotation.y = Math.PI / 2;  // 90 degrees        
             cpumarker.rotation.z = 0;          // No rotation on the Z axis
-            cpumarker.position.set(moboSlotPosition.x, moboSlotPosition.y + -1, moboSlotPosition.z + -1.4); // Position the cpumarker
+            cpumarker.position.set(cpuSlotPosition.x, cpuSlotPosition.y + -1, cpuSlotPosition.z + -1.4); // Position the cpumarker
             scene.add(cpumarker);
           }
         }

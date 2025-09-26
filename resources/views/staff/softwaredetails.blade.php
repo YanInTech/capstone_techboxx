@@ -7,7 +7,7 @@
         </button>
 
         <div>
-            <form action=" {{ route('staff.inventory.search') }}" method="GET">
+            <form action=" {{ route('staff.software-details.search') }}" method="GET">
                 <input 
                     type="text"
                     name="search"
@@ -49,7 +49,7 @@
                             <div>
                                 <div class="software-input">
                                     <label for="build_category_id">Category</label>
-                                    <select name="build_category_id" id="build_category_id" class="pt-0 pb-0 pl-1">
+                                    <select required name="build_category_id" id="build_category_id" class="pt-0 pb-0 pl-1">
                                         <option disabled selected hidden value="">Select build category</option>   
                                         @foreach ($buildCategories as $category)
                                             <option value="{{ $category['id'] }}">{{ $category['name'] }}</option>
@@ -120,7 +120,7 @@
     {{-- TABLE --}}
     <section class="section-style !pl-0 !h-[65vh]">
         <div class="h-[55vh]"
-        x-data="{ viewModal: false, selectedSoftware:{} }"> 
+        x-data="{ viewModal: false, editModal: false, selectedSoftware:{} }"> 
             <table class="table mb-3">
                 <thead>
                     <tr>
@@ -131,11 +131,33 @@
                 </thead>
                 <tbody>
                     @foreach ($softwares as $software)
-                        <tr class="hover:opacity-50" 
-                        @click="viewModal = true; selectedSoftware = {{ $software->toJson() }}">
+                        <tr class="hover:opacity-50 {{ $software->deleted_at ? 'bg-gray-300 opacity-50 cursor-not-allowed' : '' }}" 
+                        @click="{{ $software->deleted_at ? '' : "viewModal = true; selectedSoftware = " . $software->toJson() }}">
                             <td>{{ $software->name }}</td>
                             <td>{{ $software->buildCategory->name }}</td>
-                            <td>Ambot</td>
+                            <td>
+                                @if($software->deleted_at)
+                                <form action="{{ route('staff.software-details.restore', ['id' => $software->id]) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH') <!-- or any method you use for restoring -->
+                                        <button @click.stop type="submit">
+                                            <x-icons.restore />
+                                        </button>
+                                    </form>
+                                @else
+                                <div class="flex justify-center gap-2">
+                                    <button @click.stop @click="editModal = true; selectedSoftware = {{ $software->toJson() }}">
+                                        <x-icons.edit />
+                                    </button>
+                                    <form action="{{ route('staff.software-details.delete', ['id' => $software->id] )}}" method="POST">
+                                        @csrf
+                                        <button @click.stop>
+                                            <x-icons.delete />
+                                        </button>
+                                    </form>
+                                </div>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -152,7 +174,7 @@
                             @click="viewModal = false"/>    
                         </h2>
                     </div>
-                    <pre x-text="JSON.stringify(selectedSoftware, null, 2)"></pre>
+                    {{-- <pre x-text="JSON.stringify(selectedSoftware, null, 2)"></pre> --}}
 
                     <div class="software-name">
                         <div>
@@ -162,9 +184,148 @@
                             <p x-text="selectedSoftware.name"></p>
                         </div>
                     </div>
-                    <div>
+                    <div class="software-specs">
+                        <h4>Minimum System Requirements</h4>
+
+                        <div>
+                            <p>Operating System</p>
+                            <p x-text="selectedSoftware.specs.os_min ? selectedSoftware.specs.os_min : '-'"></p>
+                        </div>
+                        <div>
+                            <p>CPU</p>
+                            <p x-text="selectedSoftware.specs.cpu_min ? selectedSoftware.specs.cpu_min : '-'"></p>
+                        </div>
+                        <div>
+                            <p>GPU</p>
+                            <p x-text="selectedSoftware.specs.gpu_min ? selectedSoftware.specs.gpu_min : '-'"></p>
+                        </div>
+                        <div>
+                            <p>RAM</p>
+                            <p x-text="selectedSoftware.specs.ram_min ? selectedSoftware.specs.ram_min : '-'"></p>
+                        </div>
+                        <div>
+                            <p>Storage</p>
+                            <p x-text="selectedSoftware.specs.storage_min ? selectedSoftware.specs.storage_min : '-'"></p>
+                        </div>
+
+                        <h4>Recommended System Requirements</h4>
+
+                        <div>
+                            <p>CPU</p>
+                            <p x-text="selectedSoftware.specs.cpu_reco ? selectedSoftware.specs.cpu_reco : '-'"></p>
+                        </div>
+                        <div>
+                            <p>GPU</p>
+                            <p x-text="selectedSoftware.specs.gpu_reco ?selectedSoftware.specs.gpu_reco : '-'"></p>
+                        </div>
+                        <div>
+                            <p>RAM</p>
+                            <p x-text="selectedSoftware.specs.ram_reco ? selectedSoftware.specs.ram_reco : '-'"></p>
+                        </div>
+                        <div>
+                            <p>Storage</p>
+                            <p x-text="selectedSoftware.specs.storage_reco ? selectedSoftware.specs.storage_reco : '-'"></p>
+                        </div>
                         
                     </div>
+                </div>
+            </div>
+
+            {{-- EDIT MODAL --}}
+            <div x-show="editModal" x-cloak x-transition class="modal">
+                <div class="add-software" 
+                @click.away="editModal = false">
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Edit Software Details
+                            <x-icons.close class="close" 
+                            @click="viewModal = false"/>    
+                        </h2>
+                    </div>
+
+                    <form class="software-form" 
+                    method="POST" :action="`/staff/software-details/update/${selectedSoftware.id}`" enctype="multipart/form-data">
+                        @csrf
+                        <div class="software-details">
+                            <div class="software-info">
+                                <div>
+                                    <div class="software-input">
+                                        <label for="">Software Name</label>
+                                        <input x-model="selectedSoftware.name" required type="text" name="name">
+                                    </div>
+
+                                    <div class="software-input">
+                                        <label for="">Software Icon</label>
+                                        <input type="file" name="icon" accept="image/*">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="software-input">
+                                        <label for="build_category_id">Category</label>
+                                        <select x-model="selectedSoftware.build_category_id" required name="build_category_id" id="build_category_id" class="pt-0 pb-0 pl-1">
+                                            <option disabled selected hidden value="">Select build category</option>   
+                                            @foreach ($buildCategories as $category)
+                                                <option value="{{ $category['id'] }}">{{ $category['name'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>    
+                                </div>
+                            </div>
+                            <div>
+                                <p>Minimum System Requirements</p>
+
+                                <div class="software-input">
+                                    <label for="">Operating System</label>
+                                    <input x-model="selectedSoftware.specs.os_min" type="text" name="os_min">
+                                </div>   
+                                
+                                <div class="software-input">
+                                    <label for="">CPU</label>
+                                    <input x-model="selectedSoftware.specs.cpu_min" type="text" name="cpu_min">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">GPU</label>
+                                    <input x-model="selectedSoftware.specs.gpu_min" type="text" name="gpu_min">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">RAM</label>
+                                    <input x-model="selectedSoftware.specs.ram_min" name="ram_min" id="ram_min" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">Storage</label>
+                                    <input x-model="selectedSoftware.specs.storage_min" name="storage_min" id="storage_min" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                </div>
+
+                                <p>Recommended System Requirements</p>
+                                
+                                <div class="software-input">
+                                    <label for="">CPU</label>
+                                    <input x-model="selectedSoftware.specs.cpu_reco" type="text" name="cpu_reco">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">GPU</label>
+                                    <input x-model="selectedSoftware.specs.gpu_reco" type="text" name="gpu_reco">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">RAM</label>
+                                    <input x-model="selectedSoftware.specs.ram_reco" name="ram_reco" id="ram_reco" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                </div>   
+
+                                <div class="software-input">
+                                    <label for="">Storage</label>
+                                    <input x-model="selectedSoftware.specs.storage_reco" name="storage_reco" id="storage_reco" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <button>Update Software</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
