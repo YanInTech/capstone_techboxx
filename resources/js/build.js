@@ -16,6 +16,7 @@ const catalogItem = document.querySelectorAll('.catalog-item');
 const buildSection = document.getElementById('buildSection');
 const summarySection = document.getElementById('summarySection');
 const summaryTableBody = document.getElementById("summaryTableBody");
+const cartForm = document.getElementById("cartForm");
 
 
 let currentBrandFilter = '';     // e.g. "amd" or "intel"
@@ -225,6 +226,7 @@ generateBtn.addEventListener('click', () => {
 
             let row = '';
             row += `<tr>`;
+            row += `<td><p>${item.id}</p></td>`;
             row += `<td><p>${item.name}</p></td>`;
             row += `<td><p>1</p></td>`;
             row += `<td><p>₱${price.toFixed(2)}</p></td>`;
@@ -250,9 +252,15 @@ generateBtn.addEventListener('click', () => {
         Object.entries(data).forEach(([key, item]) => {
             console.log([key, item]);
             let buttonSelector = null;
+            let componentType = key;
 
             if (key === 'pc_case') {
-                key = 'case';
+                componentType = 'case';
+            }
+
+            if (key === 'storage') {
+                // Use item.type (either 'ssd' or 'hdd') to determine the actual component type
+                componentType = item.type; // This will be 'ssd' or 'hdd'
             }
 
             if (key === 'storage') {
@@ -261,6 +269,28 @@ generateBtn.addEventListener('click', () => {
             } else {
                 // For other types of items, match by the key
                 buttonSelector = `button[data-type="${key}"]`;
+            }
+
+            selectedComponents[componentType] = {
+                componentId: item.id,
+                name: item.name,
+                price: parseFloat(item.price.toString().replace(/,/g, '')),
+                imageUrl: item.image || '' // Add image URL if available from API
+            };
+
+            // UPDATE HIDDEN INPUTS FOR CART FORM
+            if (componentType === 'hdd' || componentType === 'ssd') {
+                // For storage components, update the storage input
+                const storageInput = document.getElementById('hidden_storage');
+                if (storageInput) {
+                    storageInput.value = item.id;
+                }
+            } else {
+                // For regular components
+                const hiddenInput = document.getElementById(`hidden_${componentType}`);
+                if (hiddenInput) {
+                    hiddenInput.value = item.id;
+                }
             }
 
             const button = document.querySelector(buttonSelector);
@@ -319,7 +349,14 @@ document.querySelectorAll('.catalog-item').forEach(item => {
         const imageUrl = item.getAttribute('data-image');
 
         // STORE SELECTED COMPONENT
-        selectedComponents[type] = { name, price, imageUrl };
+        selectedComponents[type] = { componentId, name, price, imageUrl };
+
+        // UPDATE HIDDEN INPUT
+        const hiddenInput = document.getElementById(`hidden_${type}`);
+        if (hiddenInput) {
+            hiddenInput.value =componentId;
+        }
+
         sessionStorage.setItem(type, JSON.stringify(selectedComponents));
 
         // FIND THE MATCHING BUTTON
@@ -370,10 +407,18 @@ function updateSummaryTable() {
     tbody.innerHTML = ''; // CLEAR OLD ENTRIES
 
     let totalPrice = 0;
+    let hasComponents = false;
 
     for (const [type, component] of Object.entries(selectedComponents)) {
+        if (!component || !component.componentId) continue;
+
+        hasComponents = true;
+
         const row = document.createElement('tr');
 
+        const idCell = document.createElement('td');
+        idCell.innerHTML = `<p>${component.componentId}</p>`;
+        
         const nameCell = document.createElement('td');
         nameCell.innerHTML = `<p>${component.name}</p>`;
 
@@ -383,6 +428,7 @@ function updateSummaryTable() {
         const priceCell = document.createElement('td');
         priceCell.innerHTML = `<p>₱${component.price.toFixed(2)}</p>`;
 
+        row.appendChild(idCell);
         row.appendChild(nameCell);
         row.appendChild(qtyCell);
         row.appendChild(priceCell);
@@ -393,21 +439,57 @@ function updateSummaryTable() {
 
     }
 
+    if (hasComponents) {
         // Step 3: Add total row at the end
-    const totalRow = document.createElement('tr');
+        const totalRow = document.createElement('tr');
 
-    const totalLabelCell = document.createElement('td');
-    totalLabelCell.setAttribute('colspan', '2'); // Span across name and quantity columns
-    totalLabelCell.innerHTML = `<p><strong>Total</strong></p>`;
+        const totalLabelCell = document.createElement('td');
+        totalLabelCell.setAttribute('colspan', '2'); // Span across name and quantity columns
+        totalLabelCell.innerHTML = `<p><strong>Total</strong></p>`;
 
-    const totalPriceCell = document.createElement('td');
-    totalPriceCell.innerHTML = `<p><strong>₱${totalPrice.toFixed(2)}</strong></p>`;
+        const totalPriceCell = document.createElement('td');
+        totalPriceCell.innerHTML = `<p><strong>₱${totalPrice.toFixed(2)}</strong></p>`;
 
-    totalRow.appendChild(totalLabelCell);
-    totalRow.appendChild(totalPriceCell);
+        totalRow.appendChild(totalLabelCell);
+        totalRow.appendChild(totalPriceCell);
 
-    tbody.appendChild(totalRow);
+        tbody.appendChild(totalRow);
+    }
 }
+
+// BUILD CART
+cartForm.addEventListener('submit', function(e) {
+    for (const [type, component] of Object.entries(selectedComponents)) {
+        const hiddenInput = document.getElementById(`hidden_${type}`);
+        if (hiddenInput && component.componentId) {
+            hiddenInput.value = component.componentId;
+        }
+    }
+
+    // VALIDATE IF ALL COMPONENT IS SELECTED
+    const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case', 'storage'];
+    const allComponentsSelected = requiredComponents.every(type => {
+        if (type === 'storage') {
+            // For storage, check if either HDD or SSD is selected
+            return (selectedComponents.hdd && selectedComponents.hdd.componentId) || 
+                (selectedComponents.ssd && selectedComponents.ssd.componentId);
+        }
+        return selectedComponents[type] && selectedComponents[type].componentId;
+    });
+
+    if (!allComponentsSelected) {
+        e.preventDefault();
+        alert('Please select all required components before adding to cart.');
+        return;
+    }
+
+    if (!hasComponents) {
+        e.preventDefault();
+        alert('Please select at least one component before adding to cart.');
+        return;
+    }
+
+})
 
 // ADD DATE TODAY ON THE SUMMARY TAB
 window.addEventListener('DOMContentLoaded', () => {

@@ -143,6 +143,7 @@ Route::resource('cpus', CpuController::class);
 
 // catalogue routes
 Route::get('/catalogue', [CatalogueController::class, 'index'])->name('catalogue');
+Route::get('/catalogue/{table}/{id}', [CatalogueController::class, 'show'])->name('catalogue.show');
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update');

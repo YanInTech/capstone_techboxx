@@ -138,7 +138,7 @@ class CaseController extends Controller
         } else {
             $validated['model_3d'] = null;
         }
-        dd($request->all());
+        // dd($request->all());
 
         $case = PcCase::create($validated);
 

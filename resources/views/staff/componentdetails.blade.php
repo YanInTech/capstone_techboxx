@@ -64,7 +64,8 @@
                 </thead>
                 <tbody>
                     @foreach ($components as $component)
-                    <tr class="{{ $component->deleted_at ? 'bg-gray-300 opacity-50 cursor-not-allowed' : '' }}" >
+                    <tr @click="showViewModal = true; selectedComponent = {{ $component->toJson() }};"
+                    class="{{ $component->deleted_at ? 'bg-gray-300 opacity-50 cursor-not-allowed' : '' }} hover:opacity-50" >
                         <td>{{ $component->buildCategory->name}}</td>
                         <td>{{ $component->supplier->name}}</td>
                         <td>{{ $component->brand}} {{ $component->model }}</td>
@@ -82,11 +83,6 @@
                                         </button>
                                     </form>
                                 @else
-                                    {{-- View Button for Active Components --}}
-                                    <button @click="showViewModal = true; selectedComponent = {{ $component->toJson() }};">
-                                        <x-icons.view />
-                                    </button>
-
                                     {{-- Edit Button for Active Components --}}
                                     <button @click="showEditModal = true; selectedComponent = {{ $component->toJson() }};">
                                         <x-icons.edit />

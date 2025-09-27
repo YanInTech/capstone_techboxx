@@ -17,6 +17,15 @@ return new class extends Migration
             $table->string('name');
             $table->string('icon')->nullable();
             $table->foreignId('build_category_id')->constrained()->onDelete('cascade');
+            $table->string('os_min')->nullable();
+            $table->string('cpu_min')->nullable();
+            $table->string('cpu_reco')->nullable();
+            $table->integer('ram_min')->nullable();
+            $table->integer('ram_reco')->nullable();
+            $table->string('gpu_min')->nullable();
+            $table->string('gpu_reco')->nullable();
+            $table->integer('storage_min')->nullable();
+            $table->integer('storage_reco')->nullable();
             $table->softDeletes();
         });
     }

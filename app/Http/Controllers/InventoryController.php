@@ -12,7 +12,7 @@ class InventoryController extends Controller
 {
     //
     public function index() {
-        $lowStockThreshold = 5;
+        $lowStockThreshold = 10;
 
         // Get all components (assuming getAllFormattedComponents() returns a collection)
         $componentss = app(ComponentDetailsController::class)->getAllFormattedComponents();
@@ -39,7 +39,7 @@ class InventoryController extends Controller
 
 
     public function search (Request $request) {
-        $lowStockThreshold = 5;
+        $lowStockThreshold = 10;
         $searchTerm = strtolower($request->input('search'));
 
         $componentss = app(ComponentDetailsController::class)->getAllFormattedComponents()->filter(function ($component) use ($searchTerm) {

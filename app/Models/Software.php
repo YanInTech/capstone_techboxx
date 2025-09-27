@@ -16,13 +16,19 @@ class Software extends Model
         'name',
         'icon',
         'build_category_id',
+        'os_min',
+        'cpu_min',
+        'cpu_reco',
+        'ram_min',
+        'ram_reco',
+        'gpu_min',
+        'gpu_reco',
+        'storage_min',
+        'storage_reco',
     ];
 
     public function buildCategory() {
         return $this->belongsTo(BuildCategory::class);
     }
 
-    public function specs() {
-        return $this->hasOne(SoftwareRequirement::class);
-    }
 }

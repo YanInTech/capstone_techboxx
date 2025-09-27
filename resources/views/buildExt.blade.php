@@ -34,14 +34,20 @@
 
     <main class="main-content header overflow-hidden">
         <div class="ext-icons">
+            <form action="{{ route('home') }}">
+                @csrf
+                <button>
+                    <x-icons.arrow class="build-arrow"/>
+                </button>
+            </form>
+            <form>
+                @csrf
+                <button>
+                    <x-icons.save class="ext-save"/>
+                </button>
+            </form>
             <button>
-                <x-icons.arrow class="ext-arrow"/>
-            </button>
-            <button>
-                <x-icons.save class="ext-save"/>
-            </button>
-            <button>
-                <x-icons.cart class="ext-save"/>
+                <x-icons.cart class="ext-cart"/>
             </button>
         </div>
         

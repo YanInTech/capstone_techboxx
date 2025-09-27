@@ -98,6 +98,7 @@ if len(sys.argv) >= 4:
 component_to_category = {}
 component_to_brand = {}
 component_to_price = {}  # New: track component prices
+component_to_id = {}
 
 for comp_type, comp_map in lookup_maps.items():
     for comp_id, comp_info in comp_map.items():
@@ -107,9 +108,11 @@ for comp_type, comp_map in lookup_maps.items():
         price = float(parts[-1])      # Last is price
         brand = parts[0]              # First part is the brand
         
-        component_to_category[f"{comp_type}_id:{comp_id}"] = category_id
-        component_to_brand[f"{comp_type}_id:{comp_id}"] = brand
-        component_to_price[f"{comp_type}_id:{comp_id}"] = price
+        component_key = f"{comp_type}_id:{comp_id}"
+        component_to_category[component_key] = category_id
+        component_to_brand[component_key] = brand
+        component_to_price[component_key] = price
+        component_to_id[component_key] = comp_id  # Store the component ID
 
 # ---------- LOAD USER BUILDS ----------
 query = "SELECT * FROM user_builds"
@@ -213,6 +216,7 @@ def get_best_recommendation_by_category():
                     storage_type = "unknown"
 
                 recommendations["storage"] = {
+                    "id": comp_id,
                     "name": clean_name,
                     "price": price,
                     "type": storage_type
@@ -220,12 +224,14 @@ def get_best_recommendation_by_category():
 
             else:
                 recommendations[comp_type] = {
+                    "id": comp_id,
                     "name": clean_name,
                     "price": price
                 }
         else:
             fallback_item = get_fallback_for_component(comp_type, selected_category)
             recommendations[comp_type] = {
+                "id": None,
                 "name": fallback_item,
                 "price": 0
             }
@@ -275,16 +281,23 @@ def get_recommendations_for_category(target_category, preferred_cpu_brand=None):
                     storage_type = "unknown"
 
                 recommendations["storage"] = {
+                    "id": comp_id,
                     "name": clean_name,
                     "price": price,
                     "type": storage_type
                 }
 
             else:
-                recommendations[comp_type] = {"name": clean_name, "price": price}
+                recommendations[comp_type] = {
+                    "id": comp_id,
+                    "name": clean_name, 
+                    "price": price}
         else:
             fallback_item = get_fallback_for_component(comp_type, target_category)
-            recommendations[comp_type] = {"name": fallback_item, "price": 0}
+            recommendations[comp_type] = {
+                "id": None,
+                "name": fallback_item, 
+                "price": 0}
     
     return recommendations
 
@@ -354,16 +367,23 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                     storage_type = "unknown"
 
                 final_recommendations["storage"] = {
+                    "id": detail["id"],
                     "name": detail["name"],
                     "price": detail["price"],
                     "type": storage_type
                 }
 
             else:
-                final_recommendations[comp_type] = {"name": detail["name"], "price": detail["price"]}
+                final_recommendations[comp_type] = {
+                    "id": detail["id"],
+                    "name": detail["name"], 
+                    "price": detail["price"]}
             final_total += detail["price"]
         else:
-            final_recommendations[comp_type] = {"name": None, "price": 0}
+            final_recommendations[comp_type] = {
+                "id": None,
+                "name": None, 
+                "price": 0}
     
     final_recommendations["budget_summary"] = {
         "user_budget": user_budget,
@@ -467,18 +487,20 @@ def get_fallback_recommendations():
                     storage_type = "unknown"
 
                 recommendations["storage"] = {
+                    "id": comp_id,
                     "name": clean_name,
                     "price": component_to_price.get(f"{comp_type}_id:{comp_id}", 0),
                     "type": storage_type
                 }
             else:
                 recommendations[comp_type] = {
+                    "id": comp_id,
                     "name": clean_name,
                     "price": component_to_price.get(f"{comp_type}_id:{comp_id}", 0)
                 }
 
         else:
-            recommendations[col.replace("_id", "")] = None
+            recommendations[col.replace("_id", "")] = {None}
     
     return recommendations
 

@@ -33,9 +33,38 @@
     </div>
 
     <main class="main-content flex justify-evenly h-[91vh] gap-1">
-        
-
         <section class="preview-section header">
+            <div class="build-icons">
+                <form action="{{ route('home') }}">
+                    @csrf
+                    <button>
+                        <x-icons.arrow class="build-arrow"/>
+                    </button>
+                </form>
+                <form action="{{ route('home') }}">
+                    @csrf
+                    <button>
+                        <x-icons.save class="build-save"/>
+                    </button>
+                </form>
+                <form action="{{ route('home') }}" method="GET" id="cartForm">
+                    @csrf
+                    @php
+                        $componentTypes = ['gpu', 'motherboard', 'cpu', 'hdd', 'ssd', 'psu', 'ram', 'cooler', 'case'];
+                    @endphp
+
+                    @foreach ($componentTypes as $componentType)
+                        @php
+                            $inputName = ($componentType === 'hdd' || $componentType === 'sdd') ? 'storage' : $componentType;
+                        @endphp
+                        <input type="hidden" name="component_ids[{{ $inputName }}]" id="hidden_{{ $componentType }}" value="">
+                    @endforeach
+
+                    <button type="submit">
+                        <x-icons.cart class="build-cart"/>
+                    </button>
+                </form>
+            </div>
             <div id="sidebar">
                 <h3 class="mb-3 text-center">BUILD COMPONENTS</h3>
                 <div id="components">
@@ -151,6 +180,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th><p>ID</p></th>
                                 <th><p>Components</p></th>
                                 <th><p>Quantity</p></th>
                                 <th><p>Price</p></th>

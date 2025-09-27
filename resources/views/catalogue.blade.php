@@ -141,21 +141,56 @@
             </aside>
 
             <!-- Product Grid -->
-            <main class="w-full sm:w-3/4 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <main class="w-full sm:w-3/4 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                x-data="{ openModal: false, specs: {}, name: '', image: '' }"
+                x-on:open-specs.window="openModal = true; specs = $event.detail.specs; name = $event.detail.name; image = $event.detail.image;">
+
                 @forelse($products as $product)
-                    <div class="relative border rounded-lg p-4 text-center bg-blue-50 shadow hover:shadow-lg transition flex flex-col justify-between h-[320px]">
-                        <img src="{{ asset('storage/' . str_replace('\\', '/', $product['image'])) }}" alt="{{ $product['name'] }}"
+                    <div class="relative border rounded-lg p-4 text-center bg-blue-50 shadow hover:shadow-lg transition flex flex-col justify-between h-[360px] group">
+                        
+                        <!-- Menu -->
+                        <button @click="$dispatch('open-specs', { 
+                            specs: {{ json_encode($product['specs']) }}, 
+                            name: '{{ $product['name'] }}', 
+                            image: {{ json_encode($product['image']) }} })"
+                                class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:bg-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                fill="currentColor" 
+                                viewBox="0 0 16 16" 
+                                class="w-5 h-5 text-gray-700">
+                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                            </svg>
+                        </button>
 
-                            class="mx-auto mb-3 h-32 object-contain">
+                        <!-- Image + Name as Link -->
+                        <a href="{{ route('catalogue.show', ['table' => $product['table'], 'id' => $product['id']]) }}">
+                            <img src="{{ asset('storage/' . $product['image']) }}"
+                                alt="{{ $product['name'] }}"
+                                class="mx-auto mb-3 h-32 object-contain">
+                        </a>
 
-                        <div>
-                            <h3 class="font-bold text-sm truncate" title="{{ $product['name'] }}">{{ $product['name'] }}</h3>
-                            <p class="text-xs text-gray-600">{{ $product['brand'] }}</p>
-                            <p class="text-[11px] text-gray-500 mt-0.5">{{ strtoupper($product['category']) }}</p>
-                        </div>
+                        <h3 class="font-bold text-sm truncate">
+                            <a href="{{ route('catalogue.show', ['table' => $product['table'], 'id' => $product['id']]) }}">
+                                {{ $product['name'] }}
+                            </a>
+                        </h3>
 
+                        <p class="text-xs text-gray-600">{{ $product['brand'] }}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $product['category'] }}</p>
+
+                        <!-- ⭐ Rating -->
+                        <p class="text-yellow-500 text-sm mb-1">
+                            @if(!empty($product['rating']))
+                                ⭐ {{ $product['rating'] }} ({{ $product['reviews_count'] ?? 0 }})
+                            @else
+                                ⭐ No reviews yet
+                            @endif
+                        </p>
+
+                        <!-- Price -->
                         <p class="text-gray-800 font-semibold mt-1">₱{{ number_format($product['price'], 0) }}</p>
 
+                        <!-- Add to Cart -->
                         <form action="{{ route('cart.add') }}" method="POST" class="mt-auto">
                             @csrf
                             <input type="hidden" name="product_id" value="{{ $product['id'] }}">
@@ -170,6 +205,55 @@
                 @empty
                     <p class="col-span-4 text-center text-gray-500">No products available.</p>
                 @endforelse
+
+
+                <!-- 🔥 Global Modal -->
+                <template x-if="openModal">
+                    <div class="fixed inset-0 flex items-center justify-center z-50">
+                        <!-- Overlay -->
+                        <div class="absolute inset-0 bg-black bg-opacity-50" @click="openModal = false"></div>
+
+                        <!-- Modal box -->
+                        <div class="relative bg-white text-black rounded-lg shadow-xl w-[700px] max-h-[85vh] overflow-y-auto p-6 z-60">
+
+                            <!-- Close button -->
+                            <button @click="openModal = false"
+                                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl">
+                                ✖
+                            </button>
+
+                            <h2 class="text-xl font-semibold text-center mb-6" x-text="name"></h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Left: Product Image -->
+                                <div class="flex items-center justify-center border rounded-md p-3 bg-gray-50">
+                                    <template x-if="image">
+                                        <img :src="`/storage/${image}`"
+                                            :alt="name"
+                                            class="max-h-60 object-contain">
+                                    </template>
+                                    <template x-if="!image">
+                                        <p class="text-gray-500">No image uploaded.</p>
+                                    </template>
+                                </div>
+
+                                <!-- Right: Specs Table -->
+                                <div>
+                                    <table class="w-full text-sm border-collapse">
+                                        <tbody>
+                                            <template x-for="(value, key) in specs" :key="key">
+                                                <tr class="border-b" x-show="value">
+                                                    <td class="font-semibold py-1 pr-3" x-text="key.replace('_',' ').toUpperCase()"></td>
+                                                    <td class="py-1" x-text="value"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </main>
         </div>
 

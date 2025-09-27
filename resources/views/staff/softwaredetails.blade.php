@@ -78,7 +78,7 @@
 
                             <div class="software-input">
                                 <label for="">RAM</label>
-                                <input placeholder="00 GB" name="ram_min" id="ram_min" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                <input placeholder="00 GB" name="ram_min" id="ram_min" type="number" step="2" onkeydown="return !['e','E','+','-'].includes(event.key)">
                             </div>   
 
                             <div class="software-input">
@@ -100,7 +100,7 @@
 
                             <div class="software-input">
                                 <label for="">RAM</label>
-                                <input placeholder="00 GB" name="ram_reco" id="ram_reco" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                <input placeholder="00 GB" name="ram_reco" id="ram_reco" type="number" step="2" onkeydown="return !['e','E','+','-'].includes(event.key)">
                             </div>   
 
                             <div class="software-input">
@@ -189,42 +189,42 @@
 
                         <div>
                             <p>Operating System</p>
-                            <p x-text="selectedSoftware.specs.os_min ? selectedSoftware.specs.os_min : '-'"></p>
+                            <p x-text="selectedSoftware.os_min ? selectedSoftware.os_min : '-'"></p>
                         </div>
                         <div>
                             <p>CPU</p>
-                            <p x-text="selectedSoftware.specs.cpu_min ? selectedSoftware.specs.cpu_min : '-'"></p>
+                            <p x-text="selectedSoftware.cpu_min ? selectedSoftware.cpu_min : '-'"></p>
                         </div>
                         <div>
                             <p>GPU</p>
-                            <p x-text="selectedSoftware.specs.gpu_min ? selectedSoftware.specs.gpu_min : '-'"></p>
+                            <p x-text="selectedSoftware.gpu_min ? selectedSoftware.gpu_min : '-'"></p>
                         </div>
                         <div>
                             <p>RAM</p>
-                            <p x-text="selectedSoftware.specs.ram_min ? selectedSoftware.specs.ram_min : '-'"></p>
+                            <p x-text="selectedSoftware.ram_min ? selectedSoftware.ram_min : '-'"></p>
                         </div>
                         <div>
                             <p>Storage</p>
-                            <p x-text="selectedSoftware.specs.storage_min ? selectedSoftware.specs.storage_min : '-'"></p>
+                            <p x-text="selectedSoftware.storage_min ? selectedSoftware.storage_min : '-'"></p>
                         </div>
 
                         <h4>Recommended System Requirements</h4>
 
                         <div>
                             <p>CPU</p>
-                            <p x-text="selectedSoftware.specs.cpu_reco ? selectedSoftware.specs.cpu_reco : '-'"></p>
+                            <p x-text="selectedSoftware.cpu_reco ? selectedSoftware.cpu_reco : '-'"></p>
                         </div>
                         <div>
                             <p>GPU</p>
-                            <p x-text="selectedSoftware.specs.gpu_reco ?selectedSoftware.specs.gpu_reco : '-'"></p>
+                            <p x-text="selectedSoftware.gpu_reco ?selectedSoftware.gpu_reco : '-'"></p>
                         </div>
                         <div>
                             <p>RAM</p>
-                            <p x-text="selectedSoftware.specs.ram_reco ? selectedSoftware.specs.ram_reco : '-'"></p>
+                            <p x-text="selectedSoftware.ram_reco ? selectedSoftware.ram_reco : '-'"></p>
                         </div>
                         <div>
                             <p>Storage</p>
-                            <p x-text="selectedSoftware.specs.storage_reco ? selectedSoftware.specs.storage_reco : '-'"></p>
+                            <p x-text="selectedSoftware.storage_reco ? selectedSoftware.storage_reco : '-'"></p>
                         </div>
                         
                     </div>
@@ -276,49 +276,49 @@
 
                                 <div class="software-input">
                                     <label for="">Operating System</label>
-                                    <input x-model="selectedSoftware.specs.os_min" type="text" name="os_min">
+                                    <input x-model="selectedSoftware.os_min" type="text" name="os_min">
                                 </div>   
                                 
                                 <div class="software-input">
                                     <label for="">CPU</label>
-                                    <input x-model="selectedSoftware.specs.cpu_min" type="text" name="cpu_min">
+                                    <input x-model="selectedSoftware.cpu_min" type="text" name="cpu_min">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">GPU</label>
-                                    <input x-model="selectedSoftware.specs.gpu_min" type="text" name="gpu_min">
+                                    <input x-model="selectedSoftware.gpu_min" type="text" name="gpu_min">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">RAM</label>
-                                    <input x-model="selectedSoftware.specs.ram_min" name="ram_min" id="ram_min" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                    <input x-model="selectedSoftware.ram_min" name="ram_min" id="ram_min" type="number" step="2" onkeydown="return !['e','E','+','-'].includes(event.key)">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">Storage</label>
-                                    <input x-model="selectedSoftware.specs.storage_min" name="storage_min" id="storage_min" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                    <input x-model="selectedSoftware.storage_min" name="storage_min" id="storage_min" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
                                 </div>
 
                                 <p>Recommended System Requirements</p>
                                 
                                 <div class="software-input">
                                     <label for="">CPU</label>
-                                    <input x-model="selectedSoftware.specs.cpu_reco" type="text" name="cpu_reco">
+                                    <input x-model="selectedSoftware.cpu_reco" type="text" name="cpu_reco">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">GPU</label>
-                                    <input x-model="selectedSoftware.specs.gpu_reco" type="text" name="gpu_reco">
+                                    <input x-model="selectedSoftware.gpu_reco" type="text" name="gpu_reco">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">RAM</label>
-                                    <input x-model="selectedSoftware.specs.ram_reco" name="ram_reco" id="ram_reco" type="number" step="4" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                    <input x-model="selectedSoftware.ram_reco" name="ram_reco" id="ram_reco" type="number" step="2" onkeydown="return !['e','E','+','-'].includes(event.key)">
                                 </div>   
 
                                 <div class="software-input">
                                     <label for="">Storage</label>
-                                    <input x-model="selectedSoftware.specs.storage_reco" name="storage_reco" id="storage_reco" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                                    <input x-model="selectedSoftware.storage_reco" name="storage_reco" id="storage_reco" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
                                 </div>
                             </div>
                         </div>

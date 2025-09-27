@@ -5,6 +5,27 @@
     position: relative;
 }
 
+.build-icons {
+    /* background-color: aliceblue; */
+    position: absolute;
+    display: flex;
+    gap: 8px;
+    z-index: 9;
+    padding: 8px;
+}
+
+.build-arrow {
+    rotate: 90deg;
+    height: 24px;
+    width: 24px;
+}
+
+.build-arrow:hover,
+.build-save:hover,
+.build-cart:hover {
+    opacity: 0.5;
+}
+
 #sidebar {
     position: absolute;
     right: 0;

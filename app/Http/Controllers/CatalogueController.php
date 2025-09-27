@@ -19,7 +19,7 @@ class CatalogueController extends Controller
             'rams'         => 'ram',
             'storages'     => 'storage',
             'psus'         => 'psu',
-            'cases'        => 'case',     // ok even if table doesn't exist; we skip it below
+            'pc_cases'        => 'case',     // ok even if table doesn't exist; we skip it below
             'coolers'      => 'cooler',
         ];
 
@@ -30,35 +30,150 @@ class CatalogueController extends Controller
                 continue; // skip cleanly if teammate didn't migrate this table yet
             }
 
-            // We only select columns that are common across tables.
-            // If a column is missing in a specific table, DB will still return null for it.
-            $rows = DB::table($table)->select([
-                "{$table}.id",
-                "{$table}.brand",
-                "{$table}.model",
-                "{$table}.price",
-                "{$table}.stock",
-                "{$table}.image",
-                "{$table}.created_at",
-            ])->get();
+            // Grab all rows (all fields)
+            $rows = DB::table($table)->get();
 
             // Normalize every row into a single shape for the Blade
             $normalized = $rows->map(function ($row) use ($category, $table) {
-            $image = $row->image ? str_replace(['\\', '"'], '', $row->image) : 'images/placeholder.png';
-                return [
-                    'id'             => (int) ($row->id ?? 0),
-                    'component_type' => strtolower($category),  // e.g., "cpu"
-                    'table'          => $table,                 // e.g., "cpus"
-                    'name'           => trim(($row->brand ?? '') . ' ' . ($row->model ?? '')),
-                    'brand'          => (string) ($row->brand ?? ''),
-                    'category'       => $category,              // e.g., "CPU"
-                    'price'          => (float) ($row->price ?? 0),
-                    'stock'          => (int) ($row->stock ?? 0),
-                    'image'          => $image,
-                    'created_at'     => $row->created_at ?? now(),
-                    // You can add more normalized fields later if needed (rating, etc.)
-                ];
-            });
+            $rowArr = (array) $row;
+
+            // Common fields
+            $common = [
+                'id'             => (int) ($rowArr['id'] ?? 0),
+                'component_type' => strtolower($category),
+                'table'          => $table,
+                'name'           => trim(($rowArr['brand'] ?? '') . ' ' . ($rowArr['model'] ?? '')),
+                'brand'          => (string) ($rowArr['brand'] ?? ''),
+                'category'       => $category,
+                'price'          => (float) ($rowArr['price'] ?? 0),
+                'stock'          => (int) ($rowArr['stock'] ?? 0),
+                'image'          => $rowArr['image'] ?? 'images/placeholder.png',
+                'created_at'     => $rowArr['created_at'] ?? now(),
+            ];
+
+            // ✅ Specs mapping per category
+            switch ($category) {
+                case 'cpu':
+                    $specs = [
+                        'brand'               => $rowArr['brand'] ?? '',
+                        'model'               => $rowArr['model'] ?? '',
+                        'socket_type'         => $rowArr['socket_type'] ?? '',
+                        'cores'               => $rowArr['cores'] ?? '',
+                        'threads'             => $rowArr['threads'] ?? '',
+                        'base_clock'          => $rowArr['base_clock'] ?? '',
+                        'boost_clock'         => $rowArr['boost_clock'] ?? '',
+                        'tdp'                 => $rowArr['tdp'] ?? '',
+                        'integrated_graphics' => $rowArr['integrated_graphics'] ?? '',
+                        'generation'          => $rowArr['generation'] ?? '',
+                        'price'               => $rowArr['price'] ?? '',
+                        'stock'               => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'gpu':
+                    $specs = [
+                        'brand'       => $rowArr['brand'] ?? '',
+                        'model'       => $rowArr['model'] ?? '',
+                        'memory'      => $rowArr['memory'] ?? '',
+                        'core_clock'  => $rowArr['core_clock'] ?? '',
+                        'boost_clock' => $rowArr['boost_clock'] ?? '',
+                        'tdp'         => $rowArr['tdp'] ?? '',
+                        'generation'  => $rowArr['generation'] ?? '',
+                        'price'       => $rowArr['price'] ?? '',
+                        'stock'       => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'motherboard':
+                    $specs = [
+                        'brand'        => $rowArr['brand'] ?? '',
+                        'model'        => $rowArr['model'] ?? '',
+                        'socket_type'  => $rowArr['socket_type'] ?? '',
+                        'form_factor'  => $rowArr['form_factor'] ?? '',
+                        'chipset'      => $rowArr['chipset'] ?? '',
+                        'memory_slots' => $rowArr['memory_slots'] ?? '',
+                        'max_memory'   => $rowArr['max_memory'] ?? '',
+                        'price'        => $rowArr['price'] ?? '',
+                        'stock'        => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'ram':
+                    $specs = [
+                        'brand'    => $rowArr['brand'] ?? '',
+                        'model'    => $rowArr['model'] ?? '',
+                        'capacity' => $rowArr['capacity'] ?? '',
+                        'speed'    => $rowArr['speed'] ?? '',
+                        'type'     => $rowArr['type'] ?? '',
+                        'modules'  => $rowArr['modules'] ?? '',
+                        'price'    => $rowArr['price'] ?? '',
+                        'stock'    => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'storage':
+                    $specs = [
+                        'brand'     => $rowArr['brand'] ?? '',
+                        'model'     => $rowArr['model'] ?? '',
+                        'capacity'  => $rowArr['capacity'] ?? '',
+                        'type'      => $rowArr['type'] ?? '',
+                        'interface' => $rowArr['interface'] ?? '',
+                        'price'     => $rowArr['price'] ?? '',
+                        'stock'     => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'psu':
+                    $specs = [
+                        'brand'      => $rowArr['brand'] ?? '',
+                        'model'      => $rowArr['model'] ?? '',
+                        'wattage'    => $rowArr['wattage'] ?? '',
+                        'efficiency' => $rowArr['efficiency'] ?? '',
+                        'modular'    => $rowArr['modular'] ?? '',
+                        'price'      => $rowArr['price'] ?? '',
+                        'stock'      => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'cooler':
+                    $specs = [
+                        'brand'       => $rowArr['brand'] ?? '',
+                        'model'       => $rowArr['model'] ?? '',
+                        'type'        => $rowArr['type'] ?? '',
+                        'fan_size'    => $rowArr['fan_size'] ?? '',
+                        'fan_speed'   => $rowArr['fan_speed'] ?? '',
+                        'noise_level' => $rowArr['noise_level'] ?? '',
+                        'tdp_support' => $rowArr['tdp_support'] ?? '',
+                        'price'       => $rowArr['price'] ?? '',
+                        'stock'       => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                case 'case':
+                    $specs = [
+                        'brand'       => $rowArr['brand'] ?? '',
+                        'model'       => $rowArr['model'] ?? '',
+                        'form_factor' => $rowArr['form_factor'] ?? '',
+                        'color'       => $rowArr['color'] ?? '',
+                        'dimensions'  => $rowArr['dimensions'] ?? '',
+                        'price'       => $rowArr['price'] ?? '',
+                        'stock'       => $rowArr['stock'] ?? '',
+                    ];
+                    break;
+
+                default:
+                    $specs = [
+                        'brand' => $rowArr['brand'] ?? '',
+                        'model' => $rowArr['model'] ?? '',
+                        'price' => $rowArr['price'] ?? '',
+                        'stock' => $rowArr['stock'] ?? '',
+                    ];
+            }
+
+            $common['specs'] = $specs;
+
+            return $common;
+        });
 
             $all = $all->merge($normalized);
         }
@@ -139,5 +254,48 @@ class CatalogueController extends Controller
         );
 
         return view('catalogue', compact('products', 'categories', 'brands'));
+    }
+
+    public function show($table, $id)
+    {
+        if (!Schema::hasTable($table)) {
+            abort(404, 'Table not found');
+        }
+
+        $row = DB::table($table)->find($id);
+
+        if (!$row) {
+            abort(404, 'Product not found');
+        }
+
+        // Define table-to-category mapping
+        $maps = [
+            'cpus'         => 'cpu',
+            'gpus'         => 'gpu',
+            'motherboards' => 'motherboard',
+            'rams'         => 'ram',
+            'storages'     => 'storage',
+            'psus'         => 'psu',
+            'pc_cases'     => 'case',
+            'coolers'      => 'cooler',
+        ];
+
+        // Determine category
+        $category = $maps[$table] ?? rtrim($table, 's'); // fallback if missing in map
+
+        // Normalize product (minimal for detail page)
+        $rowArr = (array) $row;
+
+        $product = [
+            'id'       => $rowArr['id'] ?? 0,
+            'name'     => trim(($rowArr['brand'] ?? '') . ' ' . ($rowArr['model'] ?? '')),
+            'brand'    => $rowArr['brand'] ?? '',
+            'category' => $category,
+            'price'    => (float) ($rowArr['price'] ?? 0),
+            'stock'    => (int) ($rowArr['stock'] ?? 0),
+            'image'    => $rowArr['image'] ?? 'images/placeholder.png',
+        ];
+
+        return view('product.show', compact('product'));
     }
 }

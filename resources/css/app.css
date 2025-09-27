@@ -80,6 +80,7 @@ header {
     font-weight: bold;
     padding: 4px;
     animation: fadeOut 3s ease-in-out 3s forwards;
+    z-index: 999;
 }
 
 @keyframes fadeOut {

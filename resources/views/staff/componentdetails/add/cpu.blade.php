@@ -101,12 +101,7 @@
 
             <div>
                 <label for="">Generation</label>
-                <select required name="generation" id="generation">
-                    <option disabled selected hidden value="">Select generation</option>
-                    @foreach ($cpuSpecs['generations'] as $generation)
-                        <option value="{{ $generation }}">{{ $generation }}</option>
-                    @endforeach
-                </select>  
+                <input name="generation" required type="text" placeholder="Enter generation">
             </div>
             <div>
                 <label for="">Price</label>

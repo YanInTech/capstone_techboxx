@@ -20,7 +20,6 @@ class SoftwareDetailsController extends Controller
     {
         //
         $softwares = Software::withTrashed()
-            ->with('specs')
             ->orderByRaw('CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END') // Not deleted first
             ->orderByDesc('created_at')
             ->paginate(7);
@@ -34,7 +33,7 @@ class SoftwareDetailsController extends Controller
         $searchTerm = strtolower($request->input('search'));
         $buildCategories = BuildCategory::select('id', 'name')->get()->toArray();
 
-        $software = Software::with('specs')->get()->filter(function ($software) use ($searchTerm) {
+        $software = Software::filter(function ($software) use ($searchTerm) {
             return str_contains(strtolower($software['name']), $searchTerm);
         });
 
@@ -87,20 +86,6 @@ class SoftwareDetailsController extends Controller
             'name' => 'required|string|max:255',
             'icon' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'build_category_id' => 'required|exists:build_categories,id',
-        ]);
-
-        // Handle image upload
-        if ($request->hasFile('icon')) {
-            $validated['icon'] = $request->file('icon');
-            $filename = time() . '_' . Str::slug(pathinfo($validated['icon']->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $validated['icon']->getClientOriginalExtension();
-            $validated['icon'] = $validated['icon']->storeAs('softwareIcon', $filename, 'public');
-        } else {
-            $validated['icon'] = null;
-        }
-
-        $software = Software::create($validated);
-
-        $specs = $request->validate([
             'os_min' => 'nullable|string|max:255',
             'cpu_min' => 'nullable|string|max:255',
             'gpu_min' => 'nullable|string|max:255',
@@ -112,10 +97,17 @@ class SoftwareDetailsController extends Controller
             'storage_reco' => 'nullable|integer',
         ]);
 
-        $specs['software_id'] = $software->id;
+        // Handle image upload
+        if ($request->hasFile('icon')) {
+            $validated['icon'] = $request->file('icon');
+            $filename = time() . '_' . Str::slug(pathinfo($validated['icon']->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $validated['icon']->getClientOriginalExtension();
+            $validated['icon'] = $validated['icon']->storeAs('softwareIcon', $filename, 'public');
+        } else {
+            $validated['icon'] = null;
+        }
 
+        Software::create($validated);
         // dd($request->all());
-        SoftwareRequirement::create($specs);
 
         return redirect()->route('staff.software-details')->with([
             'message' => 'Software added',
@@ -151,6 +143,15 @@ class SoftwareDetailsController extends Controller
             'name' => $request->name,
             'icon' => $request->icon,
             'build_category_id' => $request->build_category_id,
+            'os_min' => $request->input('os_min') ?: $software->software->os_min,     
+            'cpu_min' => $request->input('cpu_min') ?: $software->software->cpu_min,     
+            'gpu_min' => $request->input('gpu_min') ?: $software->software->gpu_min,     
+            'ram_min' => $request->input('ram_min') ?: $software->software->ram_min,     
+            'storage_min' => $request->input('storage_min') ?: $software->software->storage_min,     
+            'cpu_reco' => $request->input('cpu_reco') ?: $software->software->cpu_reco,     
+            'gpu_reco' => $request->input('gpu_reco') ?: $software->software->gpu_reco,     
+            'ram_reco' => $request->input('ram_reco') ?: $software->software->ram_reco,     
+            'storage_reco' => $request->input('storage_reco') ?: $software->software->storage_reco,  
         ];
 
         if ($request->hasFile('icon')) {
@@ -160,20 +161,6 @@ class SoftwareDetailsController extends Controller
 
         $software->update($data);
 
-        SoftwareRequirement::updateOrCreate(
-            ['software_id' => $software->id],
-            [
-                'os_min' => $request->input('os_min') ?: $software->softwareRequirement->os_min,     
-                'cpu_min' => $request->input('cpu_min') ?: $software->softwareRequirement->cpu_min,     
-                'gpu_min' => $request->input('gpu_min') ?: $software->softwareRequirement->gpu_min,     
-                'ram_min' => $request->input('ram_min') ?: $software->softwareRequirement->ram_min,     
-                'storage_min' => $request->input('storage_min') ?: $software->softwareRequirement->storage_min,     
-                'cpu_reco' => $request->input('cpu_reco') ?: $software->softwareRequirement->cpu_reco,     
-                'gpu_reco' => $request->input('gpu_reco') ?: $software->softwareRequirement->gpu_reco,     
-                'ram_reco' => $request->input('ram_reco') ?: $software->softwareRequirement->ram_reco,     
-                'storage_reco' => $request->input('storage_reco') ?: $software->softwareRequirement->storage_reco,     
-            ]
-        );
         return redirect()->route('staff.software-details')->with([
             'message' => 'Software updated',
             'type' => 'success',
