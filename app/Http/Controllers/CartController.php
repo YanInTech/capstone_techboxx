@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Checkout;
+use App\Models\OrderedBuild;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ShoppingCart;
+use App\Models\UserBuild;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -192,5 +196,94 @@ class CartController extends Controller
         return view('checkout', compact('selectedItems'));
     }
 
+    public function orderBuild(Request $request) 
+    {
+        // Get authenticated user
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please log in to place an order.');
+        }
+        
+        // Validate the main build data
+        $validated = $request->validate([
+            'build_name' => 'required|string|max:255',
+            'total_price' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:PayPal,Cash on Pickup',
+        ]);
 
+        // Validate component IDs from the component_ids array
+        $componentIds = $request->input('component_ids', []);
+        
+        // Define required components and their tables
+        $requiredComponents = [
+            'case' => 'pc_cases',
+            'cooler' => 'coolers', 
+            'cpu' => 'cpus',
+            'gpu' => 'gpus',
+            'motherboard' => 'motherboards',
+            'psu' => 'psus',
+            'ram' => 'rams',
+            'storage' => 'storages',
+        ];
+
+        // Validate each required component
+        foreach ($requiredComponents as $componentType => $tableName) {
+            if (!isset($componentIds[$componentType]) || empty($componentIds[$componentType])) {
+                return redirect()->back()->with('error', "Missing $componentType component.");
+            }
+            
+            // Check if the component exists in the database
+            if (!DB::table($tableName)->where('id', $componentIds[$componentType])->exists()) {
+                return redirect()->back()->with('error', "Invalid $componentType selected.");
+            }
+        }
+
+        // Determine payment status based on payment method
+        $paymentMethod = $request->input('payment_method');
+        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : 'Paid';
+
+        try {
+            // Create UserBuild record
+            $userBuild = UserBuild::create([
+                'user_id' => $user->id,
+                'build_name' => $validated['build_name'],
+                'pc_case_id' => $componentIds['case'],
+                'cooler_id' => $componentIds['cooler'],
+                'cpu_id' => $componentIds['cpu'],
+                'gpu_id' => $componentIds['gpu'],
+                'motherboard_id' => $componentIds['motherboard'],
+                'psu_id' => $componentIds['psu'],
+                'ram_id' => $componentIds['ram'],
+                'storage_id' => $componentIds['storage'],
+                'total_price' => $validated['total_price'],
+                'status' => 'Ordered',
+            ]);
+
+            // Create Checkout record
+            $checkout = OrderedBuild::create([
+                'user_build_id' => $userBuild->id,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentStatus,
+            ]);
+
+            // dd($request->all());
+
+            // Clear the session storage after successful order
+            // You might want to add this to your JavaScript after successful form submission
+
+            // Redirect based on payment method
+            if ($paymentMethod === 'PayPal') {
+                return redirect()->route('paypal.create', [
+                    'checkout_id' => $checkout->id,
+                    'amount' => $validated['total_price'],
+                ]);
+            }
+
+            return redirect()->route('home')->with('success', 'Build ordered successfully!');
+
+        } catch (\Exception $e) {
+            // Log::error('Order build failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create order. Please try again.');
+        }
+    }
 }

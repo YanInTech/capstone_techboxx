@@ -18,6 +18,7 @@ const summarySection = document.getElementById('summarySection');
 const summaryTableBody = document.getElementById("summaryTableBody");
 const cartForm = document.getElementById("cartForm");
 
+window.selectedComponents = {};
 
 let currentBrandFilter = '';     // e.g. "amd" or "intel"
 let currentCategoryFilter = '';  // e.g. "gaming"
@@ -226,7 +227,7 @@ generateBtn.addEventListener('click', () => {
 
             let row = '';
             row += `<tr>`;
-            row += `<td><p>${item.id}</p></td>`;
+            // row += `<td><p>${item.id}</p></td>`;
             row += `<td><p>${item.name}</p></td>`;
             row += `<td><p>1</p></td>`;
             row += `<td><p>₱${price.toFixed(2)}</p></td>`;
@@ -247,6 +248,7 @@ generateBtn.addEventListener('click', () => {
         // Show summary UI
         summarySection.classList.remove("hidden");
         document.getElementById('summaryTab').classList.add('active');
+        document.getElementById('componentsTab').classList.remove('active');
         componentsSection.classList.add("hidden");
 
         Object.entries(data).forEach(([key, item]) => {
@@ -349,15 +351,15 @@ document.querySelectorAll('.catalog-item').forEach(item => {
         const imageUrl = item.getAttribute('data-image');
 
         // STORE SELECTED COMPONENT
-        selectedComponents[type] = { componentId, name, price, imageUrl };
+        window.selectedComponents[type] = { componentId, name, price, imageUrl };
 
         // UPDATE HIDDEN INPUT
         const hiddenInput = document.getElementById(`hidden_${type}`);
         if (hiddenInput) {
-            hiddenInput.value =componentId;
+            hiddenInput.value = componentId;
         }
 
-        sessionStorage.setItem(type, JSON.stringify(selectedComponents));
+        sessionStorage.setItem(type, JSON.stringify(window.selectedComponents));
 
         // FIND THE MATCHING BUTTON
         const targetButton = document.querySelector(`#buildSection button[data-type="${type}"]`);
@@ -399,8 +401,7 @@ document.getElementById('summaryTab').addEventListener('click', () => {
     document.getElementById('summaryTab').classList.add('active');
 });
 
-// SUMMARY DISPLAY
-const selectedComponents = {};
+
 
 function updateSummaryTable() {
     const tbody = document.querySelector('#summaryTableBody');
@@ -409,15 +410,15 @@ function updateSummaryTable() {
     let totalPrice = 0;
     let hasComponents = false;
 
-    for (const [type, component] of Object.entries(selectedComponents)) {
+    for (const [type, component] of Object.entries(window.selectedComponents)) {
         if (!component || !component.componentId) continue;
 
         hasComponents = true;
 
         const row = document.createElement('tr');
 
-        const idCell = document.createElement('td');
-        idCell.innerHTML = `<p>${component.componentId}</p>`;
+        // const idCell = document.createElement('td');
+        // idCell.innerHTML = `<p>${component.componentId}</p>`;
         
         const nameCell = document.createElement('td');
         nameCell.innerHTML = `<p>${component.name}</p>`;
@@ -428,7 +429,7 @@ function updateSummaryTable() {
         const priceCell = document.createElement('td');
         priceCell.innerHTML = `<p>₱${component.price.toFixed(2)}</p>`;
 
-        row.appendChild(idCell);
+        // row.appendChild(idCell);
         row.appendChild(nameCell);
         row.appendChild(qtyCell);
         row.appendChild(priceCell);
@@ -436,15 +437,13 @@ function updateSummaryTable() {
         tbody.appendChild(row);
 
         totalPrice += component.price;
-
     }
 
     if (hasComponents) {
-        // Step 3: Add total row at the end
         const totalRow = document.createElement('tr');
 
         const totalLabelCell = document.createElement('td');
-        totalLabelCell.setAttribute('colspan', '2'); // Span across name and quantity columns
+        totalLabelCell.setAttribute('colspan', '2');
         totalLabelCell.innerHTML = `<p><strong>Total</strong></p>`;
 
         const totalPriceCell = document.createElement('td');
@@ -457,40 +456,415 @@ function updateSummaryTable() {
     }
 }
 
-// BUILD CART
-cartForm.addEventListener('submit', function(e) {
-    for (const [type, component] of Object.entries(selectedComponents)) {
+// UPDATE HIDDEN INPUTS IN MODAL
+function updateModalHiddenInputs() {
+    const componentTypes = ['gpu', 'motherboard', 'cpu', 'hdd', 'ssd', 'psu', 'ram', 'cooler', 'case'];
+    
+    componentTypes.forEach(type => {
+        const component = window.selectedComponents[type];
         const hiddenInput = document.getElementById(`hidden_${type}`);
-        if (hiddenInput && component.componentId) {
+        
+        if (hiddenInput && component && component.componentId) {
             hiddenInput.value = component.componentId;
+        }
+    });
+
+    // Handle storage component specifically
+    const storageInput = document.getElementById('hidden_storage');
+    if (storageInput) {
+        if (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) {
+            storageInput.value = window.selectedComponents.hdd.componentId;
+        } else if (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId) {
+            storageInput.value = window.selectedComponents.ssd.componentId;
         }
     }
 
-    // VALIDATE IF ALL COMPONENT IS SELECTED
+    // Update total price hidden input
+    const totalPriceInput = document.getElementById('hidden_total_price');
+    if (totalPriceInput) {
+        let totalPrice = 0;
+        for (const [type, component] of Object.entries(window.selectedComponents)) {
+            if (component && component.price) {
+                totalPrice += component.price;
+            }
+        }
+        totalPriceInput.value = totalPrice.toFixed(2);
+    }
+}
+
+// // BUILD CART FORM SUBMISSION
+// document.addEventListener('DOMContentLoaded', function() {
+//     const cartForm = document.getElementById('cartForm');
+//     if (cartForm) {
+//         cartForm.addEventListener('submit', function(e) {
+//             const paymentMethod = document.getElementById('payment_method').value;
+//             if (!paymentMethod) {
+//                 e.preventDefault();
+//                 alert('Please select a payment method.');
+//                 return;
+//             }
+            
+//             // Update all hidden inputs before submission
+//             for (const [type, component] of Object.entries(window.selectedComponents)) {
+//                 const hiddenInput = document.getElementById(`hidden_${type}`);
+//                 if (hiddenInput && component && component.componentId) {
+//                     hiddenInput.value = component.componentId;
+//                 }
+//             }
+
+//             // Update storage components specifically
+//             const storageInput = document.getElementById('hidden_storage');
+//             if (storageInput) {
+//                 if (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) {
+//                     storageInput.value = window.selectedComponents.hdd.componentId;
+//                 } else if (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId) {
+//                     storageInput.value = window.selectedComponents.ssd.componentId;
+//                 }
+//             }
+
+//             // Update total price hidden input
+//             const totalPriceInput = document.getElementById('hidden_total_price');
+//             if (totalPriceInput) {
+//                 let totalPrice = 0;
+//                 for (const [type, component] of Object.entries(window.selectedComponents)) {
+//                     if (component && component.price) {
+//                         totalPrice += component.price;
+//                     }
+//                 }
+//                 totalPriceInput.value = totalPrice.toFixed(2);
+//             }
+
+//             // VALIDATE IF ALL COMPONENTS ARE SELECTED
+//             const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case', 'storage'];
+//             const allComponentsSelected = requiredComponents.every(type => {
+//                 if (type === 'storage') {
+//                     return (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) || 
+//                            (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId);
+//                 }
+//                 return window.selectedComponents[type] && window.selectedComponents[type].componentId;
+//             });
+
+//             if (!allComponentsSelected) {
+//                 e.preventDefault();
+                
+//                 const missingComponents = [];
+//                 requiredComponents.forEach(type => {
+//                     if (type === 'storage') {
+//                         if (!window.selectedComponents.hdd?.componentId && !window.selectedComponents.ssd?.componentId) {
+//                             missingComponents.push('Storage (HDD or SSD)');
+//                         }
+//                     } else if (!window.selectedComponents[type]?.componentId) {
+//                         const componentNames = {
+//                             'gpu': 'GPU',
+//                             'motherboard': 'Motherboard',
+//                             'cpu': 'CPU',
+//                             'psu': 'Power Supply',
+//                             'ram': 'RAM',
+//                             'cooler': 'Cooler',
+//                             'case': 'Case'
+//                         };
+//                         missingComponents.push(componentNames[type]);
+//                     }
+//                 });
+
+//                 alert(`Please select the following components before adding to cart:\n\n${missingComponents.join('\n')}`);
+//                 return;
+//             }
+
+//             // Additional validation for build name
+//             const buildNameInput = document.querySelector('input[name="build_name"]');
+//             if (buildNameInput && !buildNameInput.value.trim()) {
+//                 e.preventDefault();
+//                 alert('Please enter a build name.');
+//                 return;
+//             }
+//         });
+//     }
+
+//     // Load from sessionStorage on page load
+//     const componentTypes = ['gpu', 'motherboard', 'cpu', 'hdd', 'ssd', 'psu', 'ram', 'cooler', 'case'];
+    
+//     componentTypes.forEach(type => {
+//         const stored = sessionStorage.getItem(type);
+//         if (stored) {
+//             try {
+//                 const parsed = JSON.parse(stored);
+//                 window.selectedComponents[type] = parsed[type];
+//             } catch (e) {
+//                 console.error('Error parsing sessionStorage for', type, e);
+//             }
+//         }
+//     });
+
+//     // Update UI with stored components
+//     updateSummaryTable();
+    
+//     // Update build section buttons
+//     for (const [type, component] of Object.entries(window.selectedComponents)) {
+//         if (component && component.componentId) {
+//             const targetButton = document.querySelector(`#buildSection button[data-type="${type}"]`);
+//             if (targetButton) {
+//                 const span = targetButton.querySelector('.selected-name');
+//                 if (span) {
+//                     span.textContent = component.name;
+//                 }
+//                 targetButton.setAttribute('data-selected-id', component.componentId);
+//             }
+
+//             // Update hidden inputs
+//             const hiddenInput = document.getElementById(`hidden_${type}`);
+//             if (hiddenInput) {
+//                 hiddenInput.value = component.componentId;
+//             }
+//         }
+//     }
+// });
+
+// BUILD CART FORM SUBMISSION
+document.addEventListener('DOMContentLoaded', function() {
+    const cartForm = document.getElementById('cartForm');
+    if (cartForm) {
+        cartForm.addEventListener('submit', function(e) {
+            console.log('=== FORM SUBMISSION STARTED ===');
+            
+            // Payment method validation
+            const paymentMethod = document.getElementById('payment_method').value;
+            console.log('Payment method:', paymentMethod);
+            if (!paymentMethod) {
+                e.preventDefault();
+                alert('Please select a payment method.');
+                return;
+            }
+
+            // Build name validation
+            const buildNameInput = document.querySelector('input[name="build_name"]');
+            const buildName = buildNameInput ? buildNameInput.value : '';
+            console.log('Build name:', buildName);
+            if (!buildName.trim()) {
+                e.preventDefault();
+                alert('Please enter a build name.');
+                return;
+            }
+
+            // Check if any components are selected
+            console.log('Selected components:', window.selectedComponents);
+            if (Object.keys(window.selectedComponents).length === 0) {
+                e.preventDefault();
+                alert('Please select at least one component.');
+                return;
+            }
+
+            // Update all hidden inputs before submission
+            console.log('=== UPDATING HIDDEN INPUTS ===');
+            for (const [type, component] of Object.entries(window.selectedComponents)) {
+                const hiddenInput = document.getElementById(`hidden_${type}`);
+                if (hiddenInput && component && component.componentId) {
+                    hiddenInput.value = component.componentId;
+                    console.log(`Set ${type} to:`, component.componentId);
+                } else {
+                    console.log(`Missing hidden input or component for: ${type}`);
+                }
+            }
+
+            // Update storage components specifically
+            const storageInput = document.getElementById('hidden_storage');
+            if (storageInput) {
+                if (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) {
+                    storageInput.value = window.selectedComponents.hdd.componentId;
+                } else if (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId) {
+                    storageInput.value = window.selectedComponents.ssd.componentId;
+                }
+                console.log('Storage set to:', storageInput.value);
+            }
+
+            // Update total price hidden input
+            const totalPriceInput = document.getElementById('hidden_total_price');
+            if (totalPriceInput) {
+                let totalPrice = 0;
+                for (const [type, component] of Object.entries(window.selectedComponents)) {
+                    if (component && component.price) {
+                        totalPrice += component.price;
+                    }
+                }
+                totalPriceInput.value = totalPrice.toFixed(2);
+                console.log('Total price set to:', totalPriceInput.value);
+            }
+
+            // VALIDATE IF ALL COMPONENTS ARE SELECTED
+            console.log('=== VALIDATING COMPONENTS ===');
+            const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case', 'storage'];
+            const allComponentsSelected = requiredComponents.every(type => {
+                if (type === 'storage') {
+                    return (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) || 
+                           (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId);
+                }
+                return window.selectedComponents[type] && window.selectedComponents[type].componentId;
+            });
+
+            console.log('All components selected:', allComponentsSelected);
+
+            if (!allComponentsSelected) {
+                e.preventDefault();
+                
+                const missingComponents = [];
+                requiredComponents.forEach(type => {
+                    if (type === 'storage') {
+                        if (!window.selectedComponents.hdd?.componentId && !window.selectedComponents.ssd?.componentId) {
+                            missingComponents.push('Storage (HDD or SSD)');
+                        }
+                    } else if (!window.selectedComponents[type]?.componentId) {
+                        const componentNames = {
+                            'gpu': 'GPU',
+                            'motherboard': 'Motherboard',
+                            'cpu': 'CPU',
+                            'psu': 'Power Supply',
+                            'ram': 'RAM',
+                            'cooler': 'Cooler',
+                            'case': 'Case'
+                        };
+                        missingComponents.push(componentNames[type]);
+                    }
+                });
+
+                alert(`Please select the following components:\n\n${missingComponents.join('\n')}`);
+                return;
+            }
+
+            console.log('=== FORM VALIDATION PASSED - SUBMITTING ===');
+            console.log('Final form data:');
+            console.log('Build name:', buildName);
+            console.log('Payment method:', paymentMethod);
+            console.log('Total price:', totalPriceInput ? totalPriceInput.value : 'N/A');
+            console.log('Component IDs:', componentIds);
+        });
+    }
+});
+
+// BUILD CART FORM SUBMISSION - FIXED VERSION
+function handleFormSubmit(e) {
+    console.log('=== FORM SUBMISSION INTERCEPTED ===');
+    e.preventDefault(); // PREVENT DEFAULT IMMEDIATELY
+    
+    // Payment method validation
+    const paymentMethod = document.getElementById('payment_method').value;
+    console.log('Payment method:', paymentMethod);
+    if (!paymentMethod) {
+        alert('Please select a payment method.');
+        return false;
+    }
+
+    // Build name validation
+    const buildNameInput = document.querySelector('input[name="build_name"]');
+    const buildName = buildNameInput ? buildNameInput.value : '';
+    console.log('Build name:', buildName);
+    if (!buildName.trim()) {
+        alert('Please enter a build name.');
+        return false;
+    }
+
+    // Check if any components are selected
+    console.log('Selected components:', window.selectedComponents);
+    if (Object.keys(window.selectedComponents).length === 0) {
+        alert('Please select at least one component.');
+        return false;
+    }
+
+    // Update all hidden inputs before submission
+    console.log('=== UPDATING HIDDEN INPUTS ===');
+    for (const [type, component] of Object.entries(window.selectedComponents)) {
+        const hiddenInput = document.getElementById(`hidden_${type}`);
+        if (hiddenInput && component && component.componentId) {
+            hiddenInput.value = component.componentId;
+            console.log(`Set ${type} to:`, component.componentId);
+        } else {
+            console.log(`Missing hidden input or component for: ${type}`);
+        }
+    }
+
+    // Update storage components specifically
+    const storageInput = document.getElementById('hidden_storage');
+    if (storageInput) {
+        if (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) {
+            storageInput.value = window.selectedComponents.hdd.componentId;
+        } else if (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId) {
+            storageInput.value = window.selectedComponents.ssd.componentId;
+        }
+        console.log('Storage set to:', storageInput.value);
+    }
+
+    // Update total price hidden input
+    const totalPriceInput = document.getElementById('hidden_total_price');
+    if (totalPriceInput) {
+        let totalPrice = 0;
+        for (const [type, component] of Object.entries(window.selectedComponents)) {
+            if (component && component.price) {
+                totalPrice += component.price;
+            }
+        }
+        totalPriceInput.value = totalPrice.toFixed(2);
+        console.log('Total price set to:', totalPriceInput.value);
+    }
+
+    // VALIDATE IF ALL COMPONENTS ARE SELECTED
+    console.log('=== VALIDATING COMPONENTS ===');
     const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case', 'storage'];
     const allComponentsSelected = requiredComponents.every(type => {
         if (type === 'storage') {
-            // For storage, check if either HDD or SSD is selected
-            return (selectedComponents.hdd && selectedComponents.hdd.componentId) || 
-                (selectedComponents.ssd && selectedComponents.ssd.componentId);
+            return (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) || 
+                   (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId);
         }
-        return selectedComponents[type] && selectedComponents[type].componentId;
+        return window.selectedComponents[type] && window.selectedComponents[type].componentId;
     });
 
+    console.log('All components selected:', allComponentsSelected);
+
     if (!allComponentsSelected) {
-        e.preventDefault();
-        alert('Please select all required components before adding to cart.');
-        return;
+        const missingComponents = [];
+        requiredComponents.forEach(type => {
+            if (type === 'storage') {
+                if (!window.selectedComponents.hdd?.componentId && !window.selectedComponents.ssd?.componentId) {
+                    missingComponents.push('Storage (HDD or SSD)');
+                }
+            } else if (!window.selectedComponents[type]?.componentId) {
+                const componentNames = {
+                    'gpu': 'GPU',
+                    'motherboard': 'Motherboard',
+                    'cpu': 'CPU',
+                    'psu': 'Power Supply',
+                    'ram': 'RAM',
+                    'cooler': 'Cooler',
+                    'case': 'Case'
+                };
+                missingComponents.push(componentNames[type]);
+            }
+        });
+
+        alert(`Please select the following components:\n\n${missingComponents.join('\n')}`);
+        return false;
     }
 
-    if (!hasComponents) {
-        e.preventDefault();
-        alert('Please select at least one component before adding to cart.');
-        return;
+    console.log('=== FORM VALIDATION PASSED - SUBMITTING ===');
+    
+    // If all validations pass, submit the form programmatically
+    console.log('Submitting form...');
+    this.submit(); // This will submit the form normally
+}
+
+// Attach event listener properly
+document.addEventListener('DOMContentLoaded', function() {
+    const cartForm = document.getElementById('cartForm');
+    console.log('DOM loaded - cartForm found:', !!cartForm);
+    
+    if (cartForm) {
+        // Remove any existing event listeners
+        cartForm.removeEventListener('submit', handleFormSubmit);
+        // Add the event listener
+        cartForm.addEventListener('submit', handleFormSubmit);
+        console.log('Form submit event listener attached');
+    } else {
+        console.error('cartForm not found!');
     }
-
-})
-
+});
 // ADD DATE TODAY ON THE SUMMARY TAB
 window.addEventListener('DOMContentLoaded', () => {
     const dateElement = document.getElementById('buildDate');

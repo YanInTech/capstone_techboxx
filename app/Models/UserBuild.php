@@ -19,14 +19,16 @@ class UserBuild extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'build_name',
-        'case_id',
-        'mobo_id',
+        'pc_case_id',
+        'motherboard_id',
         'cpu_id',
         'gpu_id',
         'storage_id',
         'ram_id',
         'psu_id',
+        'cooler_id',
         'total_price',
         'status',
     ];
