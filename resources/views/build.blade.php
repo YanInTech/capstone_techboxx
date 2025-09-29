@@ -19,6 +19,7 @@
 </head>
 <body x-data="{ 
     showModal: false,
+    modalType: 'order', // 'order' or 'save'
     currentUser: {
         first_name: '{{ Auth::user()->first_name ?? '' }}',
         last_name: '{{ Auth::user()->last_name ?? '' }}',
@@ -26,6 +27,13 @@
     },
     selectedComponents: {},
     totalPrice: 0,
+    
+    // Open modal for specific type
+    openModal(type) {
+        this.modalType = type;
+        this.populateModal();
+    },
+    
     populateModal() {
         // Copy global selectedComponents to Alpine.js reactive data
         this.selectedComponents = { ...window.selectedComponents || {} };
@@ -45,6 +53,7 @@
         // Show the modal
         this.showModal = true;
     },
+    
     updateModalHiddenInputs() {
         const componentTypes = ['gpu', 'motherboard', 'cpu', 'hdd', 'ssd', 'psu', 'ram', 'cooler', 'case'];
         
@@ -78,6 +87,19 @@
             }
             totalPriceInput.value = totalPrice.toFixed(2);
         }
+    },
+    
+    // Computed properties for dynamic content
+    get modalTitle() {
+        return this.modalType === 'order' ? 'Order Build' : 'Save Build';
+    },
+    
+    get submitButtonText() {
+        return this.modalType === 'order' ? 'Order' : 'Save Build';
+    },
+    
+    get formAction() {
+        return this.modalType === 'order' ? '{{ route('build.order') }}' : '{{ route('build.save') }}';
     }
 }"  
 class="flex">
@@ -96,18 +118,17 @@ class="flex">
         </div>
     </div>
 
-    {{-- VIEW MODAL --}}
+    {{-- SINGLE ADAPTIVE MODAL --}}
     <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
         <div class="add-component" @click.away="showModal = false">
             <div class="relative !m-0">
-                <h2 class="text-center w-[100%]">
-                    Build Details
+                <h2 class="text-center w-[100%]" x-text="modalTitle">
                     <x-icons.close class="close hover:opacity-50" @click="showModal = false"/>    
                 </h2>
             </div>
 
-            {{-- TRANSFERRED FORM LOGIC --}}
-            <form action="{{ route('build.order') }}" method="POST" id="cartForm">
+            {{-- DYNAMIC FORM --}}
+            <form :action="formAction" method="POST" id="cartForm">
                 @csrf
                 
                 {{-- Hidden inputs for component IDs --}}
@@ -153,13 +174,13 @@ class="flex">
                         <div class="component-input-group">
                             <p x-text="type.toUpperCase()" class="component-label"></p>
                             <input type="text" 
-                                   :name="'components[' + type + ']'" 
-                                   :value="component.name" 
-                                   readonly 
-                                   class="build-name-component readonly">
+                                :name="'components[' + type + ']'" 
+                                :value="component.name" 
+                                readonly 
+                                class="build-name-component readonly">
                             <input type="hidden" 
-                                   :name="'component_ids[' + type + ']'" 
-                                   :value="component.componentId">
+                                :name="'component_ids[' + type + ']'" 
+                                :value="component.componentId">
                         </div>
                     </template>
 
@@ -176,7 +197,8 @@ class="flex">
                     </div>
                 </div>
 
-                <div>
+                {{-- PAYMENT METHOD - ONLY FOR ORDER --}}
+                <div x-show="modalType === 'order'">
                     <h4>Payment Method</h4>
                     <div class="flex gap-2">
                         <input type="hidden" name="payment_method" id="payment_method" required>
@@ -196,8 +218,7 @@ class="flex">
                 </div>
 
                 <div class="flex justify-end mt-4">
-                    <button type="submit" class="bg-blue-500 hover:!bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Order
+                    <button type="submit" class="bg-blue-500 hover:!bg-blue-700 text-white font-bold py-2 px-4 rounded" x-text="submitButtonText">
                     </button>
                 </div>
             </form>
@@ -213,13 +234,10 @@ class="flex">
                         <x-icons.arrow class="build-arrow"/>
                     </button>
                 </form>
-                <form action="{{ route('home') }}">
-                    @csrf
-                    <button>
-                        <x-icons.save class="build-save"/>
-                    </button>
-                </form>
-                <button @click="populateModal()">
+                <button @click="openModal('save')">
+                    <x-icons.save class="build-save"/>
+                </button>
+                <button @click="openModal('order')">
                     <x-icons.cart class="build-cart"/>
                 </button>
             </div>
@@ -272,7 +290,7 @@ class="flex">
 
             {{-- THIS SECTION WILL SHOW WHEN GENERATE BUILD IS CLICKED --}}
             <div class="generate-build hidden" id="buildSection">
-                <button data-type=""><p>Chipset <span class="selected-name">None</span></p></button>
+                <button data-type="chipset"><p>Chipset <span class="selected-name" id="chipsetName">None</span></p></button>
                 <button data-type="case"><p>Case <span class="selected-name">None</span></p></button>
                 <button data-type="gpu"><p>GPU <span class="selected-name">None</span></p></button>
                 <button data-type="motherboard"><p>Motherboard <span class="selected-name">None</span></p></button>
@@ -297,9 +315,21 @@ class="flex">
                         <p id="catalogTitle">All Components</p>
                         <x-icons.info title="This is information about the processor"/>
                     </div> 
-                    <div class="catalog-filter">
-                        <button><p>filter</p></button>
-                        <button><p>filter</p></button>    
+                    {{-- FILTER --}}
+                    <div>
+                        <form action=" {{ route('techboxx.search') }}" method="GET"
+                            class="component-search">
+                            <input 
+                                type="text"
+                                name="search"
+                                placeholder="Search components"
+                                value="{{ request('search') }}"
+                                
+                            >
+                            <button type='submit'>
+                                <x-icons.search class="component-search-icon"/>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 <div class="catalog-list"> 
@@ -354,38 +384,5 @@ class="flex">
             </div>
         </section>    
     </main>
-
-    <script>
-        function selectPayment(method, button) {
-            console.log('Selecting payment:', method);
-            
-            // Reset all buttons to gray
-            document.querySelectorAll('.payment-btn').forEach(btn => {
-                btn.style.backgroundColor = '#e5e7eb'; // gray-200
-                btn.style.color = '#374151'; // gray-700
-                btn.style.border = '2px solid transparent';
-            });
-            
-            // Style clicked button as active
-            button.style.backgroundColor = '#fbbf24'; // yellow-400
-            button.style.color = '#1f2937'; // gray-900
-            button.style.border = '2px solid #f59e0b'; // yellow-500 border
-            
-            // Set hidden input
-            document.getElementById('payment_method').value = method;
-            console.log('Payment method set to:', document.getElementById('payment_method').value);
-        }
-
-        // Initialize payment buttons on load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ensure all payment buttons have initial gray style
-            document.querySelectorAll('.payment-btn').forEach(btn => {
-                if (!btn.style.backgroundColor) {
-                    btn.style.backgroundColor = '#e5e7eb';
-                    btn.style.color = '#374151';
-                }
-            });
-        });
-    </script>
 </body>
 </html>

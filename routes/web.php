@@ -50,6 +50,7 @@ Route::get('/email/verify', function () {
 require __DIR__.'/auth.php';
 
 Route::get('techboxx/build', [BuildController::class, 'index'])->name('techboxx.build');
+Route::get('techboxx/build/search', [BuildController::class, 'search'])->name('techboxx.search');
 Route::post('techboxx/build/generate-build', [BuildController::class, 'generateBuild'])->name('techboxx.generate');
 Route::post('techboxx/build/validate', [BuildController::class, 'validateBuild'])->name('techboxx.validate');
 Route::get('techboxx/build-extended', [BuildExtController::class, 'index'])->name('techboxx.build.extend');
@@ -150,6 +151,8 @@ Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update
 Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 Route::post('/build/order', [CartController::class, 'orderBuild'])->name('build.order');
+Route::post('/build/save', [BuildController::class, 'saveBuild'])->name('build.save');
+Route::post('/build/save/order', [CartController::class, 'orderSavedBuild'])->name('build.save.order');
 Route::post('/cart/add', [CartController::class, 'add'])->middleware('auth')->name('cart.add');
 
 Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');

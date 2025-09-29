@@ -148,19 +148,6 @@ class OrderController extends Controller
         ]);
     }
 
-    // public function readyComponents($id) {
-    //     $order = Checkout::findOrFail($id);
-
-    //     $order->update([
-    //         'pickup_status' => 'Pending',
-    //     ]);
-
-    //     return redirect()->route('staff.order')->with([
-    //         'message' => 'Order ready for pickup',
-    //         'type' => 'success',
-    //     ]);
-    // }
-    
     public function readyComponents($cartId, $date)
     {
         // Convert the 'date' to a Carbon instance (including time)

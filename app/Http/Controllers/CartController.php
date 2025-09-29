@@ -286,4 +286,35 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Failed to create order. Please try again.');
         }
     }
+
+    public function orderSavedBuild(Request $request)
+    {
+        // Determine payment status based on payment method
+        $paymentMethod = $request->input('payment_method');
+        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : 'Paid';
+
+        // Create Checkout record
+        $checkout = OrderedBuild::create([
+            'user_build_id' => $request->user_build_id,
+            'payment_method' => $paymentMethod,
+            'payment_status' => $paymentStatus,
+        ]);
+
+        UserBuild::where('id', $request->user_build_id)->update([
+            'status' => "Ordered",
+        ]);
+
+        // dd($request->all());
+
+        // Redirect based on payment method
+        if ($paymentMethod === 'PayPal') {
+            return redirect()->route('paypal.create', [
+                'checkout_id' => $checkout->id,
+                'amount' => $request->total_price,
+            ]);
+        }
+
+        return redirect()->route('home')->with('success', 'Build ordered successfully!');
+
+    }
 }

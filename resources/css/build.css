@@ -304,8 +304,35 @@ canvas {
     color: white;
 }
 
-.catalog-filter button {
-    border: 1px solid black;
+.component-search {
+    display: flex;
+    color: white;
+}
+
+.component-search input {
+    width: 140px;
+    height: 16px;
+    border: none;
+    border-bottom: 1px solid white;
+    background-color: transparent;
+    font-size: 0.75rem;
+    padding: 0 4px;
+}
+
+.component-search input:focus {
+    box-shadow: none;
+    border-bottom: 1px solid white;
+
+}
+
+.component-search input::placeholder {
+    color: white;
+}
+
+.component-search-icon {
+    width: 16px;
+    height: 16px;
+    position: relative;
 }
 
 .catalog-list {

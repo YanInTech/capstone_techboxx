@@ -25,14 +25,14 @@
         </x-message>
     @endif
 
-    <header>
+    {{-- <header>
         <div class="header-logo">
             <img src="{{ asset('images\Logo.png') }}" alt="Logo" class="logo">
             <a href="{{ route('home') }}"><h2>Madoxx.qwe</h2></a>  
         </div>
-    </header>
+    </header> --}}
 
-    <main class="main-content header overflow-hidden">
+    <main class="main-content header overflow-hidden !h-[100vh] !mt-0">
         <div class="ext-icons">
             <form action="{{ route('home') }}">
                 @csrf
@@ -51,7 +51,7 @@
             </button>
         </div>
         
-        <form action="" class="build-name">
+        <form action="" class="enter-build-name">
             <input type="text" value="YOUR PC">
         </form>
 

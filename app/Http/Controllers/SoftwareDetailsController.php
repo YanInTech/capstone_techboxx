@@ -7,6 +7,7 @@ use App\Models\Software;
 use App\Models\SoftwareRequirement;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -28,34 +29,26 @@ class SoftwareDetailsController extends Controller
 
     }
 
-    public function search(Request $request)
-    {
+    public function search (Request $request) {
         $searchTerm = strtolower($request->input('search'));
         $buildCategories = BuildCategory::select('id', 'name')->get()->toArray();
 
-        $software = Software::filter(function ($software) use ($searchTerm) {
-            return str_contains(strtolower($software['name']), $searchTerm);
-        });
+        $softwares = Software::where('name', 'LIKE', "%{$searchTerm}%")
+            ->get();
 
-        // Pagination
-        $perPage = 6;
-        $currentPage = $request->get('page', 1);
-        $currentPageItems = $software->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-        $paginated = new LengthAwarePaginator(
-            $currentPageItems,
-            $software->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'query' => $request->query()]
+        // Paginate the collection
+        $perPage = 6; // Set the number of items per page
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $items = $softwares->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $softwares = new LengthAwarePaginator(
+            $items, 
+            $softwares->count(), 
+            $perPage, 
+            $currentPage, 
+            ['path' => Paginator::resolveCurrentPath()]
         );
 
-        return view('staff.softwaredetails',
-            [
-                'softwares' => $paginated,
-                'buildCategories' => $buildCategories,
-            ],
-        );
+        return view('staff.softwaredetails', compact('buildCategories', 'softwares'));
     }
 
     public function restore (string $id) {

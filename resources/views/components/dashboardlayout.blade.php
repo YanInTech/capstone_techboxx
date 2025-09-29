@@ -17,6 +17,7 @@
         'resources\js\app.js',
         'resources\js\addComponent.js',
         'resources\js\order.js',
+        'resources\js\customerdashboard.js',
         ])
 
 </head>

@@ -11,7 +11,17 @@ class CustomerController extends Controller
 {
     public function index() {
         $authId = Auth::user()->id;
-        $userBuilds = UserBuild::where('user_id', $authId)->paginate(5);
+        $userBuilds = UserBuild::with([
+            'case',
+            'cpu',
+            'motherboard',
+            'gpu',
+            'ram',
+            'storage',
+            'psu',
+            'cooler',
+            'user'
+        ])->where('user_id', $authId)->paginate(5);
 
         return view('customer.dashboard', compact('userBuilds'));
     }

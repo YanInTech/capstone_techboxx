@@ -8,7 +8,7 @@
     <div class="header-container">
         <div class="order-tab">
             <button class="{{ $activeTab === 'order' ? 'active' : '' }}" id="orderBuilds">Order Builds</button>
-            <button class="{{ $activeTab === 'checkout' ? 'active' : '' }}" id="checkOutComponents">Check-out Components</button>
+            <button class="{{ $activeTab === 'checkout' ? 'active' : '' }}" id="checkOutComponents">Check-out Product</button>
         </div>
     </div>
 
@@ -106,7 +106,7 @@
                         </div>
                         <div>
                             <p>Contact No</p>
-                            <p x-text="selectedBuild.user_build.user.phone"></p>
+                            <p x-text="selectedBuild.user_build.user.phone_number"></p>
                         </div>
                         <div>
                             <p>Email</p>
