@@ -27,10 +27,10 @@
         <div class="w-full border-b bg-white shadow-sm">
             <div class="flex justify-center items-center gap-8 py-4 text-gray-600 font-semibold text-sm">
                 <a href="{{ route('catalogue') }}" class="hover:underline hover:text-blue-500">ALL</a>
-                <a href="{{ route('catalogue', ['sort' => 'newest']) }}" class="hover:underline hover:text-blue-500">NEW IN</a>
-                <a href="{{ route('catalogue', ['sort' => 'price_desc']) }}" class="hover:underline hover:text-blue-500">HOT</a>
-                <a href="{{ route('catalogue', ['sort' => 'newest']) }}" class="hover:underline hover:text-blue-500">RECENT</a>
-                <a href="{{ route('catalogue', ['sort' => 'name_asc']) }}" class="hover:underline hover:text-blue-500">POPULAR</a>
+                <a href="{{ route('catalogue', ['sort' => 'newest']) }}" class="hover:underline hover:text-blue-500 flex items-center gap-1 text-[#F17720]">NEW IN <x-icons.sparkle/></a>
+                <a href="{{ route('catalogue', ['sort' => 'price_desc']) }}" class="hover:underline hover:text-blue-500 flex items-center gap-1 text-[#FF6B6B]">HOT <x-icons.fire/></a>
+                <a href="{{ route('catalogue', ['sort' => 'newest']) }}" class="hover:underline hover:text-blue-500 flex items-center gap-1 text-[#50C878]">RECENT <x-icons.recent/></a>
+                <a href="{{ route('catalogue', ['sort' => 'name_asc']) }}" class="hover:underline hover:text-blue-500 flex items-center gap-1 text-[#FFD700]">POPULAR <x-icons.star/></a>
             </div>
         </div>
 
@@ -242,7 +242,7 @@
                                     <table class="w-full text-sm border-collapse">
                                         <tbody>
                                             <template x-for="(value, key) in specs" :key="key">
-                                                <tr class="border-b" x-show="value">
+                                                <tr class="border-b">
                                                     <td class="font-semibold py-1 pr-3" x-text="key.replace('_',' ').toUpperCase()"></td>
                                                     <td class="py-1" x-text="value"></td>
                                                 </tr>

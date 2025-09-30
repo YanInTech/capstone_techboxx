@@ -28,7 +28,7 @@
                 </div>
             @endif
 
-            @if(!empty($cart))
+            @if(!$cart->isEmpty())
                 <div class="mb-4">
                     <a href="{{ route('catalogue') }}" class="text-gray-700 hover:text-blue-900 font-medium">
                         ← Continue Shopping
@@ -168,7 +168,9 @@
 
 
             @else
-                <div class="text-center py-16">
+                <div class="text-center py-16 flex items-center justify-center flex-col">
+                    <img src="/storage/images/cart.png" alt="Shopping cart"
+                        class="w-[200px] h-[200px]">
                     <p class="text-gray-600 text-lg mb-4">Your shopping cart is empty.</p>
                     <a href="{{ route('catalogue') }}" 
                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">

@@ -60,12 +60,12 @@ class CatalogueController extends Controller
                         'socket_type'         => $rowArr['socket_type'] ?? '',
                         'cores'               => $rowArr['cores'] ?? '',
                         'threads'             => $rowArr['threads'] ?? '',
-                        'base_clock'          => $rowArr['base_clock'] ?? '',
-                        'boost_clock'         => $rowArr['boost_clock'] ?? '',
+                        'base_clock'          => number_format($rowArr['base_clock'] ?? 0, 1),
+                        'boost_clock'         => number_format($rowArr['boost_clock'] ?? 0, 1),
                         'tdp'                 => $rowArr['tdp'] ?? '',
-                        'integrated_graphics' => $rowArr['integrated_graphics'] ?? '',
+                        'has integrated graphics' => isset($rowArr['integrated_graphics']) ? ($rowArr['integrated_graphics'] ? 'Yes' : 'No') : 'N/A',
                         'generation'          => $rowArr['generation'] ?? '',
-                        'price'               => $rowArr['price'] ?? '',
+                        'price' => '₱' . number_format($rowArr['price'] ?? 0, 2),
                         'stock'               => $rowArr['stock'] ?? '',
                     ];
                     break;
@@ -74,12 +74,13 @@ class CatalogueController extends Controller
                     $specs = [
                         'brand'       => $rowArr['brand'] ?? '',
                         'model'       => $rowArr['model'] ?? '',
-                        'memory'      => $rowArr['memory'] ?? '',
-                        'core_clock'  => $rowArr['core_clock'] ?? '',
-                        'boost_clock' => $rowArr['boost_clock'] ?? '',
-                        'tdp'         => $rowArr['tdp'] ?? '',
-                        'generation'  => $rowArr['generation'] ?? '',
-                        'price'       => $rowArr['price'] ?? '',
+                        'vram_gb'      => $rowArr['vram_gb'] ?? '',
+                        'power_draw_watts'  => $rowArr['power_draw_watts'] ?? '',
+                        'recommended_psu_watt' => $rowArr['recommended_psu_watt'] ?? '',
+                        'length_mm'         => $rowArr['length_mm'] ?? '',
+                        'pcie_interface'  => $rowArr['pcie_interface'] ?? '',
+                        'connectors_required'       => $rowArr['connectors_required'] ?? '',
+                        'price'               => $rowArr['price'] ?? '',
                         'stock'       => $rowArr['stock'] ?? '',
                     ];
                     break;
