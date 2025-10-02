@@ -45,7 +45,7 @@ class OrderController extends Controller
                     ELSE 7
                 END
             ")
-            ->orderBy('created_at', 'asc')  // FIFO within groups (oldest first)
+            ->orderBy('created_at', 'desc')  // FIFO within groups (oldest first)
             ->paginate(5);
 
         $allCheckouts = Checkout::with([
@@ -62,7 +62,7 @@ class OrderController extends Controller
                 ELSE 4
             END
         ")
-        ->orderBy('checkout_date', 'asc')
+        ->orderBy('checkout_date', 'desc')
         ->get();
 
         // Step 1: Group by ShoppingCart ID + Checkout Timestamp
@@ -182,6 +182,7 @@ class OrderController extends Controller
         $order->update([
             'pickup_status' => 'Picked up',
             'pickup_date' =>now(),
+            'payment_status' => 'Paid'
         ]);
 
         return redirect()->route('staff.order')->with([

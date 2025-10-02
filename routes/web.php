@@ -6,6 +6,7 @@ use App\Http\Controllers\BuildExtController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CheckoutDetailsController;
 use App\Http\Controllers\ComponentDetailsController;
 use App\Http\Controllers\Components\CaseController;
 use App\Http\Controllers\Components\CoolerController;
@@ -16,15 +17,20 @@ use App\Http\Controllers\Components\PsuController;
 use App\Http\Controllers\Components\RamController;
 use App\Http\Controllers\Components\StorageController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderDetailsController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchasedHistoryController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SoftwareDetailsController;
+use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserAccountController;
+use Google\Service\AndroidPublisher\OrderDetails;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,9 +62,9 @@ Route::post('techboxx/build/validate', [BuildController::class, 'validateBuild']
 Route::get('techboxx/build-extended', [BuildExtController::class, 'index'])->name('techboxx.build.extend');
 
 // ADMIN ROUTES
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () {
     // DASHBOARD
-    Route::get('dashboard', [UserAccountController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // USER ACCOUNT
     Route::get('user-account', [UserAccountController::class, 'useraccount'])->name('useraccount');
@@ -74,9 +80,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // STAFF ROUTES
-Route::prefix('staff')->name('staff.')->group(function () {
+Route::prefix('staff')->middleware(['auth'])->name('staff.')->group(function () {
     //DASHBOARD
-    Route::get('dashboard', [UserAccountController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
 
     //SUPPLIER
     Route::get('supplier', [SupplierController::class, 'index'])->name('supplier');
@@ -135,9 +141,13 @@ Route::prefix('staff')->name('staff.')->group(function () {
 });
 
 // CUSTOMER ROUTES
-Route::prefix('customer')->name('customer.')->group(function () {
-    Route::get('/dashboard',[CustomerController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::prefix('customer')->middleware(['auth'])->name('customer.')->group(function () {
+    Route::get('/dashboard',[CustomerController::class, 'index'])->name('dashboard');
     Route::put('profile', [CustomerController::class, 'update'])->name('profile.update');
+    Route::get('/customer/checkout-details', [CheckoutDetailsController::class, 'index'])->name('checkoutdetails');
+    Route::get('/customer/order-details', [OrderDetailsController::class, 'index'])->name('orderdetails');
+    Route::get('/customer/purchased-history', [PurchasedHistoryController::class, 'index'])->name('purchasedhistory');
+    Route::get('/customer/invoice/{order}', [PurchasedHistoryController::class, 'invoice'])->name('invoice.show');
 });
 
 Route::resource('cpus', CpuController::class);
@@ -163,3 +173,7 @@ Route::match(['get','post'], '/paypal/create', [PayPalController::class, 'create
 Route::post('/paypal/capture', [PayPalController::class, 'capture'])->name('paypal.capture');
 Route::get('/paypal/success', [PayPalController::class, 'success'])->name('paypal.success');
 Route::get('/paypal/cancel', [PayPalController::class, 'cancel'])->name('paypal.cancel');
+
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+// });

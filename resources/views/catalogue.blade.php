@@ -169,7 +169,7 @@
             </aside>
 
             <!-- Product Grid -->
-            <main class="w-full sm:w-3/4 p-6 grid grid-rows-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            <main class="w-full sm:w-3/4 p-6 grid  grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 x-data="{ openModal: false, specs: {}, name: '', image: '' }"
                 x-on:open-specs.window="openModal = true; specs = $event.detail.specs; name = $event.detail.name; image = $event.detail.image;">
 
