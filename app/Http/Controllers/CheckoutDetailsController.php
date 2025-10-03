@@ -3,16 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Checkout;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Order;
 
 class CheckoutDetailsController extends Controller
 {
     public function index()
     {
         $userId = Auth::id();
-    
+
         $allCheckouts = Checkout::with([
             'cartItem.shoppingCart.user',
             'cartItem.case',
@@ -27,6 +25,7 @@ class CheckoutDetailsController extends Controller
         ->whereHas('cartItem.shoppingCart', function($query) use ($userId) {
             $query->where('user_id', $userId);
         })
+        ->whereNull('pickup_date')
         ->orderBy('checkout_date', 'desc')
         ->get();
 
@@ -43,6 +42,8 @@ class CheckoutDetailsController extends Controller
             return [
                 'shopping_cart_id' => $first->cartItem->shopping_cart_id,
                 'checkout_date' => $first->checkout_date,
+                'updated_at' => $first->updated_at,
+                'pickup_status' => $first->pickup_status,
                 'total_cost' => $checkouts->sum('total_cost'),
                 'cart_items' => $cartItems->values(),
                 'payment_method' => $first->payment_method,
@@ -50,50 +51,17 @@ class CheckoutDetailsController extends Controller
             ];
         })->values();
 
-        return view('customer.checkoutdetails', compact('groupedCheckouts'));
+        // Manual pagination
+        $page = request()->get('page', 1);
+        $perPage = 1;
+        $paginatedGroups = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groupedCheckouts->forPage($page, $perPage),
+            $groupedCheckouts->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
-
-        // $userId = Auth::id();
-
-        // // Get latest order for the logged-in user
-        // $order = Order::where('user_id', $userId)
-        //     ->latest()
-        //     ->with(['items', 'user'])
-        //     ->first();
-
-        // if (!$order) {
-        //     return view('customer.checkoutdetails', [
-        //         'checkoutItems' => collect(),
-        //         'total' => 0,
-        //         'order' => null,
-        //         'contactNumber' => 'N/A',
-        //     ]);
-        // }
-
-        // // ✅ Use data directly from order_items table (like cart does)
-        // $checkoutItems = $order->items->map(function ($item) {
-        //     return [
-        //         'component' => $item->name ?? 'Unknown',
-        //         'category'  => $item->category ?? ucfirst($item->product_type ?? 'N/A'),
-        //         'qty'       => $item->quantity ?? 1,
-        //         'price'     => $item->price ?? 0,
-        //     ];
-        // });
-
-        // $total = $checkoutItems->sum(fn($it) => $it['price'] * $it['qty']);
-
-        // // Resolve contact number
-        // $contactNumber = $order->contact
-        //     ?? $order->phone
-        //     ?? $order->phone_number
-        //     ?? ($order->user->contact ?? $order->user->phone ?? $order->user->phone_number ?? null)
-        //     ?? 'N/A';
-
-        // return view('customer.checkoutdetails', [
-        //     'checkoutItems' => $checkoutItems,
-        //     'total' => $total,
-        //     'order' => $order,
-        //     'contactNumber' => $contactNumber,
-        // ]);
+        return view('customer.checkoutdetails', compact('paginatedGroups'));
     }
 }

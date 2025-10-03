@@ -134,7 +134,7 @@
                             <p x-text="selectedBuild.user_build.ram.brand + '' + selectedBuild.user_build.ram.model "></p>
                         </div>
                         <div>
-                            <p>SSD</p>
+                            <p>Storage</p>
                             <p x-text="selectedBuild.user_build.storage.brand + '' + selectedBuild.user_build.storage.model "></p>
                         </div>
                         <div>
@@ -144,10 +144,6 @@
                         <div>
                             <p>GPU</p>
                             <p x-text="selectedBuild.user_build.gpu.brand + '' + selectedBuild.user_build.gpu.model "></p>
-                        </div>
-                        <div>
-                            <p>HDD</p>
-                            <p x-text="selectedBuild.user_build.storage.brand + '' + selectedBuild.user_build.storage.model "></p>
                         </div>
                         <div>
                             <p>PSU</p>

@@ -168,7 +168,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return redirect()->route('staff.order')->with([
+        return back()->with([
             'message' => 'The selected items are now ready for pickup.',
             'type' => 'success',
         ]);
@@ -211,10 +211,11 @@ class OrderController extends Controller
             $checkout->update([
                 'pickup_status' => 'Picked up',
                 'pickup_date' => now(),
+                'payment_status' => 'Paid'
             ]);
         }
 
-        return redirect()->route('staff.order')->with([
+        return back()->with([
             'message' => 'The selected items have been marked as picked up.',
             'type' => 'success',
         ]);

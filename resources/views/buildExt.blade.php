@@ -34,21 +34,27 @@
 
     <main class="main-content header overflow-hidden !h-[100vh] !mt-0">
         <div class="ext-icons">
-            <form action="{{ route('home') }}">
-                @csrf
-                <button>
-                    <x-icons.arrow class="build-arrow"/>
+            @if (auth()->user()->role === 'Customer')
+                <form action="{{ route('home') }}">
+                    @csrf
+                    <button>
+                        <x-icons.arrow class="build-arrow"/>
+                    </button>
+                </form>
+                <button @click="openModal('save')">
+                    <x-icons.save class="build-save"/>
                 </button>
-            </form>
-            <form>
-                @csrf
-                <button>
-                    <x-icons.save class="ext-save"/>
+                <button @click="openModal('order')">
+                    <x-icons.cart class="build-cart"/>
                 </button>
-            </form>
-            <button>
-                <x-icons.cart class="ext-cart"/>
-            </button>
+            @else
+                <form action="{{ route('techboxx.build') }}">
+                    @csrf
+                    <button>
+                        <x-icons.arrow class="build-arrow"/>
+                    </button>
+                </form>
+            @endif
         </div>
         
         <form action="" class="enter-build-name">

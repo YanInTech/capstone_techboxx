@@ -23,11 +23,11 @@ class DatabaseSeeder extends Seeder
             // UserBuildSeeder::class,
 
             // UserBuildSeeder::class,
-            // OrderedBuildSeeder::class,
+            OrderedBuildSeeder::class,
             // SupplierSeeder::class,
-            ShoppingCartSeeder::class,
-            CartItemSeeder::class,
-            CheckoutSeeder::class,
+            // ShoppingCartSeeder::class,
+            // CartItemSeeder::class,
+            // CheckoutSeeder::class,
         ]);
     }
 }
