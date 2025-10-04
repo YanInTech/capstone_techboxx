@@ -225,12 +225,12 @@ class="flex">
         </div>
     </div>
 
-    <main class="main-content flex justify-evenly h-[91vh] gap-1">
+    <main class="main-content flex justify-evenly h-[91vh] ">
         <section class="preview-section header">
-            <div class="build-icons">
-                @if (auth()->user()->role === 'Customer')
+           <div class="build-icons">
+                @if (auth()->user() && auth()->user()->role === 'Customer')
                     <form action="{{ route('home') }}">
-                        @csrf
+                        {{-- @csrf --}}
                         <button>
                             <x-icons.arrow class="build-arrow"/>
                         </button>
@@ -247,14 +247,14 @@ class="flex">
             <div id="sidebar">
                 <h3 class="mb-3 text-center">BUILD COMPONENTS</h3>
                 <div id="components">
-                    <div id="gpu" class="draggable"><p>GPU</p></div>
                     <div id="motherboard" class="draggable"><p>Motherboard</p></div>
                     <div id="cpu" class="draggable"><p>CPU</p></div>
-                    <div id="hdd" class="draggable"><p>HDD</p></div>
-                    <div id="ssd" class="draggable"><p>SDD</p></div>
-                    <div id="psu" class="draggable"><p>PSU</p></div>    
                     <div id="ram" class="draggable"><p>RAM</p></div>    
+                    <div id="ssd" class="draggable"><p>SDD</p></div>
+                    <div id="hdd" class="draggable"><p>HDD</p></div>
                     <div id="cooler" class="draggable"><p>Cooler</p></div>
+                    <div id="gpu" class="draggable"><p>GPU</p></div>
+                    <div id="psu" class="draggable"><p>PSU</p></div>   
                 </div>
             </div>
             <div id="canvas-container"></div>
@@ -293,21 +293,20 @@ class="flex">
 
             {{-- THIS SECTION WILL SHOW WHEN GENERATE BUILD IS CLICKED --}}
             <div class="generate-build hidden" id="buildSection">
-                <button data-type="chipset"><p>Chipset <span class="selected-name" id="chipsetName">None</span></p></button>
                 <button data-type="case"><p>Case <span class="selected-name">None</span></p></button>
-                <button data-type="gpu"><p>GPU <span class="selected-name">None</span></p></button>
                 <button data-type="motherboard"><p>Motherboard <span class="selected-name">None</span></p></button>
                 <button data-type="cpu"><p>CPU <span class="selected-name">None</span></p></button>
-                <button data-type="hdd"><p>HDD <span class="selected-name">None</span></p></button>
-                <button data-type="ssd"><p>SSD <span class="selected-name">None</span></p></button>
-                <button data-type="psu"><p>PSU <span class="selected-name">None</span></p></button>
                 <button data-type="ram"><p>RAM <span class="selected-name">None</span></p></button>
+                <button data-type="ssd"><p>SSD <span class="selected-name">None</span></p></button>
+                <button data-type="hdd"><p>HDD <span class="selected-name">None</span></p></button>
                 <button data-type="cooler"><p>Cooler <span class="selected-name">None</span></p></button>
+                <button data-type="gpu"><p>GPU <span class="selected-name">None</span></p></button>
+                <button data-type="psu"><p>PSU <span class="selected-name">None</span></p></button>
             </div>
         </section>   
         <section class="catalog-section">
             <div class="catalog-button">
-                <button id="componentsTab">Components</button>
+                <button id="componentsTab"  class="active">Components</button>
                 <button id="summaryTab">Summary</button>
             </div>
 
@@ -319,9 +318,10 @@ class="flex">
                         <x-icons.info title="This is information about the processor"/>
                     </div> 
                     {{-- FILTER --}}
-                    <div>
-                        <form action=" {{ route('techboxx.search') }}" method="GET"
+                    <div class="search-area">
+                        <form action=" {{ route('techboxx.search') }}" method="POST"
                             class="component-search">
+                            @csrf
                             <input 
                                 type="text"
                                 name="search"

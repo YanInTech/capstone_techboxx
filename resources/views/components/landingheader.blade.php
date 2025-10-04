@@ -24,14 +24,12 @@
                 @if (auth()->user()->role === 'Customer')
                     {{-- show custom content for logged-in customer --}}
                     <form action="{{ route('customer.dashboard') }}">
-                        @csrf
                         <button>{{ $name }}</button>
                     </form>
                 @endif
             @else
                 {{-- show sign in button if not authenticated --}}
                 <form action="{{ route('login') }}">
-                    @csrf
                     <button>Sign In</button>
                 </form>
             @endauth

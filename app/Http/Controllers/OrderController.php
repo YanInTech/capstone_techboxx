@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Checkout;
+use App\Models\Invoice;
 use App\Models\OrderedBuild;
 use App\Models\ShoppingCart;
 use App\Models\UserBuild;
@@ -177,12 +178,19 @@ class OrderController extends Controller
 
 
     public function pickup($id) {
+        $userId = Auth::id();
+
         $order = OrderedBuild::findOrFail($id);
 
         $order->update([
             'pickup_status' => 'Picked up',
             'pickup_date' =>now(),
             'payment_status' => 'Paid'
+        ]);
+
+        Invoice::create([
+            'build_id' => $id,
+            'staff_id' => $userId,
         ]);
 
         return redirect()->route('staff.order')->with([
@@ -194,6 +202,8 @@ class OrderController extends Controller
     
     public function pickupComponents($cartId, $date)
     {
+        $userId = Auth::id();
+
         // Convert the 'date' to a Carbon instance (including time)
         $checkoutDate = Carbon::parse($date);
 
@@ -214,6 +224,11 @@ class OrderController extends Controller
                 'payment_status' => 'Paid'
             ]);
         }
+
+        Invoice::create([
+            'order_id' => $checkouts->first()->id,
+            'staff_id' => $userId,
+        ]);
 
         return back()->with([
             'message' => 'The selected items have been marked as picked up.',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogsController;
 use App\Http\Controllers\Auth\ForcePasswordResetController;
 use App\Http\Controllers\BuildController;
 use App\Http\Controllers\BuildExtController;
@@ -56,7 +57,7 @@ Route::get('/email/verify', function () {
 require __DIR__.'/auth.php';
 
 Route::get('techboxx/build', [BuildController::class, 'index'])->name('techboxx.build');
-Route::get('techboxx/build/search', [BuildController::class, 'search'])->name('techboxx.search');
+Route::post('techboxx/build/search', [BuildController::class, 'search'])->name('techboxx.search');
 Route::post('techboxx/build/generate-build', [BuildController::class, 'generateBuild'])->name('techboxx.generate');
 Route::post('techboxx/build/validate', [BuildController::class, 'validateBuild'])->name('techboxx.validate');
 Route::get('techboxx/build-extended', [BuildExtController::class, 'index'])->name('techboxx.build.extend');
@@ -77,6 +78,10 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
 
     // SALES
     Route::get('sales', [SalesController::class, 'index'])->name('sales');
+
+    // ACTIVITY LOGS
+    Route::get('activity-logs', [ActivityLogsController::class, 'index'])->name('activitylogs');
+
 });
 
 // STAFF ROUTES
@@ -138,6 +143,7 @@ Route::prefix('staff')->middleware(['auth'])->name('staff.')->group(function () 
     Route::post('order/ready-components/{id}/{date}', [OrderController::class, 'readyComponents'])->name('order.ready-components');
     Route::post('order/pickup/{id}', [OrderController::class, 'pickup'])->name('order.pickup');
     Route::post('order/pickup-components/{id}/{date}', [OrderController::class, 'pickupComponents'])->name('order.pickup-components');
+
 });
 
 // CUSTOMER ROUTES

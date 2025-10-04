@@ -44,7 +44,6 @@
                 @endif
             @else
                 <form action="{{ route('login') }}">
-                    @csrf
                     <button>Sign In</button>
                 </form>
             @endauth

@@ -25,7 +25,7 @@
                     ]
                 ],
                 ['route' => route('admin.sales'), 'label' => 'Report', 'icon' => 'bargraph'],
-                ['route' => '', 'label' => 'Activity Logs', 'icon' => 'logs'],
+                ['route' => route('admin.activitylogs'), 'label' => 'Activity Logs', 'icon' => 'logs'],
                 ['route' => route('techboxx.build'), 'label' => 'Build', 'icon' => 'build', 'style' => 'last-nav'],
             ],
             'Staff' => [
