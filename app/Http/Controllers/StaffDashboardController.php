@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Checkout;
 use App\Models\Order;
+use App\Models\OrderedBuild;
 use App\Models\StockHistory;
 use Illuminate\Http\Request;
 
@@ -11,17 +13,22 @@ class StaffDashboardController extends Controller
     public function index()
     {
         // 1. Orders in progress
-        $ordersInProgress = Order::where('status', 'in-progress')->count();
+        $ordersInProgress = Checkout::where('pickup_status', null)->count() 
+                   + OrderedBuild::where('pickup_status', null)->count();
 
         // 2. Low stock / inventory warnings
-        $lowStockThreshold = 5;
+        $lowStockThreshold = 10;
         $inventoryWarnings = app(ComponentDetailsController::class)
             ->getAllFormattedComponents()
             ->filter(fn($component) => $component->stock <= $lowStockThreshold)
             ->count();
 
         // 3. Tasks (pending orders for approval)
-        $tasks = Order::where('status', 'pending')->get();
+        // $tasks = Checkout::where('pickup_status', 'Pending')->get()
+        //            ->merge(OrderedBuild::where('status', 'Pending')->get());
+
+        $tasks = Checkout::where('pickup_status', null)->get()
+                   ->merge(OrderedBuild::where('pickup_status', null)->get());
 
         // 4. Notifications
         $notifications = [

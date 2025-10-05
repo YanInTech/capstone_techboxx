@@ -26,6 +26,7 @@ use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchasedHistoryController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SoftwareDetailsController;
 use App\Http\Controllers\StaffDashboardController;
@@ -180,6 +181,5 @@ Route::post('/paypal/capture', [PayPalController::class, 'capture'])->name('payp
 Route::get('/paypal/success', [PayPalController::class, 'success'])->name('paypal.success');
 Route::get('/paypal/cancel', [PayPalController::class, 'cancel'])->name('paypal.cancel');
 
-// Route::middleware(['auth'])->group(function () {
-//     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-// });
+Route::post('/reviews', [ReviewController::class, 'store'])
+    ->name('reviews.store');

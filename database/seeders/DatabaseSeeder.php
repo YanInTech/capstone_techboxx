@@ -21,13 +21,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // UserVerificationSeeder::class, 
             // UserBuildSeeder::class,
-
-            // UserBuildSeeder::class,
-            OrderedBuildSeeder::class,
+            // OrderedBuildSeeder::class,
             // SupplierSeeder::class,
             // ShoppingCartSeeder::class,
-            // CartItemSeeder::class,
-            // CheckoutSeeder::class,
+            CartItemSeeder::class,
+            CheckoutSeeder::class,
+            // ReviewSeeder::class,
         ]);
     }
 }

@@ -206,12 +206,12 @@
                         <p class="text-xs text-gray-600">{{ $product['brand'] }}</p>
                         <p class="text-[11px] text-gray-500 mt-0.5">{{ strtoupper($product['category']) }}</p>
 
-                        <!-- ⭐ Rating -->
+                        <!-- ⭐ Rating - Now with actual data -->
                         <p class="text-yellow-500 text-sm mb-1">
-                            @if(!empty($product['rating']))
-                                ⭐ {{ $product['rating'] }} ({{ $product['reviews_count'] ?? 0 }})
+                            @if($product['reviews_count'] > 0)
+                                ★ {{ number_format($product['rating'], 1) }} ({{ $product['reviews_count'] }})
                             @else
-                                ⭐ No reviews yet
+                                ★ No reviews yet
                             @endif
                         </p>
 
