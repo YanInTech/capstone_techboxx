@@ -21,37 +21,86 @@ class CompatibilityService
     ];
 
     // CPU - MOTHERBOARD
-    public function isCpuCompatiblewithMotherboard(Cpu $cpu, Motherboard $motherboard): bool
+    public function isCpuCompatiblewithMotherboard(Cpu $cpu, Motherboard $motherboard,SupportedCpu $supported_cpu)
     {
-        return $cpu->socket_type === $motherboard->socket_type;
+        $results = ['errors' => [], 'warnings' => []];
+        if ($cpu->socket_type !== $motherboard->socket_type) {
+            $results['errors'][]= "❌CPU and motherboard socket_type is incompatible.";
+        }
+        //motherboard supports cpu fallback
+        if (!empty($supported_cpu->cpuID)) {
+            // Compare names
+            $cpuArray = array_map('trim', explode(',', $cpuList));
+            foreach ($cpuList as $supportedCpu) {
+                if (stripos($supportedCpu['Name'], $cpu->model_name) == false) {
+                    return $results;
+                }
+            }
+           $results['errors'][]= "❌Motherboard Doesn't Support CPU";
+        }
+        return $results;
     }
 
+    
     // RAM - MOTHERBOARD
-    public function isRamCompatiblewithMotherboard(Ram $ram, Motherboard $motherboard): bool
+    public function isRamCompatiblewithMotherboard(Ram $ram, Motherboard $motherboard)
     {
-        return $ram->ram_type === $motherboard->ram_type;
+        $results = ['errors' => [], 'warnings' => []];
+
+        //Check's the MOBO and RAM's RAM type if the same
+        if($ram->ram_type !== $motherboard->ram_type){
+             $results['errors'][] = "❌RAM and motherboard ram type is incompatible.";
+        }
+        //Check's the RAM's RAM size if it is less than or the same as MOBO's
+        if($ram->total_capacity_gb > $motherboard -> max_ram){
+             $results['errors'][] = "❌RAM capacity ({$ram->total_capacity_gb} GB) exceeds the motherboard's max supported capacity ({$motherboard->max_ram} GB). System might not boot!";
+        }
+        //Check's the RAM's speed if it is less than or the same as MOBO's
+        if ($ram->speed_mhz > $motherboard -> max_ram_speed) {
+             $results['warnings'][] = "⚠️ RAM speed ({$ram->speed_mhz} MHz) is higher than the motherboard's max supported speed ({$motherboard->max_ram_speed} MHz). It will run at the lower speed.";
+        }
+        return  $results;
     }
+
 
     // GPU - CASE
     public function isGpuCompatiblewithCase(Gpu $gpu, PcCase $case): bool
     {
-        return $gpu->length_mm <= $case->max_gpu_length_mm;
+        $results = ['errors' => [], 'warnings' => []];
+
+        // GPU length vs case clearance
+        if ($gpu->length_mm >= $case->max_gpu_length_mm) {
+            $results['errors'][] = "❌GPU and Case GPU length is incompatible.";
+        }
+        return $results;
     }
 
     // COOLER - CPU AND CASE
-    public function isCoolerCompatible(Cooler $cooler, Cpu $cpu, PcCase $case): bool
+    public function isCoolerCompatible(Cooler $cooler, Motherboard $motherboard, PcCase $case)
     {
-        $socketCompatible = in_array($cpu->socket_type, $cooler->socket_compatibility);
-        $heightCompatible = $cooler->height_mm <= $case->max_cooler_height_mm;
+        $results = ['errors' => [], 'warnings' => []];
 
-        return $socketCompatible && $heightCompatible;
+        // Check socket support
+        if (!in_array($motherboard->socket_type, $cooler->supported_sockets)) {
+            $results['errors'][] = "❌ Cooler does not support CPU socket type ({$motherboard->socket_type}).";
+        }
+        // Check cooler height vs case clearance
+        if ($cooler->height_mm > $case->max_cooler_height_mm) {
+            $results['errors'][] = "❌ Cooler height ({$cooler->height_mm}mm) exceeds case limit ({$case->max_cooler_height_mm}mm).";
+        } 
+        return $results;
     }
 
     // PSU - CPU + GPU
-    public function isPsuEnough(Psu $psu, Cpu $cpu, Gpu $gpu): bool
+    public function isPsuEnough(Psu $psu, Cpu $cpu, Gpu $gpu)
     {
-        $requiredPower = $cpu->tdp + $gpu->power_draw_watts + 100; // ADD BUFFER
-        return $psu->wattage >= $requiredPower;
+        $results = ['errors' => [], 'warnings' => []];
+
+        $estimatedPower = $cpu->tdp + $gpu->power_draw_watts + 150; // // 150W for motherboard, RAM, storage
+        if ($psu->wattage < $estimatedPower) {
+            $results['warnings'][] = "⚠️ PSU wattage ({$psu->wattage}W) is close to estimated system draw ({$estimatedPower}W). Consider a higher wattage PSU.";
+        }
+        return $results;
     }
 
     // MOTHERBOARD - CASE
