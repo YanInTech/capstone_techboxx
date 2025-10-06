@@ -166,6 +166,20 @@
                             <span class="text-gray-700">
                                 @if($column === 'price')
                                     ${{ number_format($row->$column, 2) }}
+                                @elseif(is_array($row->$column) || is_array(json_decode($row->$column, true)))
+                                    {{-- Handle array data --}}
+                                    @php
+                                        $values = is_array($row->$column) ? $row->$column : json_decode($row->$column, true);
+                                    @endphp
+                                    @if(is_array($values) && count($values) > 0)
+                                        <ul class="list-disc list-inside">
+                                            @foreach($values as $value)
+                                                <ul>{{ $value }}</ul>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        N/A
+                                    @endif
                                 @else
                                     {{ $row->$column }}
                                 @endif

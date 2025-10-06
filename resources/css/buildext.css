@@ -38,8 +38,8 @@ body{
     /* background-color: aliceblue; */
     position: absolute;
     display: flex;
+    gap: 1rem;
     justify-content: space-between;
-    width: 10%;
     height: auto;
     z-index: 999;
 }
@@ -52,7 +52,8 @@ body{
 
 .ext-arrow:hover,
 .ext-save:hover,
-.ext-cart:hover {
+.ext-cart:hover,
+.ext-reload:hover {
     opacity: 0.5;
 }
 

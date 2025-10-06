@@ -30,17 +30,17 @@
                 <form action="{{ route('home') }}">
                     @csrf
                     <button>
-                        <x-icons.arrow class="build-arrow"/>
+                        <x-icons.arrow class="ext-arrow"/>
                     </button>
                 </form>
                 <button @click="openModal('save')">
-                    <x-icons.save class="build-save"/>
+                    <x-icons.save class="ext-save"/>
                 </button>
                 <button @click="openModal('order')">
-                    <x-icons.cart class="build-cart"/>
+                    <x-icons.cart class="ext-cart"/>
                 </button>
                 <button id="reloadButton">
-                    <x-icons.reload />
+                    <x-icons.reload class="ext-reload" />
                 </button>
             @else
                 <form action="{{ route('techboxx.build') }}">
@@ -50,7 +50,7 @@
                     </button>
                 </form>
                 <button id="reloadButton">
-                    <x-icons.reload />
+                    <x-icons.reload class="ext-reload" />
                 </button>
             @endif
         </div>
