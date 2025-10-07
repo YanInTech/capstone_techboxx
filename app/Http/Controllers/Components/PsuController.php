@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\Models\Supplier;
 use App\Models\Brand;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class PsuController extends Controller
 {
@@ -72,6 +74,8 @@ class PsuController extends Controller
      */
     public function store(Request $request)
     {
+        $staffUser = Auth::user();
+        
         // Validate the request data
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
@@ -108,10 +112,11 @@ class PsuController extends Controller
         }
 
         // dd($request->all()); 
+
+        $psu = Psu::create($validated);
+
+        ActivityLogService::componentCreated('psu', $psu, $staffUser);
         
-
-        Psu::create($validated);
-
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'PSU added',
             'type' => 'success',
@@ -141,7 +146,10 @@ class PsuController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $staffUser = Auth::user();
         $psu = Psu::findOrFail($id);
+
+        $oldPsuData = $psu->toArray();
 
         // Prepare data for update
         $data = [
@@ -158,21 +166,32 @@ class PsuController extends Controller
             'build_category_id'     => $request->build_category_id,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+        
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('psu', 'public');
             $data['image'] = $imagePath;
+            $fileChanges[] = 'image updated';
+        
+            ActivityLogService::componentImageUpdated('psu', $psu, $staffUser);
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
             $modelPath = $request->file('model_3d')->store('psu', 'public');
             $data['model_3d'] = $modelPath;
+            $fileChanges[] = '3D model updated';
+        
+            ActivityLogService::component3dModelUpdated('psu', $psu, $staffUser);
         }
 
         // Update the PSU with the prepared data
         $psu->update($data);
 
+        ActivityLogService::componentUpdated('psu', $psu, $staffUser, $oldPsuData, $psu->fresh()->toArray());
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'PSU updated',
             'type' => 'success',

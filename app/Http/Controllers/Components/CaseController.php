@@ -10,9 +10,11 @@ use App\Models\Hardware\PcCaseDriveBay;
 use App\Models\Hardware\PcCaseFrontUsbPorts;
 use App\Models\Hardware\PcCaseRadiatorSupport;
 use App\Models\Supplier;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Services\GoogleDriveUploader;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
@@ -105,6 +107,8 @@ class CaseController extends Controller
      */
     public function store(Request $request)
     {
+        $staffUser = Auth::user();
+
         // Validate the request data
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
@@ -138,9 +142,12 @@ class CaseController extends Controller
         } else {
             $validated['model_3d'] = null;
         }
-        // dd($request->all());
 
+        // Create the case
         $case = PcCase::create($validated);
+
+        // Log the case creation
+        ActivityLogService::componentCreated('case', $case, $staffUser);
 
         // Validate radiator support
         $request->validate([
@@ -152,11 +159,14 @@ class CaseController extends Controller
         
         // Store radiator support
         foreach ($radiatorSupports as $radiatorData) {
-            PcCaseRadiatorSupport::create([
+            $radiatorSupport = PcCaseRadiatorSupport::create([
                 'pc_case_id' => $case->id,
                 'location' => $radiatorData['location'],
                 'size_mm' => $radiatorData['size_mm'],
             ]);
+
+            // Log radiator support creation
+            ActivityLogService::caseRadiatorSupportAdded($case, $radiatorSupport, $staffUser);
         }
 
         // Validate drive bays support
@@ -166,7 +176,10 @@ class CaseController extends Controller
         ]);
         $driveValidated['pc_case_id'] = $case->id;
         
-        PcCaseDriveBay::create($driveValidated);
+        $driveBays = PcCaseDriveBay::create($driveValidated);
+
+        // Log drive bays creation
+        ActivityLogService::caseDriveBaysAdded($case, $driveBays, $staffUser);
 
         // Validate front usb port
         $usbValidated = $request->validate([
@@ -177,13 +190,15 @@ class CaseController extends Controller
         ]);
         $usbValidated['pc_case_id'] = $case->id;
         
-        PcCaseFrontUsbPorts::create($usbValidated);
+        $frontUsbPorts = PcCaseFrontUsbPorts::create($usbValidated);
+
+        // Log front USB ports creation
+        ActivityLogService::caseFrontUsbPortsAdded($case, $frontUsbPorts, $staffUser);
 
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Case added',
             'type' => 'success',
         ]); 
-
     }
 
     /**
@@ -205,10 +220,16 @@ class CaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+   public function update(Request $request, string $id)
     {
-        //
+        $staffUser = Auth::user();
         $case = PcCase::findOrFail($id);
+
+        // Store old data for logging before update
+        $oldCaseData = $case->toArray();
+        $oldRadiatorSupports = $case->radiatorSupports->toArray();
+        $oldDriveBays = $case->driveBays ? $case->driveBays->toArray() : null;
+        $oldFrontUsbPorts = $case->frontUsbPorts ? $case->frontUsbPorts->toArray() : null;
 
         // Prepare data for update
         $data = [
@@ -224,33 +245,73 @@ class CaseController extends Controller
             'stock' => $request->stock,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+
         // Only update image if new image is uploaded
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('cases', 'public');
             $data['image'] = $imagePath;
+            $fileChanges[] = 'image updated';
+            
+            // Log image update separately
+            ActivityLogService::componentImageUpdated('case', $case, $staffUser);
         }
 
         // Only update model_3d if new file is uploaded
         if ($request->hasFile('model_3d')) {
             $modelPath = $request->file('model_3d')->store('case', 'public');
             $data['model_3d'] = $modelPath;
+            $fileChanges[] = '3D model updated';
+            
+            // Log 3D model update separately
+            ActivityLogService::component3dModelUpdated('case', $case, $staffUser);
         }
 
         // Update the case with the updated data
         $case->update($data);
 
-        // Delete old supports
+        // Log the main case update
+        ActivityLogService::componentUpdated('case', $case, $staffUser, $oldCaseData, $case->fresh()->toArray());
+
+        // Handle radiator supports
+        $oldRadiatorCount = $case->radiatorSupports->count();
         $case->radiatorSupports()->delete();
 
-        // Insert new supports
+        $newRadiatorSupports = [];
         foreach ($request->input('radiator_support') as $radiatorData) {
-            $case->radiatorSupports()->create([
+            $radiatorSupport = $case->radiatorSupports()->create([
                 'location' => $radiatorData['location'],
                 'size_mm' => $radiatorData['size_mm'],
             ]);
+            $newRadiatorSupports[] = $radiatorSupport->toArray();
         }
 
-        PcCaseDriveBay::updateOrCreate(
+        // Log radiator supports update
+        ActivityLogService::caseRadiatorSupportsUpdated(
+            $case, 
+            $staffUser, 
+            $oldRadiatorSupports, 
+            $newRadiatorSupports,
+            $oldRadiatorCount,
+            count($newRadiatorSupports)
+        );
+
+        // Handle drive bays
+        $oldDriveBaysData = null;
+        if ($oldDriveBays && isset($oldDriveBays['3_5_bays']) && isset($oldDriveBays['2_5_bays'])) {
+            $oldDriveBaysData = [
+                '3_5_bays' => $oldDriveBays['3_5_bays'],
+                '2_5_bays' => $oldDriveBays['2_5_bays'],
+            ];
+        } else {
+            $oldDriveBaysData = [
+                '3_5_bays' => 0, // Default value
+                '2_5_bays' => 0, // Default value
+            ];
+        }
+
+        $driveBays = PcCaseDriveBay::updateOrCreate(
             ['pc_case_id' => $case->id],
             [
                 '3_5_bays' => $request->input('3_5_bays', 0),
@@ -258,7 +319,28 @@ class CaseController extends Controller
             ]
         );
 
-        PcCaseFrontUsbPorts::updateOrCreate(
+        $newDriveBaysData = [
+            '3_5_bays' => $driveBays->{'3_5_bays'},
+            '2_5_bays' => $driveBays->{'2_5_bays'},
+        ];
+
+        // Log drive bays update
+        ActivityLogService::caseDriveBaysUpdated(
+            $case, 
+            $staffUser, 
+            $oldDriveBaysData, 
+            $newDriveBaysData
+        );
+
+        // Handle front USB ports
+        $oldUsbPortsData = $oldFrontUsbPorts ? [
+            'usb_3_0_type_A' => $oldFrontUsbPorts['usb_3_0_type_A'],
+            'usb_2_0' => $oldFrontUsbPorts['usb_2_0'],
+            'usb_c' => $oldFrontUsbPorts['usb_c'],
+            'audio_jacks' => $oldFrontUsbPorts['audio_jacks'],
+        ] : null;
+
+        $frontUsbPorts = PcCaseFrontUsbPorts::updateOrCreate(
             ['pc_case_id' => $case->id],
             [
                 'usb_3_0_type_A' => $request->input('usb_3_0_type_A', 0),
@@ -266,6 +348,21 @@ class CaseController extends Controller
                 'usb_c' => $request->input('usb_c', 0),
                 'audio_jacks' => $request->input('audio_jacks', 0),
             ]
+        );
+
+        $newUsbPortsData = [
+            'usb_3_0_type_A' => $frontUsbPorts->usb_3_0_type_A,
+            'usb_2_0' => $frontUsbPorts->usb_2_0,
+            'usb_c' => $frontUsbPorts->usb_c,
+            'audio_jacks' => $frontUsbPorts->audio_jacks,
+        ];
+
+        // Log front USB ports update
+        ActivityLogService::caseFrontUsbPortsUpdated(
+            $case, 
+            $staffUser, 
+            $oldUsbPortsData, 
+            $newUsbPortsData
         );
 
         return redirect()->route('staff.componentdetails')->with([

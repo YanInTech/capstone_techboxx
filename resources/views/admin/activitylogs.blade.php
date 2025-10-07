@@ -40,6 +40,7 @@
                 </tbody>
             </table> 
         </div>
-        {{ $logs->links() }}
     </section>
+    {{ $logs->links() }}
+
 </x-dashboardlayout>

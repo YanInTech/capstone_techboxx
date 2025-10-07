@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\Models\Supplier;
 use App\Models\Brand;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class RamController extends Controller
 {
@@ -70,6 +72,8 @@ class RamController extends Controller
      */
     public function store(Request $request)
     {
+        $staffUser = Auth::user();
+        
         // Validate the request data
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
@@ -109,8 +113,10 @@ class RamController extends Controller
 
         // dd($validated); 
 
-        Ram::create($validated);
+        $ram = Ram::create($validated);
 
+        ActivityLogService::componentCreated('ram', $ram, $staffUser);
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'RAM added',
             'type' => 'success',
@@ -138,8 +144,11 @@ class RamController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $staffUser = Auth::user();
         $ram = Ram::findOrFail($id);
 
+        $oldRamData = $ram->toArray();
+        
         // Prepare data for update
         $data = [
             'build_category_id'    => $request->build_category_id,
@@ -157,21 +166,32 @@ class RamController extends Controller
             'stock'                => $request->stock,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+        
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('ram', 'public');
             $data['image'] = $imagePath;
+            $fileChanges[] = 'image updated';
+        
+            ActivityLogService::componentImageUpdated('ram', $ram, $staffUser);
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
             $modelPath = $request->file('model_3d')->store('ram', 'public');
             $data['model_3d'] = $modelPath;
+            $fileChanges[] = '3D model updated';
+        
+            ActivityLogService::component3dModelUpdated('ram', $ram, $staffUser);
         }
 
         // Update the RAM with the prepared data
         $ram->update($data);
 
+        ActivityLogService::componentUpdated('ram', $ram, $staffUser, $oldRamData, $ram->fresh()->toArray());
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'RAM updated',
             'type' => 'success',

@@ -20,6 +20,7 @@ class CompatibilityService
         'E-ATX' => ['E-ATX', 'ATX', 'Micro-ATX', 'Mini-ITX'],
     ];
 
+
     // CPU - MOTHERBOARD
     public function isCpuCompatiblewithMotherboard(Cpu $cpu, Motherboard $motherboard)
     {
@@ -28,12 +29,14 @@ class CompatibilityService
             $results['errors'][]= "CPU and motherboard socket_type is incompatible.";
         }
         //motherboard supports cpu fallback
-        if (!empty($supported_cpu->cpuID)) {
-            // Compare names
-            $cpuArray = array_map('trim', explode(',', $cpuList));
+        if (!empty($motherboard->supported_cpu)) {
+            $cpuList = array_map('trim', explode(',', $motherboard->supported_cpu));
+            $supported = false;
+
             foreach ($cpuList as $supportedCpu) {
-                if (stripos($supportedCpu['Name'], $cpu->model_name) == false) {
-                    return $results;
+                if (stripos($cpu->model_name, $supportedCpu) !== false) {
+                    $supported = true;
+                    break;
                 }
             }
 
@@ -41,6 +44,7 @@ class CompatibilityService
                 $results['errors'][] = "Motherboard doesn't support this CPU model.";
             }
         }
+
         return $results;
     }
 
@@ -49,7 +53,6 @@ class CompatibilityService
     public function isRamCompatiblewithMotherboard(Ram $ram, Motherboard $motherboard)
     {
         $results = ['errors' => [], 'warnings' => []];
-
         //Check's the MOBO and RAM's RAM type if the same
         if($ram->ram_type !== $motherboard->ram_type){
              $results['errors'][] = "RAM and motherboard ram type is incompatible.";
@@ -67,10 +70,9 @@ class CompatibilityService
 
 
     // GPU - CASE
-    public function isGpuCompatiblewithCase(Gpu $gpu, PcCase $case): bool
+    public function isGpuCompatiblewithCase(Gpu $gpu, PcCase $case)
     {
         $results = ['errors' => [], 'warnings' => []];
-
         // GPU length vs case clearance
         if ($gpu->length_mm > $case->max_gpu_length_mm) {
             $results['errors'][] = "GPU and Case GPU length is incompatible.";
@@ -78,7 +80,8 @@ class CompatibilityService
         return $results;
     }
 
-    // COOLER - CPU AND CASE
+
+    // COOLER - Motherboard AND CASE
     public function isCoolerCompatible(Cooler $cooler, Motherboard $motherboard, PcCase $case)
     {
         $results = ['errors' => [], 'warnings' => []];
@@ -95,8 +98,9 @@ class CompatibilityService
         return $results;
     }
 
+
     // PSU - CPU + GPU
-    public function isPsuEnough(Psu $psu, Cpu $cpu, Gpu $gpu)
+    public function isPsuEnough(Psu $psu, Cpu $cpu, Gpu $gpu, Cooler $cooler)
     {
         $results = ['errors' => [], 'warnings' => []];
         $estimatedPower = ($cpu->tdp ?? 0) + ($gpu->power_draw_watts ?? 0) + ($cooler->max_tdp ?? 0) + 150;
@@ -111,8 +115,10 @@ class CompatibilityService
     }
 
     // MOTHERBOARD - CASE
-    public function isMotherboardCompatiblewithCase(Motherboard $motherboard, PcCase $case): bool
+    public function isMotherboardCompatiblewithCase(Motherboard $motherboard, PcCase $case)
     {
+        $results = ['errors' => [], 'warnings' => []];
+
         $supported = $this->caseSupportMap[$case->form_factor_support] ?? [];
         if (!in_array($motherboard->form_factor, $supported)) {
             $results['errors'][] = "Case does not support motherboard form factor ({$motherboard->form_factor}).";
@@ -121,7 +127,7 @@ class CompatibilityService
     }
 
     // STORAGE - MOTHERBOARD
-    public function isStorageCompatiblewithMotherboard(Motherboard $motherboard, Storage $storage): bool
+    public function isStorageCompatiblewithMotherboard(Motherboard $motherboard, Storage $storage)
     {
         $results = ['errors' => [], 'warnings' => []];
 

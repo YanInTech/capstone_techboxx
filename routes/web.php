@@ -91,8 +91,8 @@ Route::prefix('staff')->middleware(['auth'])->name('staff.')->group(function () 
     Route::get('dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
 
     //SUPPLIER
-    Route::get('supplier', [SupplierController::class, 'index'])->name('supplier');
     Route::post('supplier/store', [SupplierController::class, 'storeSupplier'])->name('supplier.store');
+    Route::get('supplier/store/search', [SupplierController::class, 'search'])->name('supplier.search');
     Route::post('supplier/store/brand', [SupplierController::class, 'storeBrand'])->name('supplier.store.brand');
     Route::put('supplier/update/{id}', [SupplierController::class, 'update'])->name('supplier.update');
     Route::delete('supplier/delete/{id}', [SupplierController::class, 'delete'])->name('supplier.delete');

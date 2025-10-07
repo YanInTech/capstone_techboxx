@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\Models\Supplier;
 use App\Models\Brand;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class StorageController extends Controller
 {
@@ -71,6 +73,8 @@ class StorageController extends Controller
     
     public function store(Request $request)
     {
+        $staffUser = Auth::user();
+        
         // Validate the request data
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
@@ -108,8 +112,10 @@ class StorageController extends Controller
 
         // dd($request->all());
 
-        Storage::create($validated);
+        $storage = Storage::create($validated);
 
+        ActivityLogService::componentCreated('storage', $storage, $staffUser);
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Storage added',
             'type' => 'success',
@@ -137,8 +143,11 @@ class StorageController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $staffUser = Auth::user();
         $storage = Storage::findOrFail($id);
 
+        $oldStorageData = $storage->toArray();
+        
         // Prepare data for update
         $data = [
             'build_category_id'    => $request->build_category_id,
@@ -155,21 +164,32 @@ class StorageController extends Controller
             'stock'                => $request->stock,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+        
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('storage', 'public');
+            $imagePath = $request->file('image')->store('storages', 'public');
             $data['image'] = $imagePath;
+            $fileChanges[] = 'image updated';
+            
+            ActivityLogService::componentImageUpdated('storage', $storage, $staffUser);
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
-            $modelPath = $request->file('model_3d')->store('storage', 'public');
+            $modelPath = $request->file('model_3d')->store('storages', 'public');
             $data['model_3d'] = $modelPath;
+            $fileChanges[] = '3D model updated';
+            
+            ActivityLogService::component3dModelUpdated('storage', $storage, $staffUser);
         }
 
         // Update the Storage component with the prepared data
         $storage->update($data);
 
+        ActivityLogService::componentUpdated('storage', $storage, $staffUser, $oldStorageData, $storage->fresh()->toArray());
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Storage updated',
             'type' => 'success',

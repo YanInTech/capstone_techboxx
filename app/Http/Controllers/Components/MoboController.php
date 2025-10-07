@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Supplier;
 use App\Models\Brand;
 use App\Models\Hardware\Cpu;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class MoboController extends Controller
 {
@@ -95,6 +97,8 @@ class MoboController extends Controller
      */
     public function store(Request $request) 
     {
+        $staffUser = Auth::user();
+        
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
             'model' => 'required|string|max:255',
@@ -139,7 +143,9 @@ class MoboController extends Controller
             $validated['model_3d'] = null;
         }
 
-        Motherboard::create($validated);
+        $motherboard = Motherboard::create($validated);
+    
+        ActivityLogService::componentCreated('motherboard', $motherboard, $staffUser);
     
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Motherboard added',
@@ -170,8 +176,11 @@ class MoboController extends Controller
     public function update(Request $request, string $id)
     {
         // Find the motherboard instance
-        $mobo = Motherboard::findOrFail($id);
+        $staffUser = Auth::user();
+        $motherboard = Motherboard::findOrFail($id);
 
+        $oldMotherboardData = $motherboard->toArray();
+        
         // Prepare data for update
         $data = [
             'build_category_id'      => $request->build_category_id,
@@ -195,21 +204,32 @@ class MoboController extends Controller
             'supported_cpu'          => $request->supported_cpu,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+        
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('mobo', 'public');
             $data['image'] = $imagePath;
+            $fileChanges[] = 'image updated';
+        
+            ActivityLogService::componentImageUpdated('motherboard', $motherboard, $staffUser);
         }
 
         // Only update model_3d if a new 3D model is uploaded
         if ($request->hasFile('model_3d')) {
             $modelPath = $request->file('model_3d')->store('mobo', 'public');
             $data['model_3d'] = $modelPath;
+            $fileChanges[] = '3D model updated';
+        
+            ActivityLogService::component3dModelUpdated('motherboard', $motherboard, $staffUser);
         }
 
         // Update the motherboard with the prepared data
-        $mobo->update($data);
+        $motherboard->update($data);
 
+        ActivityLogService::componentUpdated('motherboard', $motherboard, $staffUser, $oldMotherboardData, $motherboard->fresh()->toArray());
+        
         return redirect()->route('staff.componentdetails')->with([
             'message' => 'Motherboard updated',
             'type' => 'success',
