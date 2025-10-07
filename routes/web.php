@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ActivityLogsController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Auth\ForcePasswordResetController;
 use App\Http\Controllers\BuildController;
 use App\Http\Controllers\BuildExtController;
@@ -81,7 +81,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::get('sales', [SalesController::class, 'index'])->name('sales');
 
     // ACTIVITY LOGS
-    Route::get('activity-logs', [ActivityLogsController::class, 'index'])->name('activitylogs');
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activitylogs');
 
 });
 
