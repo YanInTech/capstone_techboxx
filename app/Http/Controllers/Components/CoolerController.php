@@ -42,6 +42,7 @@ class CoolerController extends Controller
             $cooler->socket_compatibility_array = $cooler->socket_compatibility ?? [];
             $cooler->label = "{$cooler->brand} {$cooler->model}";
             $cooler->price_display = '₱' . number_format($cooler->price, 2);
+            $cooler->base_price = $cooler->base_price; // <-- added base_price
             $cooler->component_type = 'cooler';
 
             
@@ -91,6 +92,9 @@ class CoolerController extends Controller
             $validated['model_3d'] = null;
         }
 
+        // Store base_price
+        $validated['base_price'] = $validated['price'];
+
         $cooler = Cooler::create($validated);
 
         ActivityLogService::componentCreated('cooler', $cooler, $staffUser);
@@ -120,6 +124,7 @@ class CoolerController extends Controller
             'fan_count'            => $request->fan_count,
             'height_mm'            => $request->height_mm,
             'price'                => $request->price,
+            'base_price'           => $request->price, // <-- added base_price on update
             'stock'                => $request->stock,
         ];
 

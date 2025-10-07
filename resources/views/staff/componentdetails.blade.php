@@ -92,7 +92,7 @@
                                     <form action="{{ route('staff.componentdetails.delete', ['type' => $component->component_type, 'id' => $component->id]) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" @click.stop>
+                                        <button type="submit">
                                             <x-icons.delete />
                                         </button>
                                     </form>

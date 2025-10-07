@@ -39,6 +39,7 @@ class GpuController extends Controller
         
         $gpus->each(function ($gpu) use ($gpuSales) {
             $gpu->price_display = '₱' . number_format($gpu->price, 2);
+            $gpu->base_price = $gpu->base_price; // <-- added base_price
             $gpu->label = "{$gpu->brand} {$gpu->model}";
             $gpu->component_type = 'gpu';
 
@@ -108,6 +109,9 @@ class GpuController extends Controller
             $validated['model_3d'] = null;
         }
 
+        // Store base_price
+        $validated['base_price'] = $validated['price'];
+
         // dd($validated); 
 
         $gpu = Gpu::create($validated);
@@ -159,6 +163,7 @@ class GpuController extends Controller
             'pcie_interface'         => $request->pcie_interface,
             'connectors_required'    => $request->connectors_required,
             'price'                  => $request->price,
+            'base_price'             => $request->price, // <-- added base_price
             'stock'                  => $request->stock,
         ];
 
@@ -193,7 +198,6 @@ class GpuController extends Controller
             'type' => 'success',
         ]);
     }
-
 
     /**
      * Remove the specified resource from storage.

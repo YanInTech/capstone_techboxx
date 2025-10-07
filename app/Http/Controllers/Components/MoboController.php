@@ -26,7 +26,6 @@ class MoboController extends Controller
     // FETCHING DATA FOR DROPDOWNS
     public function getMotherboardSpecs()
     {
-
         return [
             'buildCategories'   => BuildCategory::select('id', 'name')->get(),
             'suppliers'         => Supplier::select('id', 'name')->where('is_active', true)->get(),
@@ -38,7 +37,6 @@ class MoboController extends Controller
             'wifi_onboards'     => ['Yes', 'No', ],
             'supported_CPUs'    => Cpu::query()->distinct()->pluck('model'),
         ];
-        
     }
 
     public function getFormattedMobos()
@@ -50,7 +48,7 @@ class MoboController extends Controller
                 ->groupBy('motherboard_id')
                 ->pluck('sold_count', 'motherboard_id');
 
-        // FORMATTING THE DATAS
+        // FORMATTING THE DATA
         $mobos->each(function ($mobo) use ($moboSales) {
             if($mobo->wifi_onboard === 'true'){
                 $mobo->wifi_display = 'Yes';
@@ -60,17 +58,13 @@ class MoboController extends Controller
             $mobo->cpu_display = implode('<br>', $mobo->supported_cpu ??[]);
 
             // Format supported_cpu as an array (for editing)
-            $mobo->supported_cpu_array=$mobo->supported_cpu??[];
+            $mobo->supported_cpu_array = $mobo->supported_cpu ?? [];
             $mobo->price_display = '₱' . number_format($mobo->price, 2);
+            $mobo->base_price = $mobo->base_price; // <-- added base_price
             $mobo->label = "{$mobo->brand} {$mobo->model}";
             $mobo->component_type = 'motherboard';
             
-            $moboSales = DB::table('user_builds')
-                ->select('motherboard_id', DB::raw('COUNT(*) as sold_count'))
-                ->groupBy('motherboard_id')
-                ->pluck('sold_count', 'motherboard_id');
             $mobo->sold_count = $moboSales[$mobo->id] ?? 0;
-            
         });
 
         return $mobos;
@@ -133,7 +127,6 @@ class MoboController extends Controller
             $validated['image'] = null;
         }
 
-
         // Handle 3D model upload
         if ($request->hasFile('model_3d')) {
             $model3d = $request->file('model_3d');
@@ -142,6 +135,9 @@ class MoboController extends Controller
         } else {
             $validated['model_3d'] = null;
         }
+
+        // Store base_price
+        $validated['base_price'] = $validated['price'];
 
         $motherboard = Motherboard::create($validated);
     
@@ -152,7 +148,6 @@ class MoboController extends Controller
             'type' => 'success',
         ]); 
     }
-
 
     /**
      * Display the specified resource.
@@ -200,6 +195,7 @@ class MoboController extends Controller
             'usb_ports'              => $request->usb_ports,
             'wifi_onboard'           => $request->wifi_onboard,
             'price'                  => $request->price,
+            'base_price'             => $request->price, // <-- added base_price
             'stock'                  => $request->stock,
             'supported_cpu'          => $request->supported_cpu,
         ];
@@ -235,7 +231,6 @@ class MoboController extends Controller
             'type' => 'success',
         ]);
     }
-
 
     /**
      * Remove the specified resource from storage.

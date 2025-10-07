@@ -42,6 +42,7 @@ class CpuController extends Controller
         $cpus->each(function ($cpu) use ($cpuSales) {
             $cpu->integrated_display = ($cpu->integrated_graphics === 'false') ? 'No' : 'Yes';
             $cpu->price_display = '₱' . number_format($cpu->price, 2);
+            $cpu->base_price = $cpu->base_price; // <-- added base_price
             $cpu->label = "{$cpu->brand} {$cpu->model}";
             $cpu->component_type = 'cpu';
 
@@ -113,6 +114,9 @@ class CpuController extends Controller
             $validated['model_3d'] = null;
         }
 
+        // Store base_price
+        $validated['base_price'] = $validated['price'];
+
         // dd($validated);
 
         $cpu = Cpu::create($validated);
@@ -166,6 +170,7 @@ class CpuController extends Controller
             'integrated_graphics' => $request->integrated_graphics,
             'generation'          => $request->generation,
             'price'               => $request->price,
+            'base_price'          => $request->price, // <-- added base_price
             'stock'               => $request->stock,
         ];
 
@@ -203,7 +208,6 @@ class CpuController extends Controller
             'type' => 'success',
         ]); 
     }
-
 
     /**
      * Remove the specified resource from storage.
