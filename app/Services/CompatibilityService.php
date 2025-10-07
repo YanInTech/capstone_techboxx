@@ -21,11 +21,11 @@ class CompatibilityService
     ];
 
     // CPU - MOTHERBOARD
-    public function isCpuCompatiblewithMotherboard(Cpu $cpu, Motherboard $motherboard,SupportedCpu $supported_cpu)
+    public function isCpuCompatiblewithMotherboard(Cpu $cpu, Motherboard $motherboard)
     {
         $results = ['errors' => [], 'warnings' => []];
         if ($cpu->socket_type !== $motherboard->socket_type) {
-            $results['errors'][]= "❌CPU and motherboard socket_type is incompatible.";
+            $results['errors'][]= "CPU and motherboard socket_type is incompatible.";
         }
         //motherboard supports cpu fallback
         if (!empty($supported_cpu->cpuID)) {
@@ -36,7 +36,10 @@ class CompatibilityService
                     return $results;
                 }
             }
-           $results['errors'][]= "❌Motherboard Doesn't Support CPU";
+
+            if (!$supported) {
+                $results['errors'][] = "Motherboard doesn't support this CPU model.";
+            }
         }
         return $results;
     }
@@ -49,15 +52,15 @@ class CompatibilityService
 
         //Check's the MOBO and RAM's RAM type if the same
         if($ram->ram_type !== $motherboard->ram_type){
-             $results['errors'][] = "❌RAM and motherboard ram type is incompatible.";
+             $results['errors'][] = "RAM and motherboard ram type is incompatible.";
         }
         //Check's the RAM's RAM size if it is less than or the same as MOBO's
         if($ram->total_capacity_gb > $motherboard -> max_ram){
-             $results['errors'][] = "❌RAM capacity ({$ram->total_capacity_gb} GB) exceeds the motherboard's max supported capacity ({$motherboard->max_ram} GB). System might not boot!";
+             $results['errors'][] = "RAM capacity ({$ram->total_capacity_gb} GB) exceeds the motherboard's max supported capacity ({$motherboard->max_ram} GB). System might not boot!";
         }
         //Check's the RAM's speed if it is less than or the same as MOBO's
         if ($ram->speed_mhz > $motherboard -> max_ram_speed) {
-             $results['warnings'][] = "⚠️ RAM speed ({$ram->speed_mhz} MHz) is higher than the motherboard's max supported speed ({$motherboard->max_ram_speed} MHz). It will run at the lower speed.";
+             $results['warnings'][] = "RAM speed ({$ram->speed_mhz} MHz) is higher than the motherboard's max supported speed ({$motherboard->max_ram_speed} MHz). It will run at the lower speed.";
         }
         return  $results;
     }
@@ -69,8 +72,8 @@ class CompatibilityService
         $results = ['errors' => [], 'warnings' => []];
 
         // GPU length vs case clearance
-        if ($gpu->length_mm >= $case->max_gpu_length_mm) {
-            $results['errors'][] = "❌GPU and Case GPU length is incompatible.";
+        if ($gpu->length_mm > $case->max_gpu_length_mm) {
+            $results['errors'][] = "GPU and Case GPU length is incompatible.";
         }
         return $results;
     }
@@ -81,12 +84,13 @@ class CompatibilityService
         $results = ['errors' => [], 'warnings' => []];
 
         // Check socket support
-        if (!in_array($motherboard->socket_type, $cooler->supported_sockets)) {
-            $results['errors'][] = "❌ Cooler does not support CPU socket type ({$motherboard->socket_type}).";
+        $supportedSockets = $cooler->supported_sockets ? array_map('trim', explode(',', $cooler->supported_sockets)): [];
+        if (!in_array($motherboard->socket_type, $supportedSockets)) {
+            $results['errors'][] = "Cooler does not support CPU socket type ({$motherboard->socket_type}).";
         }
         // Check cooler height vs case clearance
         if ($cooler->height_mm > $case->max_cooler_height_mm) {
-            $results['errors'][] = "❌ Cooler height ({$cooler->height_mm}mm) exceeds case limit ({$case->max_cooler_height_mm}mm).";
+            $results['errors'][] = "Cooler height ({$cooler->height_mm}mm) exceeds case limit ({$case->max_cooler_height_mm}mm).";
         } 
         return $results;
     }
@@ -95,10 +99,13 @@ class CompatibilityService
     public function isPsuEnough(Psu $psu, Cpu $cpu, Gpu $gpu)
     {
         $results = ['errors' => [], 'warnings' => []];
-
-        $estimatedPower = $cpu->tdp + $gpu->power_draw_watts + 150; // // 150W for motherboard, RAM, storage
+        $estimatedPower = ($cpu->tdp ?? 0) + ($gpu->power_draw_watts ?? 0) + ($cooler->max_tdp ?? 0) + 150;
+        if($gpu->recommended_psu_watt > $psu->wattage){
+            $results['warnings'][] = "PSU wattage is lesser than recommended PSU wattage";
+        }
+        $estimatedPower = $cpu->tdp + $gpu->power_draw_watts + $cooler->max_tdp + 150; // // 150W for motherboard, RAM, storage
         if ($psu->wattage < $estimatedPower) {
-            $results['warnings'][] = "⚠️ PSU wattage ({$psu->wattage}W) is close to estimated system draw ({$estimatedPower}W). Consider a higher wattage PSU.";
+            $results['warnings'][] = "PSU wattage ({$psu->wattage}W) is close to estimated system draw ({$estimatedPower}W). Consider a higher wattage PSU.";
         }
         return $results;
     }
@@ -107,23 +114,28 @@ class CompatibilityService
     public function isMotherboardCompatiblewithCase(Motherboard $motherboard, PcCase $case): bool
     {
         $supported = $this->caseSupportMap[$case->form_factor_support] ?? [];
-
-        return in_array($motherboard->form_factor, $supported);
+        if (!in_array($motherboard->form_factor, $supported)) {
+            $results['errors'][] = "Case does not support motherboard form factor ({$motherboard->form_factor}).";
+        }
+        return $results;
     }
 
     // STORAGE - MOTHERBOARD
     public function isStorageCompatiblewithMotherboard(Motherboard $motherboard, Storage $storage): bool
     {
-        switch (strtolower($storage->interface)) {
-            case 'm.2':
-            case 'nvme':
-                return $motherboard->m2_slots > 0;
+        $results = ['errors' => [], 'warnings' => []];
 
-            case 'sata':
-                return $motherboard->sata_ports > 0;
-            
-            default:
-                return false;
+        if ($storage->interface === 'M.2') {
+            if ($motherboard->m2_slots < 1) {
+                $results['errors'][] = "Motherboard has no M.2 slots for this storage device.";
+            }
         }
+
+        if ($storage->interface === 'SATA') {
+            if ($motherboard->sata_ports < 1) {
+                $results['errors'][] = "Motherboard has no available SATA ports for this drive.";
+            }
+        }
+        return $results;
     }
 }
