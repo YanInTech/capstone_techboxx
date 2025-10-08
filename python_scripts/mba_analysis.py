@@ -24,8 +24,8 @@ def load_component_maps():
     """Load all component data into lookup maps"""
     maps = {}
     
-    # CPU
-    cpu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM cpus", engine)
+    # CPU - Added stock column
+    cpu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM cpus", engine)
     cpu_map = {}
     for row in cpu_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -35,12 +35,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'cpus'
+            'table': 'cpus',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['cpu'] = cpu_map
 
-    # GPU
-    gpu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM gpus", engine)
+    # GPU - Added stock column
+    gpu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM gpus", engine)
     gpu_map = {}
     for row in gpu_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -50,12 +51,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'gpus'
+            'table': 'gpus',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['gpu'] = gpu_map
 
-    # RAM
-    ram_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM rams", engine)
+    # RAM - Added stock column
+    ram_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM rams", engine)
     ram_map = {}
     for row in ram_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -65,12 +67,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'rams'
+            'table': 'rams',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['ram'] = ram_map
 
-    # Motherboard
-    mobo_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM motherboards", engine)
+    # Motherboard - Added stock column
+    mobo_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM motherboards", engine)
     mobo_map = {}
     for row in mobo_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -80,12 +83,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'motherboards'
+            'table': 'motherboards',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['motherboard'] = mobo_map
 
-    # PSU
-    psu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM psus", engine)
+    # PSU - Added stock column
+    psu_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM psus", engine)
     psu_map = {}
     for row in psu_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -95,12 +99,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'psus'
+            'table': 'psus',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['psu'] = psu_map
 
-    # Case
-    case_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM pc_cases", engine)
+    # Case - Added stock column
+    case_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM pc_cases", engine)
     case_map = {}
     for row in case_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -110,12 +115,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'pc_cases'
+            'table': 'pc_cases',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['pc_case'] = case_map
 
-    # Cooler
-    cooler_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image FROM coolers", engine)
+    # Cooler - Added stock column
+    cooler_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, stock FROM coolers", engine)
     cooler_map = {}
     for row in cooler_df.itertuples():
         clean_name = f"{row.brand} {row.model}"
@@ -125,12 +131,13 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'coolers'
+            'table': 'coolers',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['cooler'] = cooler_map
 
-    # Storage
-    storage_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, storage_type FROM storages", engine)
+    # Storage - Added stock column
+    storage_df = pd.read_sql("SELECT id, brand, model, build_category_id, price, image, storage_type, stock FROM storages", engine)
     storage_map = {}
     for row in storage_df.itertuples():
         clean_name = f"{row.brand} {row.model} {row.storage_type}"
@@ -140,7 +147,8 @@ def load_component_maps():
             'price': float(row.price),
             'category': int(row.build_category_id),
             'image': row.image if pd.notna(row.image) else 'images/placeholder.png',
-            'table': 'storages'
+            'table': 'storages',
+            'stock': int(row.stock) if pd.notna(row.stock) else 0
         }
     maps['storage'] = storage_map
 
@@ -178,7 +186,8 @@ def get_product_recommendations(product_name, comp_type):
                         'price': comp_data['price'],
                         'id': comp_id,
                         'image': comp_data['image'],
-                        'table': comp_data['table']
+                        'table': comp_data['table'],
+                        'stock': comp_data['stock']
                     }
                     
                     items.append(comp_name)
