@@ -88,6 +88,7 @@ class PsuController extends Controller
             'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
+            'base_price' => 'required|numeric',
         ]);
 
         // Handle image upload
@@ -109,7 +110,8 @@ class PsuController extends Controller
         }
 
         // dd($request->all()); 
-        
+
+        $psu = Psu::create($validated);
 
         ActivityLogService::componentCreated('psu', $psu, $staffUser);
         
@@ -156,7 +158,7 @@ class PsuController extends Controller
             'pcie_connectors'       => $request->pcie_connectors,
             'sata_connectors'       => $request->sata_connectors,
             'price'                 => $request->price,
-            'base_price'            => $request->price, // <-- added base_price
+            'base_price'            => $request->base_price, // <-- added base_price
             'stock'                 => $request->stock,
             'build_category_id'     => $request->build_category_id,
         ];

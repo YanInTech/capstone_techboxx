@@ -114,6 +114,7 @@ class MoboController extends Controller
             'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
+            'base_price' => 'required|numeric',
             'supported_cpu' => 'nullable|array',
             'supported_cpu.*' => 'nullable|string|max:255'
         ]);
@@ -137,7 +138,6 @@ class MoboController extends Controller
         }
 
         // Store base_price
-        $validated['base_price'] = $validated['price'];
 
         $motherboard = Motherboard::create($validated);
     
@@ -195,7 +195,7 @@ class MoboController extends Controller
             'usb_ports'              => $request->usb_ports,
             'wifi_onboard'           => $request->wifi_onboard,
             'price'                  => $request->price,
-            'base_price'             => $request->price, // <-- added base_price
+            'base_price'             => $request->base_price, // <-- added base_price
             'stock'                  => $request->stock,
             'supported_cpu'          => $request->supported_cpu,
         ];

@@ -89,6 +89,7 @@ class GpuController extends Controller
             'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
+            'base_price' => 'required|numeric',
         ]);
 
         // Handle image upload
@@ -110,7 +111,6 @@ class GpuController extends Controller
         }
 
         // Store base_price
-        $validated['base_price'] = $validated['price'];
 
         // dd($validated); 
 
@@ -163,7 +163,7 @@ class GpuController extends Controller
             'pcie_interface'         => $request->pcie_interface,
             'connectors_required'    => $request->connectors_required,
             'price'                  => $request->price,
-            'base_price'             => $request->price, // <-- added base_price
+            'base_price'             => $request->base_price, // <-- added base_price
             'stock'                  => $request->stock,
         ];
 

@@ -124,6 +124,7 @@ class CaseController extends Controller
             'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
+            'base_price' => 'required|numeric',
         ]);
 
         // Handle image upload
@@ -143,9 +144,6 @@ class CaseController extends Controller
         } else {
             $validated['model_3d'] = null;
         }
-
-        // Store base_price
-        $validated['base_price'] = $validated['price'];
 
         $case = PcCase::create($validated);
 
@@ -223,7 +221,7 @@ class CaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, string $id)
+    public function update(Request $request, string $id)
     {
         $staffUser = Auth::user();
         $case = PcCase::findOrFail($id);
@@ -245,7 +243,7 @@ class CaseController extends Controller
             'max_cooler_height_mm' => $request->max_cooler_height_mm,
             'fan_mounts' => $request->fan_mounts,
             'price' => $request->price,
-            'base_price' => $request->price, // <-- added base_price on update
+            'base_price' => $request->base_price, // <-- added base_price on update
             'stock' => $request->stock,
         ];
 

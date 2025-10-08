@@ -62,6 +62,8 @@ class RamController extends Controller
 
     public function store(Request $request)
     {
+        $staffUser = Auth::user();
+        
         // Validate the request data
         $validated = $request->validate([
             'brand' => 'required|string|max:255',
@@ -79,6 +81,7 @@ class RamController extends Controller
             'model_3d' => 'nullable|file|mimes:glb|max:150000',
             'build_category_id' => 'required|exists:build_categories,id',
             'supplier_id' => 'required|exists:suppliers,id',
+            'base_price' => 'required|numeric',
         ]);
 
         if ($request->hasFile('image')) {
@@ -98,7 +101,6 @@ class RamController extends Controller
         }
 
         // Store base_price
-        $validated['base_price'] = $validated['price'];
 
         $ram = Ram::create($validated);
 
@@ -125,6 +127,8 @@ class RamController extends Controller
         $staffUser = Auth::user();
         $ram = Ram::findOrFail($id);
 
+        $oldRamData = $ram->toArray();
+        
         // Prepare data for update
         $data = [
             'build_category_id'    => $request->build_category_id,
@@ -139,10 +143,13 @@ class RamController extends Controller
             'is_ecc'               => $request->is_ecc,
             'is_rgb'               => $request->is_rgb,
             'price'                => $request->price,
-            'base_price'           => $request->price, // <-- added base_price
+            'base_price'           => $request->base_price, // <-- added base_price
             'stock'                => $request->stock,
         ];
 
+        // Track file changes
+        $fileChanges = [];
+        
         // Only update image if a new image is uploaded
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('ram', 'public');
