@@ -329,4 +329,101 @@ class CartController extends Controller
             'type' => 'success',
         ]);
     }
+
+    // MBA Bundle Add to Cart
+    public function addBundle(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        try {
+            $user = Auth::user();
+            $cart = $user->shoppingCart;
+            
+            $mainProductId = $request->input('main_product_id');
+            $mainProductType = $request->input('main_product_type');
+            $mainProductTable = $request->input('main_product_table');
+            $bundleItems = $request->input('bundle_items', []);
+            
+            $addedItems = [];
+            $addedItems[] = $this->addItemToCart($cart, $mainProductId, $mainProductType, $mainProductTable);
+
+            // Add bundle items
+            foreach ($bundleItems as $item) {
+                if (is_string($item)) {
+                    $item = json_decode($item, true);
+                }
+                
+                if (is_array($item) && isset($item['id']) && isset($item['type']) && isset($item['table'])) {
+                    $addedItems[] = $this->addItemToCart($cart, $item['id'], $item['type'], $item['table'], $item['price'] ?? null);
+                }
+            }
+
+            // Create success message with all added items
+            $itemNames = array_filter($addedItems);
+            if (!empty($itemNames)) {
+                $message = count($itemNames) . ' items added to cart: ' . implode(', ', $itemNames);
+            } else {
+                $message = 'Bundle added to cart successfully!';
+            }
+
+            return redirect()->back()->with([
+                'message' => $message,
+                'type' => 'success',
+            ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'message' => 'Failed to add bundle to cart: ' . $e->getMessage(),
+                'type' => 'error',
+            ]);
+        }
+    }
+
+    // Helper function to add individual items to cart
+    private function addItemToCart($cart, $productId, $productType, $productTable, $price = null)
+    {
+        // If price is not provided, fetch it from the database
+        if ($price === null) {
+            $product = DB::table($productTable)->find($productId);
+            $price = $product->price ?? 0;
+        }
+
+        // If cart doesn't exist, create one
+        if (!$cart) {
+            $user = Auth::user();
+            $cart = ShoppingCart::create(['user_id' => $user->id]);
+        }
+
+        // Check if the item already exists in cart
+        $cartItem = $cart->cartItem()->where('product_id', $productId)
+                                    ->where('product_type', $productType)
+                                    ->where('processed', false)
+                                    ->first();
+
+        if ($cartItem) {
+            // If item already exists, increment quantity and update total price
+            $cartItem->increment('quantity');
+            $newTotalPrice = $cartItem->total_price * $cartItem->quantity;
+            $cartItem->update(['total_price' => $newTotalPrice]);
+            
+            // Get product name for success message
+            $product = DB::table($productTable)->find($productId);
+            return $product->brand . ' ' . $product->model ?? 'Unknown Product';
+        } else {
+            // If item doesn't exist, create new cart item
+            $cart->cartItem()->create([
+                'product_id' => $productId,
+                'product_type' => $productType,
+                'quantity' => 1,
+                'total_price' => $price,
+                'processed' => false,
+            ]);
+            
+            // Get product name for success message
+            $product = DB::table($productTable)->find($productId);
+            return $product->brand . ' ' . $product->model ?? 'Unknown Product';
+        }
+    }
 }

@@ -176,20 +176,6 @@
                 @forelse($products as $product)
                     <div class="relative border rounded-lg p-4 text-center bg-blue-50 shadow hover:shadow-lg transition flex flex-col justify-between h-[360px] group">
                         
-                        <!-- Menu -->
-                        {{-- <button @click="$dispatch('open-specs', { 
-                            specs: {{ json_encode($product['specs']) }}, 
-                            name: '{{ $product['name'] }}', 
-                            image: {{ json_encode($product['image']) }} })"
-                                class="absolute top-2 right-2 p-2 rounded-full bg-white shadow hover:bg-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" 
-                                fill="currentColor" 
-                                viewBox="0 0 16 16" 
-                                class="w-5 h-5 text-gray-700">
-                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
-                            </svg>
-                        </button> --}}
-
                         <!-- Image + Name as Link -->
                         <a href="{{ route('catalogue.show', ['table' => $product['table'], 'id' => $product['id']]) }}">
                             <img src="{{ asset('storage/' . $product['image']) }}"

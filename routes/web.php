@@ -183,3 +183,5 @@ Route::get('/paypal/cancel', [PayPalController::class, 'cancel'])->name('paypal.
 
 Route::post('/reviews', [ReviewController::class, 'store'])
     ->name('reviews.store');
+
+Route::post('/cart/add-bundle', [CartController::class, 'addBundle'])->name('cart.add.bundle');
