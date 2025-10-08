@@ -155,164 +155,128 @@
         
         <!-- Frequently Bought Together Section -->
         @if(!empty($mbaRecommendations))
-        <div class="mba_container bg-white rounded-lg shadow p-6 mt-12">
-            <!-- Header -->
-            <div class="text-xl font-bold mb-3">
-                Frequently Bought Together / Suggested Add-Ons:
-            </div>
+            <div class="mba_container bg-white rounded-lg shadow p-6 mt-12">
+                <!-- Header -->
+                <div class="text-xl font-bold mb-3">
+                    Frequently Bought Together / Suggested Add-Ons:
+                </div>
 
-            <!-- Products and Total -->
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4">
-                <!-- Product images -->
-                <div class="flex gap-4 flex-wrap">
-                    <!-- Current Product -->
-                    <div class="flex flex-col items-center border rounded-md bg-gray-50 p-4 shadow w-32">
-                        <img src="{{ asset('storage/' . $product['image']) }}" 
-                            alt="{{ $product['name'] }}" 
-                            class="object-contain h-16 mb-2">
-                        <span class="text-xs text-center font-medium">{{ $product['name'] }}</span>
-                        <span class="text-sm font-bold text-blue-600 mt-1">₱{{ number_format($product['price'], 0) }}</span>
-                    </div>
-                    
-                    <!-- Plus icon -->
-                    <div class="flex items-center justify-center text-2xl font-bold text-gray-400">
-                        +
-                    </div>
-                    
-                    <!-- Recommended Products -->
-                    @foreach($mbaRecommendations as $index => $recommendation)
+                <!-- Products and Total -->
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4">
+                    <!-- Product images -->
+                    <div class="flex gap-4 flex-wrap">
+                        <!-- Current Product -->
                         <div class="flex flex-col items-center border rounded-md bg-gray-50 p-4 shadow w-32">
-                            @if(isset($recommendation['image']) && $recommendation['image'])
-                                <img src="{{ asset('storage/' . $recommendation['image']) }}" 
-                                    alt="{{ $recommendation['name'] }}" 
-                                    class="object-contain h-16 mb-2">
-                            @else
-                                <!-- Fallback if no image -->
-                                <div class="h-16 w-16 bg-gray-200 rounded flex items-center justify-center mb-2">
-                                    <span class="text-xs text-gray-500">No Image</span>
-                                </div>
-                            @endif
-                            <span class="text-xs text-center font-medium">{{ $recommendation['name'] }}</span>
-                            <span class="text-xs text-center font-medium text-gray-500">{{ strtoupper($recommendation['type']) }}</span>
-                            <span class="text-sm font-bold text-blue-600 mt-1">
-                                ₱{{ number_format($recommendation['price'] ?? 0, 0) }}
-                            </span>
+                            <img src="{{ asset('storage/' . $product['image']) }}" 
+                                alt="{{ $product['name'] }}" 
+                                class="object-contain h-16 mb-2">
+                            <span class="text-xs text-center font-medium">{{ $product['name'] }}</span>
+                            <span class="text-sm font-bold text-blue-600 mt-1">₱{{ number_format($product['price'], 0) }}</span>
                         </div>
                         
-                        <!-- Plus icon between recommendations (except last) -->
-                        @if(!$loop->last)
+                        <!-- Plus icon -->
                         <div class="flex items-center justify-center text-2xl font-bold text-gray-400">
                             +
                         </div>
-                        @endif
-                    @endforeach
+                        
+                        <!-- Recommended Products -->
+                        @foreach($mbaRecommendations as $index => $recommendation)
+                            <div class="flex flex-col items-center border rounded-md bg-gray-50 p-4 shadow w-32">
+                                @if(isset($recommendation['image']) && $recommendation['image'])
+                                    <img src="{{ asset('storage/' . $recommendation['image']) }}" 
+                                        alt="{{ $recommendation['name'] }}" 
+                                        class="object-contain h-16 mb-2">
+                                @else
+                                    <!-- Fallback if no image -->
+                                    <div class="h-16 w-16 bg-gray-200 rounded flex items-center justify-center mb-2">
+                                        <span class="text-xs text-gray-500">No Image</span>
+                                    </div>
+                                @endif
+                                <span class="text-xs text-center font-medium">{{ $recommendation['name'] }}</span>
+                                <span class="text-xs text-center font-medium text-gray-500">{{ strtoupper($recommendation['type']) }}</span>
+                                <span class="text-sm font-bold text-blue-600 mt-1">
+                                    ₱{{ number_format($recommendation['price'] ?? 0, 0) }}
+                                </span>
+                            </div>
+                            
+                            <!-- Plus icon between recommendations (except last) -->
+                            @if(!$loop->last)
+                            <div class="flex items-center justify-center text-2xl font-bold text-gray-400">
+                                +
+                            </div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Total price and Add to Cart -->
+                    <div class="border border-gray-200 rounded-lg p-4 flex flex-col justify-between w-full md:w-64 mt-4 md:mt-0">
+                        @php
+                            $totalPrice = $product['price'];
+                            foreach($mbaRecommendations as $rec) {
+                                $totalPrice += $rec['price'] ?? 0;
+                            }
+                        @endphp
+                        
+                        <div class="text-lg font-bold mb-4 text-right">
+                            Total: ₱<span id="totalPrice">{{ number_format($totalPrice, 0) }}</span>
+                        </div>
+                        
+                        <form action="{{ route('cart.add.bundle') }}" method="POST" id="bundleForm">
+                            @csrf
+                            <input type="hidden" name="main_product_id" value="{{ $product['id'] }}">
+                            <input type="hidden" name="main_product_type" value="{{ $product['category'] }}">
+                            <input type="hidden" name="main_product_table" value="{{ $table }}">
+                            
+                            <!-- Hidden field to store checked items -->
+                            <input type="hidden" name="checked_items" id="checkedItems" value="">
+                            
+                            <button type="submit"
+                                class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                                Add Selected to Cart
+                            </button>
+                        </form>
+                        
+                        <p class="text-xs text-gray-500 text-center mt-2">
+                            Select items you want to add to cart
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Total price and Add to Cart -->
-                <div class="border border-gray-200 rounded-lg p-4 flex flex-col justify-between w-full md:w-64 mt-4 md:mt-0">
-                    @php
-                        $totalPrice = $product['price'];
-                        foreach($mbaRecommendations as $rec) {
-                            $totalPrice += $rec['price'] ?? 0;
-                        }
-                    @endphp
-                    
-                    <div class="text-lg font-bold mb-4 text-right">
-                        Total: ₱<span id="totalPrice">{{ number_format($totalPrice, 0) }}</span>
+                <!-- Individual item list with checkboxes -->
+                <div class="border-t border-gray-200 pt-4 space-y-2" id="itemList">
+                    <!-- Main Product (always checked) -->
+                    <div class="flex justify-between items-center bg-blue-50 p-3 rounded">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" class="item-checkbox main-product" 
+                                data-price="{{ $product['price'] }}" 
+                                data-id="{{ $product['id'] }}"
+                                data-type="{{ $product['category'] }}"
+                                data-table="{{ $table }}"
+                                data-name="{{ $product['name'] }}"
+                                checked disabled>
+                            <span class="font-medium">This item: {{ $product['name'] }}</span>
+                        </label>
+                        <span class="font-semibold">₱{{ number_format($product['price'], 0) }}</span>
                     </div>
                     
-                    <form action="{{ route('cart.add.bundle') }}" method="POST" id="bundleForm">
-                        @csrf
-                        <input type="hidden" name="main_product_id" value="{{ $product['id'] }}">
-                        <input type="hidden" name="main_product_type" value="{{ $product['category'] }}">
-                        <input type="hidden" name="main_product_table" value="{{ $table }}">
-                        
-                        @foreach($mbaRecommendations as $rec)
-                            <input type="hidden" name="bundle_items[]" value="{{ json_encode([
-                                'id' => $rec['id'] ?? null,
-                                'type' => $rec['type'] ?? null,
-                                'table' => $rec['table'] ?? null,
-                                'price' => $rec['price'] ?? 0,
-                                'name' => $rec['name'] ?? ''
-                            ]) }}">
-                        @endforeach
-                        
-                        <button type="submit"
-                            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                            Add All to Cart
-                        </button>
-                    </form>
-                    
-                    <p class="text-xs text-gray-500 text-center mt-2">
-                        Save time with this commonly purchased bundle
-                    </p>
+                    <!-- Recommended Items -->
+                    @foreach($mbaRecommendations as $rec)
+                    <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="item-checkbox bundle-item" 
+                                data-price="{{ $rec['price'] ?? 0 }}" 
+                                data-id="{{ $rec['id'] ?? '' }}"
+                                data-type="{{ $rec['type'] ?? '' }}"
+                                data-table="{{ $rec['table'] ?? '' }}"
+                                data-name="{{ $rec['name'] ?? '' }}"
+                                checked>
+                            <span>{{ $rec['name'] }}</span>
+                        </label>
+                        <span>₱{{ number_format($rec['price'] ?? 0, 0) }}</span>
+                    </div>
+                    @endforeach
                 </div>
             </div>
-
-            <!-- Individual item list with checkboxes -->
-            <div class="border-t border-gray-200 pt-4 space-y-2" id="itemList">
-                <!-- Main Product (always checked) -->
-                <div class="flex justify-between items-center bg-blue-50 p-3 rounded">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" class="item-checkbox" data-price="{{ $product['price'] }}" checked disabled>
-                        <span class="font-medium">This item: {{ $product['name'] }}</span>
-                    </label>
-                    <span class="font-semibold">₱{{ number_format($product['price'], 0) }}</span>
-                </div>
-                
-                <!-- Recommended Items -->
-                @foreach($mbaRecommendations as $rec)
-                <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="item-checkbox" 
-                            data-price="{{ $rec['price'] ?? 0 }}" 
-                            data-name="{{ $rec['name'] }}"
-                            data-type="{{ $rec['type'] ?? 'unknown' }}"
-                            checked>
-                        <span>{{ $rec['name'] }}</span>
-                    </label>
-                    <span>₱{{ number_format($rec['price'] ?? 0, 0) }}</span>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        @push('scripts')
-        <script>
-        // Function to calculate total based on checked items
-        function updateTotal() {
-            const checkboxes = document.querySelectorAll('.item-checkbox:not(:disabled)');
-            let total = {{ $product['price'] }};
-            
-            checkboxes.forEach(cb => {
-                if (cb.checked && !cb.disabled) {
-                    total += parseFloat(cb.dataset.price);
-                }
-            });
-            
-            document.getElementById('totalPrice').textContent = total.toLocaleString('en-PH');
-        }
-
-        // Initial calculation
-        updateTotal();
-
-        // Update total whenever a checkbox changes
-        const checkboxes = document.querySelectorAll('.item-checkbox');
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', updateTotal);
-        });
-
-        // Handle bundle form submission
-        document.getElementById('bundleForm').addEventListener('submit', function(e) {
-            const uncheckedItems = document.querySelectorAll('.item-checkbox:not(:checked):not(:disabled)');
-            if (uncheckedItems.length > 0) {
-                if (!confirm('Some items are unchecked. Only selected items will be added to cart. Continue?')) {
-                    e.preventDefault();
-                }
-            }
-        });
-        </script>
-        @endpush
         @endif
         
         <!-- Full Description -->
