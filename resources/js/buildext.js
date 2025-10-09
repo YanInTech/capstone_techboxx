@@ -285,41 +285,9 @@ function selectComponent(componentData) {
         type: componentType
     };
     
-    // Update the component button in the component-section
-    updateComponentButton(componentType, componentData.name);
-    
     console.log('Selected component:', componentType, window.selectedComponents[componentType]);
 }
 
-// Function to update component button display
-function updateComponentButton(componentType, componentName) {
-    const componentButton = document.querySelector(`.component-button[data-type="${componentType}"]`);
-    if (componentButton) {
-        const nameElement = componentButton.querySelector('p');
-        if (nameElement) {
-            nameElement.textContent = componentName;
-        }
-        
-        // Add active class
-        componentButton.classList.add('component-active');
-    }
-}
-
-// Function to filter catalog by component type
-// function filterCatalogByType(componentType) {
-//     const catalogItems = document.querySelectorAll('.build-catalog');
-    
-//     catalogItems.forEach(item => {
-//         const itemType = item.getAttribute('data-type') || 
-//                         item.querySelector('[data-type]')?.getAttribute('data-type');
-        
-//         if (itemType === componentType) {
-//             item.style.display = 'block';
-//         } else {
-//             item.style.display = 'none';
-//         }
-//     });
-// }
 
 // BUILD CART FORM SUBMISSION - UPDATED VERSION
 function handleFormSubmit(e) {
@@ -438,27 +406,18 @@ function handleFormSubmit(e) {
     form.submit(); // Use form.submit() instead of this.submit()
 }
 
-// Add event listeners to catalog items
-document.addEventListener('DOMContentLoaded', function() {
-    const catalogItems = document.querySelectorAll('.build-catalog');
-    
-    catalogItems.forEach(item => {
-        item.addEventListener('click', function() {
-            const componentData = {
-                id: this.getAttribute('data-id') || 
-                    this.querySelector('[data-id]')?.getAttribute('data-id'),
-                type: this.getAttribute('data-type') || 
-                     this.querySelector('[data-type]')?.getAttribute('data-type'),
-                name: this.getAttribute('data-name') || 
-                     this.querySelector('[data-name]')?.getAttribute('data-name'),
-                price: parseFloat(this.getAttribute('data-price')) || 
-                      parseFloat(this.querySelector('[data-price]')?.getAttribute('data-price') || 0)
-            };
-            
-            selectComponent(componentData);
-        });
-    });
-});
+function setComponentImage(componentData) {
+    const targetButton = document.querySelector(`.component-button[data-type="${componentData.type}"]`);
+    if (targetButton) {
+        const imgTag = targetButton.querySelector('img');
+        if (imgTag && componentData.image) {
+            imgTag.src = componentData.image;
+            imgTag.style.display = 'block';
+        }
+        // Set the selected ID on the button to indicate the item has been selected
+        targetButton.setAttribute('data-selected-id', componentData.id);
+    }
+}
 
 // Payment method function (same as build.js)
 window.selectPayment = function(method, button) {
@@ -482,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartForm = document.getElementById('cartForm');
     const arrow = document.querySelector('.component-arrow');
     const wrapper = document.querySelector('.catalog-wrapper');
-    const componentButtons  = document.querySelectorAll('.component-section .component-button');
+    const componentButtons = document.querySelectorAll('.component-section .component-button');
     const catalogItems = document.querySelectorAll('#catalogSection .build-catalog');
 
     // CART
@@ -496,47 +455,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // FILTER BY TYPE
-    componentButtons .forEach(button => {
+    componentButtons.forEach(button => {
         button.addEventListener('click', () => {
             const isActive = button.classList.contains('component-active');
             const selectedType = button.getAttribute('data-type');
             
-            componentButtons .forEach(c => c.classList.remove('component-active'));
+            componentButtons.forEach(c => c.classList.remove('component-active'));
             
             if (isActive) {
                 catalogItems.forEach(item => {
                     item.style.display = '';
                 });
-            } 
-            else {
+            } else {
                 button.classList.add('component-active');
-
                 catalogItems.forEach(item => {
                     const itemType = item.getAttribute('data-type');
                     item.style.display = (itemType === selectedType) ? '' : 'none';                    
                 });    
             }
-            
         });
     });
 
-    // SET IMAGE ON CLICK
+    // SINGLE EVENT LISTENER FOR CATALOG ITEMS - COMBINED FUNCTIONALITY
     catalogItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const itemType = item.getAttribute('data-type');
-            const imageUrl = item.getAttribute('data-image');
-            const selectedId = item.getAttribute('data-id');
-
-            // FIND MATCHING COMPONENT BUTTON
-            const targetButton = document.querySelector(`.component-button[data-type="${itemType}"]`);
-            if (targetButton) {
-                const imgTag = targetButton.querySelector('img');
-                imgTag.src = imageUrl;
-                imgTag.style.display = 'block';
-
-                // Set the selected ID on the button to indicate the item has been selected
-                targetButton.setAttribute('data-selected-id', selectedId);
-            }
+        item.addEventListener('click', function() {
+            // Get all component data at once
+            const componentData = {
+                id: this.getAttribute('data-id'),
+                type: this.getAttribute('data-type'),
+                name: this.getAttribute('data-name'),
+                price: parseFloat(this.getAttribute('data-price')) || 0,
+                image: this.getAttribute('data-image')
+            };
+            
+            // Call both functions with the same data
+            selectComponent(componentData);
+            setComponentImage(componentData);
         });
     });
 
@@ -593,7 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('❌ An error occurred while validating the build.');
         });
     });
-        document.getElementById('reloadButton').addEventListener('click', function() {
-            reloadScene();
-        });
+
+    document.getElementById('reloadButton').addEventListener('click', function() {
+        reloadScene();
+    });
 });
