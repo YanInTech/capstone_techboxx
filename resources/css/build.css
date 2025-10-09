@@ -190,11 +190,10 @@ canvas {
 .build-name,
 .build-name-component{
     height: 20px;
-    position: relative;
-    right: 390;
     font-size: 0.75rem;
     border-radius: 4px;
     padding: 0 4px ;
+    
 }
 
 .build-name-component {
