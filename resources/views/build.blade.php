@@ -346,6 +346,7 @@ class="flex">
             <div class="catalog-button">
                 <button id="componentsTab"  class="active">Components</button>
                 <button id="summaryTab">Summary</button>
+                <button id="remarksTab">Remarks</button>
             </div>
 
             {{-- COMPONENTS --}}
@@ -421,6 +422,24 @@ class="flex">
                     </table>
                 </div>
                 <div class="build-details">
+                </div>
+            </div>
+
+            {{-- REMARKS --}}
+            <div class="summary-section hidden" id="remarksSection">
+                <div class="remarks-content bg-white rounded-lg border border-gray-200 h-full flex flex-col" id="buildRemarks">
+                    <!-- Default state when no remarks are available -->
+                    <div class="flex flex-col items-center justify-center py-12 text-center flex-1">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No Analysis Available</h3>
+                        <p class="text-gray-500 text-sm max-w-sm">
+                            Generate a build with a budget to see detailed analysis, performance insights, and smart recommendations.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>    
