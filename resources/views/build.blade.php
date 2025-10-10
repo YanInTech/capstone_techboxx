@@ -112,9 +112,19 @@ class="flex">
 
     <x-buildheader :name="Auth::user()?->first_name" />
     
-    <div id="loadingSpinner" class="hidden">
-        <div class="spinner-message">
-            <pre id="loadingText">Loading...</pre>
+    <div id="loadingSpinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md mx-4">
+            <div class="flex flex-col items-center">
+                <!-- Spinner -->
+                <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+                
+                <!-- Loading message -->
+                <div class="text-center">
+                    <pre id="loadingText" class="text-gray-800 font-semibold whitespace-pre-wrap text-base bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4"></pre>
+                </div>
+                
+                <p class="text-gray-600 text-sm">Generating your perfect build...</p>
+            </div>
         </div>
     </div>
 

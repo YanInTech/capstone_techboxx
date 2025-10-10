@@ -231,7 +231,7 @@ generateBtn.addEventListener('click', () => {
         body: JSON.stringify({
             category : currentCategoryFilter,
             cpuBrand: currentBrandFilter,
-            useBudget: currentBudget
+            userBudget: currentBudget
         })
     })
     .then(res => res.json())
@@ -243,7 +243,12 @@ generateBtn.addEventListener('click', () => {
 
         let totalPrice = 0;
 
-        Object.values(data).forEach(item => {
+        // Filter out the budget_summary and only process components
+        const components = Object.entries(data).filter(([key, item]) => {
+            return key !== 'budget_summary' && item && item.price !== undefined;
+        });
+
+        components.forEach(([key, item]) => {
             // Ensure price is a valid number (handle string with commas too)
             const price = parseFloat(item.price.toString().replace(/,/g, ''));
             if (isNaN(price)) {
@@ -255,7 +260,6 @@ generateBtn.addEventListener('click', () => {
 
             let row = '';
             row += `<tr>`;
-            // row += `<td><p>${item.id}</p></td>`;
             row += `<td><p>${item.name}</p></td>`;
             row += `<td><p>1</p></td>`;
             row += `<td><p>₱${price.toFixed(2)}</p></td>`;
@@ -279,7 +283,10 @@ generateBtn.addEventListener('click', () => {
         document.getElementById('componentsTab').classList.remove('active');
         componentsSection.classList.add("hidden");
 
+        // Also update the component mapping to exclude budget_summary
         Object.entries(data).forEach(([key, item]) => {
+            if (key === 'budget_summary') return; // Skip budget summary
+            
             console.log([key, item]);
             let buttonSelector = null;
             let componentType = key;
@@ -300,28 +307,6 @@ generateBtn.addEventListener('click', () => {
             } else {
                 // For other types of items, match by the key
                 buttonSelector = `button[data-type="${key}"]`;
-            }
-
-            selectedComponents[componentType] = {
-                componentId: item.id,
-                name: item.name,
-                price: parseFloat(item.price.toString().replace(/,/g, '')),
-                imageUrl: item.image || '' // Add image URL if available from API
-            };
-
-            // UPDATE HIDDEN INPUTS FOR CART FORM
-            if (componentType === 'hdd' || componentType === 'ssd') {
-                // For storage components, update the storage input
-                const storageInput = document.getElementById('hidden_storage');
-                if (storageInput) {
-                    storageInput.value = item.id;
-                }
-            } else {
-                // For regular components
-                const hiddenInput = document.getElementById(`hidden_${componentType}`);
-                if (hiddenInput) {
-                    hiddenInput.value = item.id;
-                }
             }
 
             const button = document.querySelector(buttonSelector);
