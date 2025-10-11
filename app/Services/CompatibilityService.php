@@ -30,18 +30,27 @@ class CompatibilityService
         }
         //motherboard supports cpu fallback
         if (!empty($motherboard->supported_cpu)) {
-            $cpuList = array_map('trim', explode(',', $motherboard->supported_cpu));
+            $supportedCpus = is_array($motherboard->supported_cpu) 
+                ? $motherboard->supported_cpu 
+                : array_map('trim', explode(',', $motherboard->supported_cpu));
+            
             $supported = false;
+            $cpuModelName = strtolower($cpu->model_name);
 
-            foreach ($cpuList as $supportedCpu) {
-                if (stripos($cpu->model_name, $supportedCpu) !== false) {
+            foreach ($supportedCpus as $supportedCpu) {
+                $supportedCpu = strtolower(trim($supportedCpu));
+                
+                // Check for exact match or partial match in model name
+                if ($supportedCpu === $cpuModelName || 
+                    str_contains($cpuModelName, $supportedCpu) ||
+                    str_contains($supportedCpu, $cpuModelName)) {
                     $supported = true;
                     break;
                 }
             }
 
             if (!$supported) {
-                $results['errors'][] = "Motherboard doesn't support this CPU model.";
+                $results['errors'][] = "Motherboard doesn't support this CPU model ({$cpu->model_name}). Supported CPUs: " . implode(', ', $supportedCpus);
             }
         }
 
