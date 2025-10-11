@@ -69,27 +69,6 @@ function applyAllFilters() {
     });
 }
 
-
-// // FILTER CPU
-// function filterCPUByBrand(brand) {
-//     catalogItem.forEach(item => {
-//         const type = item.getAttribute('data-type');
-//         const name = item.getAttribute('data-name').toLowerCase();
-
-//         if (type === 'cpu') {
-//             if (name.includes(brand.toLowerCase())) {
-//                 item.classList.remove('hidden');
-//             }
-//             else {
-//                 item.classList.add('hidden');
-//             }
-//         }
-//         else {
-//             item.classList.remove('hidden');
-//         }
-//     })
-// }
-
 function displayBuildRemarks(budgetSummary, userBudget, totalPrice, category, cpuBrand) {
     const remarksContainer = document.getElementById('buildRemarks');
     let remaining = null;
@@ -246,6 +225,35 @@ function getRecommendations(category, userBudget, totalPrice, remaining) {
     return recommendations;
 }
 
+// Simple toggle function for storage
+function toggleStorage(selectedType) {
+    const otherType = selectedType === 'ssd' ? 'hdd' : 'ssd';
+    
+    // If the other type was previously selected, clear it
+    if (window.selectedComponents[otherType]) {
+        // Clear the other type from UI
+        const otherButton = document.querySelector(`#buildSection button[data-type="${otherType}"]`);
+        if (otherButton) {
+            const span = otherButton.querySelector('.selected-name');
+            if (span) span.textContent = 'None';
+            otherButton.removeAttribute('data-selected-id');
+        }
+        
+        // Clear from selectedComponents
+        delete window.selectedComponents[otherType];
+        
+        // Clear hidden input
+        const otherHiddenInput = document.getElementById(`hidden_${otherType}`);
+        if (otherHiddenInput) otherHiddenInput.value = '';
+        
+        // Reset draggable
+        const otherDraggable = document.getElementById(otherType);
+        if (otherDraggable) {
+            otherDraggable.innerHTML = `<p>${otherType.toUpperCase()}</p>`;
+        }
+    }
+}
+
 //Components & Summary active tab
 document.querySelectorAll('.catalog-button button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -253,20 +261,6 @@ document.querySelectorAll('.catalog-button button').forEach(btn => {
     btn.classList.add('active');
   });
 });
-
-// FILTER CATEGORY 
-// function filterByBuildCategory(category) {
-//     catalogItem.forEach(item => {
-//         const build = item.getAttribute('data-category').toLowerCase();
-
-//         if (build === category.toLowerCase()) {
-//             item.classList.remove('hidden');
-//         }
-//         else {
-//             item.classList.add('hidden');
-//         }
-//     })
-// }
 
 customBuildBtn.addEventListener('click', function() {
     const remarksContainer = document.getElementById('buildRemarks');
@@ -540,6 +534,11 @@ document.querySelectorAll('.catalog-item').forEach(item => {
         // STORE SELECTED COMPONENT
         window.selectedComponents[type] = { componentId, name, price, imageUrl };
 
+        // CALL TOGGLE STORAGE IF SSD OR HDD IS SELECTED
+        if (type === 'ssd' || type === 'hdd') {
+            toggleStorage(type);
+        }
+        
         // UPDATE HIDDEN INPUT
         const hiddenInput = document.getElementById(`hidden_${type}`);
         if (hiddenInput) {
