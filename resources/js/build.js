@@ -514,10 +514,12 @@ buildSectionButtons.forEach(button => {
         button.classList.add('active');
         catalogList.classList.remove('hidden');
 
+        remarksSection.classList.add("hidden");
+        remarksTab.classList.remove('active');
         summarySection.classList.add("hidden");
-        document.getElementById('summaryTab').classList.remove('active');
+        summaryTab.classList.remove('active');
         componentsSection.classList.remove("hidden");
-        document.getElementById('componentsTab').classList.add('active');
+        componentsTab.classList.add('active');
 
         applyAllFilters();
     })
