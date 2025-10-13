@@ -177,7 +177,7 @@ function setupDragAndDrop() {
 
             // Optionally, create a visible marker at the slot position
             psumarker = new THREE.Mesh(
-              new THREE.BoxGeometry(2, 2, 0.1),
+              new THREE.BoxGeometry(1, .8, 2),
               new THREE.MeshStandardMaterial({
                 color: 0x00ff00,
                 emissive: 0x003300,
@@ -191,7 +191,7 @@ function setupDragAndDrop() {
             psumarker.rotation.x = 0; // No rotation on the Y axis
             psumarker.rotation.y = Math.PI / 2;  // 90 degrees        
             psumarker.rotation.z = 0;          // No rotation on the Z axis
-            psumarker.position.set(psuSlotPosition.x, psuSlotPosition.y + -1, psuSlotPosition.z + -1.4); // Position the psumarker
+            psumarker.position.set(psuSlotPosition.x + 1.4, psuSlotPosition.y + .4, psuSlotPosition.z + -1); // Position the psumarker
             scene.add(psumarker);
           }
         } 
@@ -256,6 +256,9 @@ function setupDragAndDrop() {
         } else if (dropPos && draggingId === 'motherboard' && caseModel) {
           spawnMoboAtSlot();
           wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
+        } else if (dropPos && draggingId === 'psu' && caseModel) {
+          spawnPsuAtSlot();
+          wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
         } else if (dropPos && draggingId === 'cpu' && moboModel) {
           spawnCpuAtSlot();
           wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
@@ -270,6 +273,10 @@ function setupDragAndDrop() {
           if (draggingId === 'motherboard' && moboModel) {
             scene.remove(moboModel);  // Remove the GPU if it was dropped unsuccessfully
             moboModel = null;
+          }
+          if (draggingId === 'psu' && psuModel) {
+            scene.remove(psuModel);  // Remove the GPU if it was dropped unsuccessfully
+            psuModel = null;
           }
           if (draggingId === 'cpu' && cpuModel) {
             scene.remove(cpuModel);  // Remove the GPU if it was dropped unsuccessfully
@@ -290,6 +297,10 @@ function setupDragAndDrop() {
         if (mobomarker) {
           scene.remove(mobomarker);
           mobomarker = null;
+        }
+        if (psumarker) {
+          scene.remove(psumarker);
+          psumarker = null;
         }
         if (cpumarker) {
           scene.remove(cpumarker);
@@ -353,6 +364,7 @@ async function spawnCase(position, modelUrl) {
     controls.target.copy(model.position);
     controls.update();
 
+    // MOBO SLOT
     const moboSlot = model.getObjectByName('Slot_Mobo');
     if (moboSlot) {
       moboSlotPosition = new THREE.Vector3();
@@ -362,6 +374,18 @@ async function spawnCase(position, modelUrl) {
       moboSlotPosition = new THREE.Vector3(0, 0, 0);
       console.warn('GPU slot not found in case model');
     }
+
+    // PSU SLOT
+    const psuSlot = model.getObjectByName('Slot_Psu');
+    if (psuSlot) {
+      psuSlotPosition = new THREE.Vector3();
+      psuSlot.getWorldPosition(psuSlotPosition);
+      console.log('PSU slot position:', psuSlotPosition);
+    } else {
+      psuSlotPosition = new THREE.Vector3(0, 0, 0);
+      console.warn('PSU slot not found in case model');
+    }
+
   } catch (error) {
     console.error('Failed to load case model', error);
   }
@@ -403,6 +427,32 @@ async function spawnMoboAtSlot() {
   }
 }
 
+async function spawnPsuAtSlot() {
+  if (!psuSlotPosition) {
+    alert('PSU slot position unknown');
+    return;
+  }
+
+  if (!selectedPsuModelUrl) {
+    alert('Please select a PSU model first.');
+    return;
+  }
+
+  if (psuModel) {
+    scene.remove(psuModel);
+    psuModel = null;
+  }
+  
+  try {
+    const model = await loadGLTFModel(selectedPsuModelUrl);
+    model.position.copy(psuSlotPosition);
+    scene.add(model);
+    psuModel = model;
+  } catch (error) {
+    console.error('Failed to load PSU model', error);
+  }
+}
+
 async function spawnCpuAtSlot() {
   if (!cpuSlotPosition) {
     alert('CPU slot position unknown');
@@ -440,6 +490,12 @@ function reloadScene() {
     if (moboModel) {
         scene.remove(moboModel);
         moboModel = null;
+    }
+
+    // Remove motherboard model
+    if (psuModel) {
+        scene.remove(psuModel);
+        psuModel = null;
     }
 
     // Remove CPU model
