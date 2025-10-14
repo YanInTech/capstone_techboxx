@@ -95,15 +95,22 @@ class CompatibilityService
     {
         $results = ['errors' => [], 'warnings' => []];
 
-        // Check socket support
-        $supportedSockets = $cooler->supported_sockets ? array_map('trim', explode(',', $cooler->supported_sockets)): [];
-        if (!in_array($motherboard->socket_type, $supportedSockets)) {
-            $results['errors'][] = "Cooler does not support CPU socket type ({$motherboard->socket_type}).";
+        // Check socket support - handle both array and string formats
+        $supportedSockets = !empty($cooler->socket_compatibility) 
+            ? (is_array($cooler->socket_compatibility) 
+                ? $cooler->socket_compatibility 
+                : array_map('trim', explode(',', $cooler->socket_compatibility)))
+            : [];
+
+        if (!empty($supportedSockets) && !in_array($motherboard->socket_type, $supportedSockets)) {
+            $results['errors'][] = "Cooler does not support CPU socket type ({$motherboard->socket_type}). Supported sockets: " . implode(', ', $supportedSockets);
         }
+
         // Check cooler height vs case clearance
         if ($cooler->height_mm > $case->max_cooler_height_mm) {
             $results['errors'][] = "Cooler height ({$cooler->height_mm}mm) exceeds case limit ({$case->max_cooler_height_mm}mm).";
         } 
+        
         return $results;
     }
 
