@@ -16,58 +16,62 @@
         ])
     
 </head>
+<script>
+    window.selectedComponents = @json(session('selected_components', []));
+</script>
 <body class="flex flex-col"
-    x-data="{ 
-        showViewModal: false, 
-        selectedComponent: {},
-        showModal: false,
-        modalType: 'order', // 'order' or 'save'
-        buildName: 'YOUR PC',
-        currentUser: {
-            first_name: '{{ Auth::user()->first_name ?? '' }}',
-            last_name: '{{ Auth::user()->last_name ?? '' }}',
-            phone: '{{ Auth::user()->phone_number ?? '' }}'
-        },
-        selectedComponents: {},
-        totalPrice: 0,
-        
-        // Open modal for specific type
-        openModal(type) {
-            this.modalType = type;
-            this.populateModal();
-        },
-        
-        populateModal() {
-            // Copy global selectedComponents to Alpine.js reactive data
-            this.selectedComponents = { ...window.selectedComponents || {} };
-            
-            // Calculate and set total price
-            let totalPrice = 0;
-            for (const [type, component] of Object.entries(this.selectedComponents)) {
-                if (component && component.price) {
-                    totalPrice += component.price;
-                }
-            }
-            this.totalPrice = totalPrice;
-            
-            // Update hidden inputs
-            this.updateModalHiddenInputs();
-            
-            // Show the modal
-            this.showModal = true;
-        },
-        
-        updateModalHiddenInputs() {
-            const componentTypes = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case'];
-            
-            componentTypes.forEach(type => {
-                const component = this.selectedComponents[type];
-                const hiddenInput = document.getElementById(`hidden_${type}`);
-                
-                if (hiddenInput && component && component.componentId) {
-                    hiddenInput.value = component.componentId;
-                }
-            });
+      x-data="{ 
+          showViewModal: false, 
+          selectedComponent: {},
+          showModal: false,
+          modalType: 'order', // 'order' or 'save'
+          buildName: 'YOUR PC',
+          currentUser: {
+              first_name: '{{ Auth::user()->first_name ?? '' }}',
+              last_name: '{{ Auth::user()->last_name ?? '' }}',
+              phone: '{{ Auth::user()->phone_number ?? '' }}'
+          },
+          // Initialize Alpine reactive state from session immediately
+          selectedComponents: { ...window.selectedComponents || {} },
+          totalPrice: 0,
+          
+          // Open modal for specific type
+          openModal(type) {
+              this.modalType = type;
+              this.populateModal();
+          },
+          
+          populateModal() {
+              // Copy global selectedComponents to Alpine.js reactive data
+              this.selectedComponents = { ...window.selectedComponents || {} };
+              
+              // Calculate and set total price
+              let totalPrice = 0;
+              for (const [type, component] of Object.entries(this.selectedComponents)) {
+                  if (component && component.price) {
+                      totalPrice += component.price;
+                  }
+              }
+              this.totalPrice = totalPrice;
+              
+              // Update hidden inputs
+              this.updateModalHiddenInputs();
+              
+              // Show the modal
+              this.showModal = true;
+          },
+          
+          updateModalHiddenInputs() {
+              const componentTypes = ['gpu', 'motherboard', 'cpu', 'hdd', 'ssd', 'psu', 'ram', 'cooler', 'case'];
+              
+              componentTypes.forEach(type => {
+                  const component = this.selectedComponents[type];
+                  const hiddenInput = document.getElementById(`hidden_${type}`);
+                  
+                  if (hiddenInput && component && component.componentId) {
+                      hiddenInput.value = component.componentId;
+                  }
+              });
 
             // Handle storage components specifically - both HDD and SSD become 'storage'
             const storageInput = document.getElementById('hidden_storage');
@@ -307,19 +311,19 @@
 
             {{-- COMPATIBILITY --}}
             <section class="compatibility-section">
-                <div>
-                    <h4>COMPATIBILITY CHECK</h4>
-                    <button id="validateBuild">Validate Build</button>
-                    <form action="{{ route('techboxx.build.software') }}" method="POST" id="softwareForm">
-                        @csrf
-                        @foreach($components as $component)
-                            <input type="hidden" name="component_ids[]" value="{{ $component->id }}">
-                        @endforeach
-                        <button type="submit" id="validateBuild">SOFTWARE</button>
-                    </form>
-                </div>
+                <div class="flex gap-2 items-center">
+                    <button id="validateBuild" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                        Validate Build
+                    </button>
 
+                    <a href="{{ route('techboxx.build.software') }}" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                    SOFTWARE
+                    </a>
+                </div>
             </section>
+
 
 
             {{-- COMPONENTS --}}
