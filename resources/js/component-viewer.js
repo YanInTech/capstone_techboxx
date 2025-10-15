@@ -9,13 +9,16 @@ let caseModel = null;
 let moboModel = null;
 let cpuModel = null;
 let psuModel = null;
+let coolerModel = null;
 let moboSlotPosition = null;
 let cpuSlotPosition = null;
 let psuSlotPosition = null;
+let coolerSlotPosition = null;
 let selectedCaseModelUrl = null;
 let selectedMoboModelUrl = null;
 let selectedCpuModelUrl = null;
 let selectedPsuModelUrl = null;
+let selectedCoolerModelUrl = null;
 
 function setupCatalogClickHandlers() {
   document.querySelectorAll('.catalog-item').forEach(item => {
@@ -43,6 +46,9 @@ function setupCatalogClickHandlers() {
       } else if (type === 'psu') {
         selectedPsuModelUrl = modelUrl;
         console.log('Selected model URL for draggin:', selectedPsuModelUrl);
+      } else if (type === 'cooler') {
+        selectedCoolerModelUrl = modelUrl;
+        console.log('Selected model URL for draggin:', selectedCoolerModelUrl);
       }
 
     })
@@ -116,6 +122,7 @@ function setupDragAndDrop() {
   let casemarker = null;
   let cpumarker = null;
   let psumarker = null;
+  let coolermarker = null;
   let wasDroppedSuccessfully = false; // Track if the drop was successful
 
   interact('.draggable').draggable({
@@ -162,7 +169,7 @@ function setupDragAndDrop() {
           }
         } 
 
-        // If dragging Mobo, highlight the Mobo slot
+        // If dragging psu, highlight the psu slot
         if (draggingId === 'psu' && caseModel) {
           const psuSlot = caseModel.getObjectByName('Slot_Psu');
           if (psuSlot) {
@@ -196,7 +203,7 @@ function setupDragAndDrop() {
           }
         } 
 
-        // If dragging Mobo, highlight the Mobo slot
+        // If dragging cpu, highlight the cpu slot
         if (draggingId === 'cpu' && moboModel) {
           const cpuSlot = moboModel.getObjectByName('Slot_Cpu');
           if (cpuSlot) {
@@ -228,9 +235,43 @@ function setupDragAndDrop() {
             cpumarker.position.set(cpuSlotPosition.x, cpuSlotPosition.y + -1, cpuSlotPosition.z + -1.4); // Position the cpumarker
             scene.add(cpumarker);
           }
+          
         }
 
+        // If dragging cooler, highlight the cooler slot
+        if (draggingId === 'cooler' && moboModel) {
+          const coolerSlot = moboModel.getObjectByName('Slot_Cooler');
+          if (coolerSlot) {
+            // Save the original material and change to the highlighted one
+            originalSlotMaterial = coolerSlot.material; // Store the original material
+            coolerSlot.material = new THREE.MeshStandardMaterial({
+              color: 0x00ff00,        // Bright green to show it's active
+              emissive: 0x003300,     // A little glowing effect
+              transparent: true,
+              opacity: 0.4,           // Semi-transparent
+            });
 
+            // Optionally, create a visible marker at the slot position
+            coolermarker = new THREE.Mesh(
+              new THREE.BoxGeometry(2, 2, 0.1),
+              new THREE.MeshStandardMaterial({
+                color: 0x00ff00,
+                emissive: 0x003300,
+                transparent: true,
+                opacity: 0.4,
+              })
+            );
+
+            
+            // Rotate 45 degrees on the X axis
+            coolermarker.rotation.x = 0; // No rotation on the Y axis
+            coolermarker.rotation.y = Math.PI / 2;  // 90 degrees        
+            coolermarker.rotation.z = 0;          // No rotation on the Z axis
+            coolermarker.position.set(coolerSlotPosition.x, coolerSlotPosition.y + -1, coolerSlotPosition.z + -1.4); // Position the coolermarker
+            scene.add(coolermarker);
+          }
+          
+        }
       },
       move(event) {
         // Optional: Add extra visual feedback during dragging if necessary
@@ -262,6 +303,9 @@ function setupDragAndDrop() {
         } else if (dropPos && draggingId === 'cpu' && moboModel) {
           spawnCpuAtSlot();
           wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
+        } else if (dropPos && draggingId === 'cooler' && moboModel) {
+          spawnCoolerAtSlot();
+          wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
         } 
 
         // If drop was unsuccessful, remove the dragged model (if any)
@@ -281,6 +325,10 @@ function setupDragAndDrop() {
           if (draggingId === 'cpu' && cpuModel) {
             scene.remove(cpuModel);  // Remove the GPU if it was dropped unsuccessfully
             cpuModel = null;
+          }
+          if (draggingId === 'cooler' && coolerModel) {
+            scene.remove(coolerModel);  // Remove the GPU if it was dropped unsuccessfully
+            coolerModel = null;
           }
 
           // Reset the marker to the center when the drop fails
@@ -305,6 +353,10 @@ function setupDragAndDrop() {
         if (cpumarker) {
           scene.remove(cpumarker);
           cpumarker = null;
+        }
+        if (coolermarker) {
+          scene.remove(coolermarker);
+          coolermarker = null;
         }
 
         if (originalSlotMaterial) {
@@ -391,42 +443,6 @@ async function spawnCase(position, modelUrl) {
   }
 }
 
-async function spawnMoboAtSlot() {
-  if (!moboSlotPosition) {
-    alert('GPU slot position unknown');
-    return;
-  }
-
-  if (!selectedMoboModelUrl) {
-    alert('Please select a GPU model first.');
-    return;
-  }
-
-  if (moboModel) {
-    scene.remove(moboModel);
-    moboModel = null;
-  }
-  
-  try {
-    const model = await loadGLTFModel(selectedMoboModelUrl);
-    model.position.copy(moboSlotPosition);
-    scene.add(model);
-    moboModel = model;
-
-    const cpuSlot = model.getObjectByName('Slot_Cpu');
-    if (cpuSlot) {
-      cpuSlotPosition = new THREE.Vector3();
-      cpuSlot.getWorldPosition(cpuSlotPosition);
-      console.log('CPU slot position:', cpuSlotPosition);
-    } else {
-      cpuSlotPosition = new THREE.Vector3(0, 0, 0);
-      console.warn('CPU slot not found in GPU model');
-    }
-  } catch (error) {
-    console.error('Failed to load GPU model', error);
-  }
-}
-
 async function spawnPsuAtSlot() {
   if (!psuSlotPosition) {
     alert('PSU slot position unknown');
@@ -450,6 +466,54 @@ async function spawnPsuAtSlot() {
     psuModel = model;
   } catch (error) {
     console.error('Failed to load PSU model', error);
+  }
+}
+
+async function spawnMoboAtSlot() {
+  if (!moboSlotPosition) {
+    alert('GPU slot position unknown');
+    return;
+  }
+
+  if (!selectedMoboModelUrl) {
+    alert('Please select a GPU model first.');
+    return;
+  }
+
+  if (moboModel) {
+    scene.remove(moboModel);
+    moboModel = null;
+  }
+  
+  try {
+    const model = await loadGLTFModel(selectedMoboModelUrl);
+    model.position.copy(moboSlotPosition);
+    scene.add(model);
+    moboModel = model;
+
+    // CPU SLOT
+    const cpuSlot = model.getObjectByName('Slot_Cpu');
+    if (cpuSlot) {
+      cpuSlotPosition = new THREE.Vector3();
+      cpuSlot.getWorldPosition(cpuSlotPosition);
+      console.log('CPU slot position:', cpuSlotPosition);
+    } else {
+      cpuSlotPosition = new THREE.Vector3(0, 0, 0);
+      console.warn('CPU slot not found in GPU model');
+    }
+
+    // Cooler SLOT
+    const coolerSlot = model.getObjectByName('Slot_Cooler');
+    if (coolerSlot) {
+      coolerSlotPosition = new THREE.Vector3();
+      coolerSlot.getWorldPosition(coolerSlotPosition);
+      console.log('Cooler slot position:', coolerSlotPosition);
+    } else {
+      coolerSlotPosition = new THREE.Vector3(0, 0, 0);
+      console.warn('Cooler slot not found in case model');
+    }
+  } catch (error) {
+    console.error('Failed to load GPU model', error);
   }
 }
 
@@ -479,6 +543,32 @@ async function spawnCpuAtSlot() {
   }
 }
 
+async function spawnCoolerAtSlot() {
+  if (!coolerSlotPosition) {
+    alert('Cooler slot position unknown');
+    return;
+  }
+
+  if (!selectedCoolerModelUrl) {
+    alert('Please select a Cooler model first.');
+    return;
+  }
+
+  if (coolerModel) {
+    scene.remove(coolerModel);
+    coolerModel = null;
+  }
+  
+  try {
+    const model = await loadGLTFModel(selectedCoolerModelUrl);
+    model.position.copy(coolerSlotPosition);
+    scene.add(model);
+    coolerModel = model;
+  } catch (error) {
+    console.error('Failed to load Cooler model', error);
+  }
+}
+
 function reloadScene() {
     // Remove case model
     if (caseModel) {
@@ -492,7 +582,7 @@ function reloadScene() {
         moboModel = null;
     }
 
-    // Remove motherboard model
+    // Remove psu model
     if (psuModel) {
         scene.remove(psuModel);
         psuModel = null;
@@ -502,6 +592,12 @@ function reloadScene() {
     if (cpuModel) {
         scene.remove(cpuModel);
         cpuModel = null;
+    }
+
+    // Remove cooler model
+    if (coolerModel) {
+        scene.remove(coolerModel);
+        coolerModel = null;
     }
 
     // Reset the camera controls target to the origin (or wherever you prefer)
