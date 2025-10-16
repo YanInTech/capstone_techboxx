@@ -240,5 +240,29 @@ class BuildController extends Controller
         }
     }
 
+
+    public function storeComponent(Request $request)
+    {
+        $components = $request->session()->get('selected_components', []);
+
+        $components[$request->type] = [
+            'componentId' => $request->componentId,
+            'name'        => $request->name,
+            'price'       => $request->price,
+            'imageUrl'    => $request->imageUrl,
+        ];
+
+        $request->session()->put('selected_components', $components);
+
+        return response()->json(['message' => 'Component stored successfully']);
+    }
+    public function updateSession(Request $request)
+    {
+        $selectedComponents = $request->input('selected_components', []);
+        session(['selected_components' => $selectedComponents]);
+        return response()->json(['status' => 'success']);
+    }
+
+
     
 }
