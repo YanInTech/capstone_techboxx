@@ -10,15 +10,18 @@ let moboModel = null;
 let cpuModel = null;
 let psuModel = null;
 let coolerModel = null;
+let ssdModel = null;
 let moboSlotPosition = null;
 let cpuSlotPosition = null;
 let psuSlotPosition = null;
 let coolerSlotPosition = null;
+let ssdSlotPosition = null;
 let selectedCaseModelUrl = null;
 let selectedMoboModelUrl = null;
 let selectedCpuModelUrl = null;
 let selectedPsuModelUrl = null;
 let selectedCoolerModelUrl = null;
+let selectedSsdModelUrl = null;
 
 function setupCatalogClickHandlers() {
   document.querySelectorAll('.catalog-item').forEach(item => {
@@ -49,6 +52,9 @@ function setupCatalogClickHandlers() {
       } else if (type === 'cooler') {
         selectedCoolerModelUrl = modelUrl;
         console.log('Selected model URL for draggin:', selectedCoolerModelUrl);
+      } else if (type === 'ssd') {
+        selectedSsdModelUrl = modelUrl;
+        console.log('Selected model URL for draggin:', selectedSsdModelUrl);
       }
 
     })
@@ -123,6 +129,7 @@ function setupDragAndDrop() {
   let cpumarker = null;
   let psumarker = null;
   let coolermarker = null;
+  let ssdmarker = null;
   let wasDroppedSuccessfully = false; // Track if the drop was successful
 
   interact('.draggable').draggable({
@@ -272,6 +279,41 @@ function setupDragAndDrop() {
           }
           
         }
+
+        // If dragging ssd, highlight the ssd slot
+        if (draggingId === 'ssd' && moboModel) {
+          const ssdSlot = moboModel.getObjectByName('Slot_Ssd');
+          if (ssdSlot) {
+            // Save the original material and change to the highlighted one
+            originalSlotMaterial = ssdSlot.material; // Store the original material
+            ssdSlot.material = new THREE.MeshStandardMaterial({
+              color: 0x00ff00,        // Bright green to show it's active
+              emissive: 0x003300,     // A little glowing effect
+              transparent: true,
+              opacity: 0.4,           // Semi-transparent
+            });
+
+            // Optionally, create a visible marker at the slot position
+            ssdmarker = new THREE.Mesh(
+              new THREE.BoxGeometry(2, 2, 0.1),
+              new THREE.MeshStandardMaterial({
+                color: 0x00ff00,
+                emissive: 0x003300,
+                transparent: true,
+                opacity: 0.4,
+              })
+            );
+
+            
+            // Rotate 45 degrees on the X axis
+            ssdmarker.rotation.x = 0; // No rotation on the Y axis
+            ssdmarker.rotation.y = Math.PI / 2;  // 90 degrees        
+            ssdmarker.rotation.z = 0;          // No rotation on the Z axis
+            ssdmarker.position.set(ssdSlotPosition.x, ssdSlotPosition.y + -1, ssdSlotPosition.z + -1.4); // Position the ssdmarker
+            scene.add(ssdmarker);
+          }
+          
+        }
       },
       move(event) {
         // Optional: Add extra visual feedback during dragging if necessary
@@ -306,6 +348,9 @@ function setupDragAndDrop() {
         } else if (dropPos && draggingId === 'cooler' && moboModel) {
           spawnCoolerAtSlot();
           wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
+        } else if (dropPos && draggingId === 'ssd' && moboModel) {
+          spawnSsdAtSlot();
+          wasDroppedSuccessfully = true;  // Mark that the case was dropped successfully
         } 
 
         // If drop was unsuccessful, remove the dragged model (if any)
@@ -329,6 +374,10 @@ function setupDragAndDrop() {
           if (draggingId === 'cooler' && coolerModel) {
             scene.remove(coolerModel);  // Remove the GPU if it was dropped unsuccessfully
             coolerModel = null;
+          }
+          if (draggingId === 'ssd' && ssdModel) {
+            scene.remove(ssdModel);  // Remove the GPU if it was dropped unsuccessfully
+            ssdModel = null;
           }
 
           // Reset the marker to the center when the drop fails
@@ -357,6 +406,10 @@ function setupDragAndDrop() {
         if (coolermarker) {
           scene.remove(coolermarker);
           coolermarker = null;
+        }
+        if (ssdmarker) {
+          scene.remove(ssdmarker);
+          ssdmarker = null;
         }
 
         if (originalSlotMaterial) {
@@ -471,12 +524,12 @@ async function spawnPsuAtSlot() {
 
 async function spawnMoboAtSlot() {
   if (!moboSlotPosition) {
-    alert('GPU slot position unknown');
+    alert('mobo slot position unknown');
     return;
   }
 
   if (!selectedMoboModelUrl) {
-    alert('Please select a GPU model first.');
+    alert('Please select a mobo model first.');
     return;
   }
 
@@ -499,7 +552,7 @@ async function spawnMoboAtSlot() {
       console.log('CPU slot position:', cpuSlotPosition);
     } else {
       cpuSlotPosition = new THREE.Vector3(0, 0, 0);
-      console.warn('CPU slot not found in GPU model');
+      console.warn('CPU slot not found in mobo model');
     }
 
     // Cooler SLOT
@@ -510,7 +563,18 @@ async function spawnMoboAtSlot() {
       console.log('Cooler slot position:', coolerSlotPosition);
     } else {
       coolerSlotPosition = new THREE.Vector3(0, 0, 0);
-      console.warn('Cooler slot not found in case model');
+      console.warn('Cooler slot not found in mobo model');
+    }
+
+    // SSD SLOT
+    const ssdSlot = model.getObjectByName('Slot_Ssd');
+    if (ssdSlot) {
+      ssdSlotPosition = new THREE.Vector3();
+      ssdSlot.getWorldPosition(ssdSlotPosition);
+      console.log('SSD slot position:', ssdSlotPosition);
+    } else {
+      ssdSlotPosition = new THREE.Vector3(0, 0, 0);
+      console.warn('SSD slot not found in mobo model');
     }
   } catch (error) {
     console.error('Failed to load GPU model', error);
@@ -569,6 +633,32 @@ async function spawnCoolerAtSlot() {
   }
 }
 
+async function spawnSsdAtSlot() {
+  if (!ssdSlotPosition) {
+    alert('Ssd slot position unknown');
+    return;
+  }
+
+  if (!selectedSsdModelUrl) {
+    alert('Please select a Ssd model first.');
+    return;
+  }
+
+  if (ssdModel) {
+    scene.remove(ssdModel);
+    ssdModel = null;
+  }
+  
+  try {
+    const model = await loadGLTFModel(selectedSsdModelUrl);
+    model.position.copy(ssdSlotPosition);
+    scene.add(model);
+    ssdModel = model;
+  } catch (error) {
+    console.error('Failed to load Ssd model', error);
+  }
+}
+
 function reloadScene() {
     // Remove case model
     if (caseModel) {
@@ -598,6 +688,12 @@ function reloadScene() {
     if (coolerModel) {
         scene.remove(coolerModel);
         coolerModel = null;
+    }
+
+    // Remove ssd model
+    if (ssdModel) {
+        scene.remove(ssdModel);
+        ssdModel = null;
     }
 
     // Reset the camera controls target to the origin (or wherever you prefer)

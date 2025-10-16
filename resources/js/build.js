@@ -548,10 +548,22 @@ document.querySelectorAll('.catalog-item').forEach(item => {
     item.addEventListener('click', () => {
         const type = item.getAttribute('data-type');
         const name = item.getAttribute('data-name');
+        const category = item.getAttribute('data-category');
         const price = parseFloat(item.getAttribute('data-price'));
         const componentId = item.getAttribute('data-id');
         const imageUrl = item.getAttribute('data-image');
+        const model = item.getAttribute('data-model');
 
+        // Console log all the data
+        console.log('Selected Component:', {
+            type: type,
+            name: name,
+            category: category,
+            price: price,
+            id: componentId,
+            image: imageUrl,
+            model3d: model
+        });
         // STORE SELECTED COMPONENT
         window.selectedComponents[type] = { componentId, name, price, imageUrl };
 
