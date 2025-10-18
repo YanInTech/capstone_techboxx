@@ -3,17 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\CartItem;
-use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Checkout;
+use App\Models\OrderedBuild;
+use App\Models\UserBuild;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
-use Exception;
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class SalesController extends Controller
 {
@@ -48,268 +44,238 @@ class SalesController extends Controller
                 break;
         }
         
+        // =============================
+        // 1️⃣ From CHECKOUTS (cart_items)
+        // =============================
 
-        // ---------------------
-        // Orders & Revenue (only these change with period)
-        // ---------------------
-        $filteredOrders = Order::whereIn('status', ['paid', 'completed'])
+        $componentSales = collect();
+
+        $paidCartItems = Checkout::where('payment_status', 'paid')
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            ->pluck('cart_item_id'); // this includes duplicates!
 
-        $ordersCount  = $filteredOrders->count();
-        $totalRevenue = $filteredOrders->sum('total');
+        foreach ($paidCartItems as $cartItemId) {
+            // we do NOT unique() here — each repeated ID counts again
+            $cartItem = CartItem::find($cartItemId);
 
-        // Static values
-        $costOfGoods = 205000;
-        $profit      = 100000;
-        $activeUsers = 1000000;
-
-        // ---------------------
-        // Top selling products (unchanged - global)
-        // ---------------------
-        $topProducts = CartItem::with([
-                'case', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'cooler'
-            ])
-            ->select('product_id', 'product_type')
-            ->selectRaw('SUM(quantity) as total_sold, SUM(total_price) as earnings')
-            ->groupBy('product_id', 'product_type')
-            ->orderByDesc('total_sold')
-            ->take(5)
-            ->get()
-            ->map(function ($cartItem) {
-                // Get the component based on product_type
-                $component = match($cartItem->product_type) {
-                    'case' => $cartItem->case,
-                    'cpu' => $cartItem->cpu,
-                    'gpu' => $cartItem->gpu,
-                    'motherboard' => $cartItem->motherboard,
-                    'ram' => $cartItem->ram,
-                    'storage' => $cartItem->storage,
-                    'psu' => $cartItem->psu,
-                    'cooler' => $cartItem->cooler,
-                    default => null
-                };
-                
-                $productName = $component 
-                    ? $component->brand . ' ' . $component->model 
-                    : ucfirst($cartItem->product_type);
-                
-                return (object) [
-                    'name' => $productName,
-                    'type' => $cartItem->product_type,
-                    'total_sold' => $cartItem->total_sold,
-                    'earnings' => $cartItem->earnings
-                ];
-            });
-        // ---------------------
-        // Product Orders by component TYPE (new logic)
-        // - We group order_items by name (product display name)
-        // - For each distinct product name we try to detect which hardware model/table it belongs to
-        //   by checking hardware model columns (brand+model / model) across classes in config('components').
-        // - Then we aggregate counts per detected component type.
-        // ---------------------
-        $componentMap = Config::get('components', []); // e.g. ['cpu' => Cpu::class, ...]
-        $productNames = CartItem::select('product_id')
-            ->selectRaw('SUM(quantity) as total_qty')
-            ->groupBy('product_id')
-            ->orderByDesc('total_qty')
-            ->limit(100) // safety
-            ->get();
-
-        $typeCounts = [];
-
-        foreach ($productNames as $pn) {
-            $name = trim($pn->name);
-            $qty  = (int) $pn->total_qty;
-            $detectedType = null;
-
-            // Normalize search value
-            $search = mb_strtolower($name);
-
-            // Try multiple matching strategies for robustness.
-            // For each component class, attempt to find a record where model or brand+model matches.
-            foreach ($componentMap as $typeKey => $className) {
-                // ensure class exists
-                if (!is_string($className) || !class_exists($className)) {
-                    continue;
-                }
-
-                try {
-                    // exact match model
-                    $q1 = $className::whereRaw('LOWER(model) = ?', [$search])->exists();
-                    if ($q1) {
-                        $detectedType = $typeKey;
-                        break;
-                    }
-
-                    // exact match brand + model (e.g. "ASUS ROG Strix")
-                    $q2 = $className::whereRaw('LOWER(CONCAT_WS(" ", brand, model)) = ?', [$search])->exists();
-                    if ($q2) {
-                        $detectedType = $typeKey;
-                        break;
-                    }
-
-                    // model appears inside order item name or vice versa (partial match)
-                    // find any model that is contained in the product name
-                    $q3 = $className::whereRaw('LOWER(?) LIKE CONCAT("%", LOWER(model), "%")', [$search])->exists();
-                    if ($q3) {
-                        $detectedType = $typeKey;
-                        break;
-                    }
-
-                    // the model contains the product name (reverse)
-                    $q4 = $className::whereRaw('LOWER(model) LIKE CONCAT("%", LOWER(?), "%")', [$search])->exists();
-                    if ($q4) {
-                        $detectedType = $typeKey;
-                        break;
-                    }
-                } catch (Exception $e) {
-                    // skip any errors for a class (e.g. missing column), continue trying others
-                    continue;
-                }
-            }
-
-            $typeLabel = $detectedType ? ucfirst($detectedType) : 'Unknown';
-
-            if (!isset($typeCounts[$typeLabel])) {
-                $typeCounts[$typeLabel] = 0;
-            }
-            $typeCounts[$typeLabel] += $qty;
-        }
-
-        // Convert to collection sorted by count desc
-        // Product Orders - Fixed version
-        $productOrders = CartItem::select('product_type')
-            ->selectRaw('SUM(quantity) as total_orders')
-            ->groupBy('product_type')
-            ->orderByDesc('total_orders')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'type' => ucfirst($item->product_type),
-                    'orders' => (int)$item->total_orders
-                ];
-            });
-
-        // ---------------------
-        // Frequent pairs (unchanged)
-        // ---------------------
-        $frequentPairs = DB::table('order_items as a')
-            ->join('order_items as b', function ($join) {
-                $join->on('a.order_id', '=', 'b.order_id')
-                     ->whereColumn('a.id', '<', 'b.id');
-            })
-            ->select(
-                'a.name as product_a',
-                'b.name as product_b',
-                DB::raw('COUNT(*) as times_bought_together'),
-                DB::raw('SUM(a.subtotal + b.subtotal) as total_price')
-            )
-            ->groupBy('a.name', 'b.name')
-            ->orderByDesc('times_bought_together')
-            ->take(5)
-            ->get();
-
-        // ---------------------
-        // Cart Analysis (keep original approach; compute orders by product_id)
-        // ---------------------
-        // Cart Analysis
-        $modelMap = config('components', []);
-        $cartAggregates = DB::table('cart_items')
-            ->select('product_type', 'product_id', DB::raw('SUM(quantity) as added_to_cart'))
-            ->groupBy('product_type', 'product_id')
-            ->orderByDesc('added_to_cart')
-            ->limit(10)
-            ->get();
-
-        $cartAnalysis = collect();
-
-        foreach ($cartAggregates as $row) {
-            $displayName = "{$row->product_type} #{$row->product_id}";
-            $modelClass = $modelMap[$row->product_type]
-                    ?? ($modelMap[Str::plural($row->product_type)] ?? null)
-                    ?? ($modelMap[Str::singular($row->product_type)] ?? null);
-
-        if ($modelClass && is_string($modelClass) && class_exists($modelClass)) {
-                try {
-                    $product = $modelClass::find($row->product_id);
-                    if ($product) {
-                        $brand = $product->brand ?? null;
-                        $model = $product->model ?? null;
-                        $title = $product->name ?? $product->title ?? null;
-
-                        $candidate = trim(($brand ? $brand . ' ' : '') . ($model ?? ''));
-                        $displayName = $candidate ?: ($title ?: $displayName);
-                    }
-                } catch (Exception $e) {
-                    // ignore error
-                }			
-            }
-
-            $ordersCountForProduct = (int) CartItem::whereRaw('LOWER(product_id) LIKE ?', ['%' . strtolower($displayName) . '%'])
-                ->sum('quantity');
-
-            $cartAnalysis->push([
-                'type' => $row->product_type,
-                'product' => $displayName,
-                'added_to_cart' => (int) $row->added_to_cart,
-                'orders' => $ordersCountForProduct,
-            ]);
-        }
-
-        // ---------------------
-        // Frequent pairs from Python script
-        // ---------------------
-        $frequentPairs = $this->getFrequentPairsFromPython();
-
-                // return view
-                return view('admin.sales', [
-                    'period' => $period,
-                    'ordersCount' => $ordersCount,
-                    'totalRevenue' => $totalRevenue,
-                    'costOfGoods' => $costOfGoods,
-                    'profit' => $profit,
-                    'topProducts' => $topProducts,
-                    'productOrders' => $productOrders,   // collection of ['type','orders']
-                    'cartAnalysis' => $cartAnalysis,
-                    'frequentPairs' => $frequentPairs,
-                    'activeUsers' => $activeUsers,
+            if ($cartItem) {
+                $componentSales->push([
+                    'product_type' => $cartItem->product_type,
+                    'product_id'   => $cartItem->product_id,
+                    'quantity'     => $cartItem->quantity,
                 ]);
             }
-
-    private function getFrequentPairsFromPython()
-    {
-        try {
-            $pythonScriptPath = base_path('python_scripts/frequent_pairs.py');
-            
-            $process = new Process(['python', $pythonScriptPath]);
-            $process->run();
-            
-            if (!$process->isSuccessful()) {
-                throw new ProcessFailedException($process);
-            }
-            
-            $output = $process->getOutput();
-            $result = json_decode($output, true);
-            
-            if ($result['status'] === 'success') {
-                // Convert to collection of objects for the view
-                return collect($result['frequentPairs'])->map(function ($pair) {
-                    return (object) [
-                        'product_a' => $pair['product_a'],
-                        'product_b' => $pair['product_b'],
-                        'total_price' => $pair['total_price']
-                    ];
-                });
-            }
-            
-            // Fallback to empty collection if Python script fails
-            return collect();
-            
-        } catch (Exception $e) {
-            // Log error and return empty collection
-            Log::error('Failed to get frequent pairs from Python script: ' . $e->getMessage());
-            return collect();
         }
+
+
+        // =============================
+        // 2️⃣ From ORDERED BUILDS (user_builds)
+        // =============================
+        $orderedBuilds = OrderedBuild::where('payment_status', 'paid')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->pluck('user_build_id'); // also includes duplicates
+
+        foreach ($orderedBuilds as $userBuildId) {
+            // again, we don’t unique() here — each occurrence counts
+            $userBuild = UserBuild::find($userBuildId);
+
+            if ($userBuild) {
+                // each build contributes 1 per component
+                $components = [
+                    'case'        => $userBuild->pc_case_id,
+                    'motherboard' => $userBuild->motherboard_id,
+                    'cpu'         => $userBuild->cpu_id,
+                    'gpu'         => $userBuild->gpu_id,
+                    'storage'     => $userBuild->storage_id,
+                    'ram'         => $userBuild->ram_id,
+                    'psu'         => $userBuild->psu_id,
+                    'cooler'      => $userBuild->cooler_id,
+                ];
+
+                foreach ($components as $type => $id) {
+                    if ($id) {
+                        $componentSales->push([
+                            'product_type' => $type,
+                            'product_id'   => $id,
+                            'quantity'     => 1,
+                        ]);
+                    }
+                }
+            }
+        }
+
+
+        // =============================
+        // 3️⃣ Combine and group all results
+        // =============================
+        $groupedSales = $componentSales
+            ->groupBy(fn($item) => $item['product_type'] . '-' . $item['product_id'])
+            ->map(fn($items) => [
+                'product_type' => $items->first()['product_type'],
+                'product_id'   => $items->first()['product_id'],
+                'total_sold'   => $items->sum('quantity'),
+            ])
+            ->sortByDesc('total_sold')
+            ->values();
+        // 🔍 Example inspection
+        // dd($groupedSales);
+
+                // =============================
+        // 4️⃣ Enrich grouped results with component details
+        // =============================
+
+        $groupedSalesWithDetails = $groupedSales->map(function ($item) {
+            // Determine the model based on product type
+            $model = match ($item['product_type']) {
+                'case'        => \App\Models\Hardware\PcCase::class,
+                'motherboard' => \App\Models\Hardware\Motherboard::class,
+                'cpu'         => \App\Models\Hardware\Cpu::class,
+                'gpu'         => \App\Models\Hardware\Gpu::class,
+                'storage'     => \App\Models\Hardware\Storage::class,
+                'ram'         => \App\Models\Hardware\Ram::class,
+                'psu'         => \App\Models\Hardware\Psu::class,
+                'cooler'      => \App\Models\Hardware\Cooler::class,
+                default       => null,
+            };
+
+            $component = $model ? $model::find($item['product_id']) : null;
+
+            // Add details if found
+            return [
+                'product_type' => ucfirst($item['product_type']),
+                'product_id'   => $item['product_id'],
+                'total_sold'   => $item['total_sold'],
+                'product_name' => $component ? ($component->brand . ' ' . $component->model) : 'Unknown',
+                'base_price'   => $component->base_price ?? 0,
+                'selling_price'=> $component->price ?? 0,
+            ];
+        });
+
+        // ✅ You can inspect or return this version
+        // dd($groupedSalesWithDetails);
+
+        // =============================
+        // 5️⃣ Compute totals: total sold, cost of goods, revenue, profit
+        // =============================
+
+        $totalSold = $groupedSalesWithDetails->sum('total_sold');
+
+        $totalCostOfGoods = $groupedSalesWithDetails->sum(function ($item) {
+            return $item['base_price'] * $item['total_sold'];
+        });
+
+        $totalRevenue = $groupedSalesWithDetails->sum(function ($item) {
+            return $item['selling_price'] * $item['total_sold'];
+        });
+
+        $totalProfit = $totalRevenue - $totalCostOfGoods;
+
+        // Optional: Combine results into a summary object or array
+        $summary = [
+            'total_sold'      => $totalSold,
+            'cost_of_goods'   => $totalCostOfGoods,
+            'revenue'         => $totalRevenue,
+            'profit'          => $totalProfit,
+        ];
+
+        // =============================
+        // 6️⃣ Apply product type filter + sorting (NEW)
+        // =============================
+        $filterType = $request->get('filter_type');
+
+        $filteredSales = $groupedSalesWithDetails;
+
+        // Filter by product_type if given
+        if (!empty($filterType)) {
+            $filteredSales = $filteredSales->filter(function ($item) use ($filterType) {
+                return strtolower($item['product_type']) === strtolower($filterType);
+            });
+        }
+
+        // Always sort descending by total_sold
+        $filteredSales = $filteredSales->sortByDesc('total_sold')->values();
+
+
+        // Paginate (10 items per page)
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 9;
+        $pagedData = new LengthAwarePaginator(
+            $filteredSales->forPage($currentPage, $perPage),
+            $filteredSales->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // ---------------------
+        // Sales Overview Chart
+        // ---------------------
+        if ($period === 'daily') {
+            $salesData = Checkout::select(
+                    DB::raw('HOUR(created_at) as label'),
+                    DB::raw('SUM(total_cost) as total_sales')
+                )
+                ->whereIn('payment_status', ['paid', 'pending'])  
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('label')
+                ->orderBy('label')
+                ->get();
+            $salesLabels = $salesData->pluck('label')->map(fn($h) => sprintf('%02d:00', $h));
+        } elseif ($period === 'weekly') {
+            $salesData = Checkout::select(
+                    DB::raw('DAYNAME(created_at) as label'),
+                    DB::raw('SUM(total_cost) as total_sales')
+                )
+                ->whereIn('payment_status', ['paid', 'pending'])  
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('label')
+                ->orderByRaw("FIELD(label, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')")
+                ->get();
+            $salesLabels = $salesData->pluck('label');
+        } elseif ($period === 'annually') {
+            $salesData = Checkout::select(
+                    DB::raw('MONTHNAME(created_at) as label'),
+                    DB::raw('SUM(total_cost) as total_sales')
+                )
+                ->whereIn('payment_status', ['paid', 'pending'])  
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('label')
+                ->orderBy(DB::raw('MIN(created_at)'))
+                ->get();
+            $salesLabels = $salesData->pluck('label');
+        } else {
+            $salesData = Checkout::select(
+                    DB::raw('DAY(created_at) as label'),
+                    DB::raw('SUM(total_cost) as total_sales')
+                )
+                ->whereIn('payment_status', ['paid', 'pending'])  
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('label')
+                ->orderBy('label')
+                ->get();
+            $salesLabels = $salesData->pluck('label')->map(fn($d) => 'Day ' . $d);
+        }
+
+        $salesTotals = $salesData->pluck('total_sales');
+
+        // dd(Checkout::whereIn('payment_status', ['paid', 'pending'])  
+        //   ->whereBetween('created_at', [$startDate, $endDate])
+        //   ->get());
+
+
+        return view('admin.sales', [
+            'period' => $period,
+            'groupedSalesWithDetails' => $pagedData, // ← now paginated
+            'summary' => $summary,
+            'filterType' => $filterType,
+            'salesLabels' => $salesLabels,      // ← add this
+            'salesTotals' => $salesTotals,  // ← add this
+        ]);
+        
+
+
     }
+
+
+    
 }

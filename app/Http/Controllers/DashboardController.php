@@ -75,9 +75,10 @@ class DashboardController extends Controller
             });
 
             // Merge and sort
-            $allRecentOrders = $normalizedOrders->merge($normalizedCheckouts)
-                ->sortByDesc('date')
-                ->take(7);
+            $allRecentOrders = $normalizedOrders->toBase()
+            ->merge($normalizedCheckouts->toBase())
+            ->sortByDesc('date')
+            ->take(7);
 
             // Last 7 days: prepare arrays (plain arrays — easier to json_encode)
             $dates = [];

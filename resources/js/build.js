@@ -535,9 +535,13 @@ buildSectionButtons.forEach(button => {
 
         remarksSection.classList.add("hidden");
         remarksTab.classList.remove('active');
+        remarksSection.classList.add("hidden");
+        remarksTab.classList.remove('active');
         summarySection.classList.add("hidden");
         summaryTab.classList.remove('active');
+        summaryTab.classList.remove('active');
         componentsSection.classList.remove("hidden");
+        componentsTab.classList.add('active');
         componentsTab.classList.add('active');
 
         applyAllFilters();
