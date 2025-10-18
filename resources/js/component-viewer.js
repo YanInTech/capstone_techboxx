@@ -192,7 +192,6 @@ function setupDragAndDrop() {
         } 
 
         // If dragging psu, highlight the psu slot
-        // If dragging psu, highlight the psu slot
         if (draggingId === 'psu' && caseModel) {
           const psuSlot = caseModel.getObjectByName('Slot_Psu');
           if (psuSlot) {
@@ -228,7 +227,6 @@ function setupDragAndDrop() {
           }
         } 
 
-        // If dragging cpu, highlight the cpu slot
         // If dragging cpu, highlight the cpu slot
         if (draggingId === 'cpu' && moboModel) {
           const cpuSlot = moboModel.getObjectByName('Slot_Cpu');
@@ -600,7 +598,6 @@ async function spawnCase(position, modelUrl) {
     controls.update();
 
     // MOBO SLOT
-    // MOBO SLOT
     const moboSlot = model.getObjectByName('Slot_Mobo');
     if (moboSlot) {
       moboSlotPosition = new THREE.Vector3();
@@ -622,17 +619,6 @@ async function spawnCase(position, modelUrl) {
       console.warn('PSU slot not found in case model');
     }
 
-
-    // PSU SLOT
-    const psuSlot = model.getObjectByName('Slot_Psu');
-    if (psuSlot) {
-      psuSlotPosition = new THREE.Vector3();
-      psuSlot.getWorldPosition(psuSlotPosition);
-      console.log('PSU slot position:', psuSlotPosition);
-    } else {
-      psuSlotPosition = new THREE.Vector3(0, 0, 0);
-      console.warn('PSU slot not found in case model');
-    }
 
   } catch (error) {
     console.error('Failed to load case model', error);
