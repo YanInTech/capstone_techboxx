@@ -273,7 +273,6 @@
                 </button>
             @else
                 <form action="{{ route('techboxx.build') }}">
-                    @csrf
                     <button>
                         <x-icons.arrow class="build-arrow"/>
                     </button>
