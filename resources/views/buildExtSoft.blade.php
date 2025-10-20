@@ -39,12 +39,6 @@
                 <button type="button" onclick="window.location='{{ route('techboxx.build.extend') }}'">
                     <x-icons.arrow class="ext-arrow"/>
                 </button>
-                <button @click="openModal('save')">
-                    <x-icons.save class="ext-save"/>
-                </button>
-                <button @click="openModal('order')">
-                    <x-icons.cart class="ext-cart"/>
-                </button>
                 <button id="reloadButton">
                     <x-icons.reload class="ext-reload" />
                 </button>
