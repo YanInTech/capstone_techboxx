@@ -69,65 +69,65 @@ class CheckoutDetailsController extends Controller
         return view('customer.checkoutdetails', compact('paginatedGroups'));
     }
 
-public function cancelMultiple(Request $request)
-{
-    try {
-        DB::beginTransaction();
+    public function cancelMultiple(Request $request)
+    {
+        try {
+            DB::beginTransaction();
 
-        $checkoutIds = $request->input('checkout_ids', []);
-        
-        if (empty($checkoutIds)) {
+            $checkoutIds = $request->input('checkout_ids', []);
+            
+            if (empty($checkoutIds)) {
+                return response()->json([
+                    'message' => 'No checkout items found to cancel',
+                    'type' => 'error',
+                ], 400);
+            }
+
+            $checkouts = Checkout::whereIn('id', $checkoutIds)->get();
+            
+            foreach ($checkouts as $checkout) {
+                // Update payment status to 'Cancelled'
+                $checkout->update([
+                    'payment_status' => 'Cancelled',
+                ]);
+
+                $checkout->delete();
+                
+                // Restore stock
+                $this->restoreStock($checkout);
+            }
+
+            DB::commit();
+
             return response()->json([
-                'message' => 'No checkout items found to cancel',
-                'type' => 'error',
-            ], 400);
-        }
-
-        $checkouts = Checkout::whereIn('id', $checkoutIds)->get();
-        
-        foreach ($checkouts as $checkout) {
-            // Update payment status to 'Cancelled'
-            $checkout->update([
-                'payment_status' => 'Cancelled',
+                'message' => 'Order cancelled successfully',
+                'type' => 'success',
             ]);
 
-            $checkout->delete();
-            
-            // Restore stock
-            $this->restoreStock($checkout);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to cancel order: ' . $e->getMessage(),
+                'type' => 'error',
+            ], 500);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'message' => 'Order cancelled successfully',
-            'type' => 'success',
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Failed to cancel order: ' . $e->getMessage(),
-            'type' => 'error',
-        ], 500);
     }
-}
 
-private function restoreStock(Checkout $checkout)
-{
-    // Restore stock for the cancelled item
-    $cartItem = $checkout->cartItem;
-    if ($cartItem && $cartItem->product) {
-        $modelMap = config('components', []);
-        $model = $modelMap[$cartItem->product_type] ?? null;
-        
-        if ($model) {
-            $product = $model::find($cartItem->product_id);
-            if ($product) {
-                $product->increment('stock', $cartItem->quantity);
+    private function restoreStock(Checkout $checkout)
+    {
+        // Restore stock for the cancelled item
+        $cartItem = $checkout->cartItem;
+        if ($cartItem && $cartItem->product) {
+            $modelMap = config('components', []);
+            $model = $modelMap[$cartItem->product_type] ?? null;
+            
+            if ($model) {
+                $product = $model::find($cartItem->product_id);
+                if ($product) {
+                    $product->increment('stock', $cartItem->quantity);
+                }
             }
         }
     }
-}
 
 }
