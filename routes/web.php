@@ -158,6 +158,7 @@ Route::prefix('customer')->middleware(['auth'])->name('customer.')->group(functi
     Route::get('/dashboard',[CustomerController::class, 'index'])->name('dashboard');
     Route::put('profile', [CustomerController::class, 'update'])->name('profile.update');
     Route::get('/customer/checkout-details', [CheckoutDetailsController::class, 'index'])->name('checkoutdetails');
+    Route::post('/checkout-details/cancel', [CheckoutDetailsController::class, 'cancelMultiple'])->name('checkoutdetails.cancel.multiple'); 
     Route::get('/customer/order-details', [OrderDetailsController::class, 'index'])->name('orderdetails');
     Route::get('/customer/purchased-history', [PurchasedHistoryController::class, 'index'])->name('purchasedhistory');
     Route::get('/customer/invoice/{order}', [PurchasedHistoryController::class, 'invoice'])->name('invoice.show');

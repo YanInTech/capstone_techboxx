@@ -167,12 +167,20 @@
                         </template>
                     </p>
                 </div>
+
+                <!-- Cancel Order Button (Only shown when status is Submitted) -->
+                <div class="mt-6 text-center" x-show="selectedOrder && selectedOrder.pickup_status === null">
+                    <button @click="cancelOrder(selectedOrder.checkout_ids)"
+                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition duration-200">
+                        Cancel Order
+                    </button>
+                    <p class="text-sm text-gray-600 mt-2">You can cancel your order while it's still in "Submitted" status</p>
+                </div>
             </div>
         </div>
     </div>
 
     {{ $paginatedGroups->links() }}
-
 
     <script>
         function orderModal() {
@@ -217,6 +225,37 @@
                     }
                     
                     return 'Unknown Component';
+                },
+
+                async cancelOrder(checkoutIds) {
+                    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/customer/checkout-details/cancel`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                checkout_ids: checkoutIds
+                            })
+                        });
+
+                        if (response.ok) {
+                            alert('Order cancelled successfully!');
+                            this.showModal = false;
+                            location.reload();
+                        } else {
+                            const error = await response.json();
+                            alert('Failed to cancel order: ' + (error.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling order:', error);
+                        alert('An error occurred while cancelling the order. Please try again.');
+                    }
                 }
             }
         }
