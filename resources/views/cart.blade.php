@@ -66,7 +66,7 @@
                                             <img
                                                 src="{{ $item->product->image ?? 'https://via.placeholder.com/72' }}"
                                                 alt="{{ $item->product->brand }} {{ $item->product->model }}"
-                                                class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                class="w-16 h-16 md:w-20 md:h-20 object-contain rounded-lg border border-gray-200 shadow-sm"
                                             />
                                             <div>
                                                 <div class="font-semibold text-gray-800">{{ $item->product->brand }} {{ $item->product->model }}</div>

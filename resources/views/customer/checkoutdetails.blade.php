@@ -1,94 +1,87 @@
 <x-dashboardlayout>
-    <div x-data="orderModal()" class="p-6 h-[85%]">
+    <div x-data="orderModal()" class="p-6 h-[90%]">
         <h2 class="text-2xl font-semibold mb-6">Checkout Details</h2>
 
-        <div class="overflow-x-auto bg-white rounded-lg shadow mb-3 h-[80%] overflow-y-scroll">
-            <table class="min-w-full border border-gray-200">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="px-6 py-3 border-b text-left text-sm font-medium text-gray-700">Component</th>
-                        <th class="px-6 py-3 border-b text-left text-sm font-medium text-gray-700">Category</th>
-                        <th class="px-6 py-3 border-b text-center text-sm font-medium text-gray-700">Qty</th>
-                        <th class="px-6 py-3 border-b text-right text-sm font-medium text-gray-700">Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($paginatedGroups as $index => $group)
-                        {{-- Order Items --}}
-                        @foreach ($group['cart_items'] as $cartItem)
-                            <tr>
-                                <td class="px-6 py-4 border-b">
-                                    @php
-                                        $model = 'Unknown';
-                                        
-                                        switch($cartItem->product_type) {
-                                            case 'case':
-                                                $model = $cartItem->case ? $cartItem->case->brand . ' ' . $cartItem->case->model : 'N/A';
-                                                break;
-                                            case 'cpu':
-                                                $model = $cartItem->cpu ? $cartItem->cpu->brand . ' ' . $cartItem->cpu->model : 'N/A';
-                                                break;
-                                            case 'gpu':
-                                                $model = $cartItem->gpu ? $cartItem->gpu->brand . ' ' . $cartItem->gpu->model : 'N/A';
-                                                break;
-                                            case 'motherboard':
-                                                $model = $cartItem->motherboard ? $cartItem->motherboard->brand . ' ' . $cartItem->motherboard->model : 'N/A';
-                                                break;
-                                            case 'ram':
-                                                $model = $cartItem->ram ? $cartItem->ram->brand . ' ' . $cartItem->ram->model : 'N/A';
-                                                break;
-                                            case 'storage':
-                                                $model = $cartItem->storage ? $cartItem->storage->brand . ' ' . $cartItem->storage->model : 'N/A';
-                                                break;
-                                            case 'psu':
-                                                $model = $cartItem->psu ? $cartItem->psu->brand . ' ' . $cartItem->psu->model : 'N/A';
-                                                break;
-                                            case 'cooler':
-                                                $model = $cartItem->cooler ? $cartItem->cooler->brand . ' ' . $cartItem->cooler->model : 'N/A';
-                                                break;
-                                        }
-                                    @endphp
-                                    {{ $model }}
-                                </td>
-                                <td class="px-6 py-4 border-b">{{ ucfirst($cartItem->product_type) }}</td>
-                                <td class="px-6 py-4 border-b text-center">{{ $cartItem->quantity }}</td>
-                                <td class="px-6 py-4 border-b text-right">₱{{ number_format($cartItem->total_price, 2) }}</td>
-                            </tr>
-                        @endforeach
-                        
-                        {{-- TOTAL EACH ORDERS --}}
-                        <tr class="bg-gray-50">
-                            <td colspan="4" class="px-6 py-3 border-b text-right">
-                                <div class="font-semibold text-gray-700">
-                                    Total: ₱{{ number_format($group['total_cost'], 2) }}
-                                </div>
-                            </td>
+        <div class="bg-white rounded-lg shadow mb-3 h-[80%] flex flex-col">
+            <!-- Table Header -->
+            <div class="overflow-x-auto border-b border-gray-200">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Component</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Category</th>
+                            <th class="px-6 py-3 text-center text-sm font-medium text-gray-700 border-b">Qty</th>
+                            <th class="px-6 py-3 text-right text-sm font-medium text-gray-700 border-b">Price</th>
                         </tr>
+                    </thead>
+                </table>
+            </div>
 
-                        {{-- ORDER STATUS BUTTON --}}
-                        <tr class="bg-gray-50">
-                            <td colspan="4" class="px-6 py-3 border-b text-right">
-                                <div class="font-semibold text-gray-700">
+            <!-- Scrollable Body -->
+            <div class="flex-1 overflow-y-auto overflow-x-auto">
+                <table class="min-w-full h-full">
+                    <tbody class="align-top">
+                        @forelse ($paginatedGroups as $index => $group)
+                            @foreach ($group['cart_items'] as $cartItem)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 border-b">
+                                        @php
+                                            $model = 'Unknown';
+                                            switch($cartItem->product_type) {
+                                                case 'case': $model = $cartItem->case?->brand . ' ' . $cartItem->case?->model ?? 'N/A'; break;
+                                                case 'cpu': $model = $cartItem->cpu?->brand . ' ' . $cartItem->cpu?->model ?? 'N/A'; break;
+                                                case 'gpu': $model = $cartItem->gpu?->brand . ' ' . $cartItem->gpu?->model ?? 'N/A'; break;
+                                                case 'motherboard': $model = $cartItem->motherboard?->brand . ' ' . $cartItem->motherboard?->model ?? 'N/A'; break;
+                                                case 'ram': $model = $cartItem->ram?->brand . ' ' . $cartItem->ram?->model ?? 'N/A'; break;
+                                                case 'storage': $model = $cartItem->storage?->brand . ' ' . $cartItem->storage?->model ?? 'N/A'; break;
+                                                case 'psu': $model = $cartItem->psu?->brand . ' ' . $cartItem->psu?->model ?? 'N/A'; break;
+                                                case 'cooler': $model = $cartItem->cooler?->brand . ' ' . $cartItem->cooler?->model ?? 'N/A'; break;
+                                            }
+                                        @endphp
+                                        {{ $model }}
+                                    </td>
+                                    <td class="px-6 py-4 border-b">{{ ucfirst($cartItem->product_type) }}</td>
+                                    <td class="px-6 py-4 border-b text-center">{{ $cartItem->quantity }}</td>
+                                    <td class="px-6 py-4 border-b text-right">₱{{ number_format($cartItem->total_price, 2) }}</td>
+                                </tr>
+                            @endforeach
+
+                            {{-- TOTAL EACH ORDER --}}
+                            <tr class="bg-gray-50 h-16">
+                                <td colspan="3" class="px-6 border-b text-right font-semibold align-middle">
+                                    Total:
+                                </td>
+                                <td class="px-6 border-b text-right font-bold text-gray-700 align-middle">
+                                    ₱{{ number_format($group['total_cost'], 2) }}
+                                </td>
+                            </tr>
+
+                            {{-- ORDER STATUS BUTTON --}}
+                            <tr class="bg-gray-50 h-16">
+                                <td colspan="4" class="px-6 border-b text-right align-middle">
                                     <button @click="setSelectedOrder({{ $index }})"
                                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
                                         Order Status
                                     </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        {{-- Empty space between orders --}}
-                        <tr>
-                            <td colspan="4" class="px-6 py-2 bg-gray-100"></td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No checkout items found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td colspan="4" class="px-6 py-2 bg-gray-100"></td>
+                            </tr>
+                        @empty
+                            <tr class="h-full">
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500 align-middle">
+                                    No checkout items found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+
 
         <!-- Order Status Modal -->
         <div x-show="showModal" x-cloak x-transition
@@ -167,20 +160,12 @@
                         </template>
                     </p>
                 </div>
-
-                <!-- Cancel Order Button (Only shown when status is Submitted) -->
-                <div class="mt-6 text-center" x-show="selectedOrder && selectedOrder.pickup_status === null">
-                    <button @click="cancelOrder(selectedOrder.checkout_ids)"
-                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition duration-200">
-                        Cancel Order
-                    </button>
-                    <p class="text-sm text-gray-600 mt-2">You can cancel your order while it's still in "Submitted" status</p>
-                </div>
             </div>
         </div>
     </div>
 
     {{ $paginatedGroups->links() }}
+
 
     <script>
         function orderModal() {
@@ -225,37 +210,6 @@
                     }
                     
                     return 'Unknown Component';
-                },
-
-                async cancelOrder(checkoutIds) {
-                    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`/customer/checkout-details/cancel`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                checkout_ids: checkoutIds
-                            })
-                        });
-
-                        if (response.ok) {
-                            alert('Order cancelled successfully!');
-                            this.showModal = false;
-                            location.reload();
-                        } else {
-                            const error = await response.json();
-                            alert('Failed to cancel order: ' + (error.message || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Error cancelling order:', error);
-                        alert('An error occurred while cancelling the order. Please try again.');
-                    }
                 }
             }
         }
