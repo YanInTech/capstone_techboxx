@@ -40,7 +40,7 @@
                 </a>
 
                 <!-- HOT -->
-                <a href="{{ route('catalogue', ['sort' => 'price_desc']) }}"
+                <a href="{{ route('catalogue', ['sort' => 'hot']) }}"
                 class="{{ request('sort') === 'price_desc' ? 'text-[#FF6B6B] font-bold underline' : 'text-[#FF6B6B]' }} hover:underline flex items-center gap-1">
                 HOT <x-icons.fire/>
                 </a>
@@ -52,7 +52,7 @@
                 </a>
 
                 <!-- POPULAR -->
-                <a href="{{ route('catalogue', ['sort' => 'name_asc']) }}"
+                <a href="{{ route('catalogue', ['sort' => 'popular']) }}"
                 class="{{ request('sort') === 'name_asc' ? 'text-[#FFD700] font-bold underline' : 'text-[#FFD700]' }} hover:underline flex items-center gap-1">
                 POPULAR <x-icons.star/>
                 </a>
@@ -247,8 +247,12 @@
                         </p>
 
                         <!-- Price -->
-                        <p class="text-gray-800 font-semibold mt-1">₱{{ number_format($product['price'], 0) }}</p>
-
+                        <p class="flex items-center justify-between mt-1">
+                            <span class="text-gray-900 font-bold text-lg">₱{{ number_format($product['price'], 0) }}</span>
+                            <span class="text-gray-600 text-sm bg-gray-100 px-2 py-1 rounded-full">
+                                {{ $product['sold_count'] }} sold
+                            </span>
+                        </p>
                         <!-- Add to Cart -->
                         <form action="{{ route('cart.add') }}" method="POST" class="mt-auto">
                             @csrf
