@@ -103,14 +103,6 @@ class PayPalController extends Controller
                 OrderedBuild::where('id', $orderedBuildId)->update(['payment_status' => 'Paid']);
             }
 
-            // Clear selected cart items (only for cart checkout, not for builds)
-            if (Auth::check() && !empty($selectedIds)) {
-                $shoppingCart = Auth::user()->shoppingCart;
-                if ($shoppingCart) {
-                    $shoppingCart->cartItem()->whereIn('id', $selectedIds)->delete();
-                }
-            }
-
             return redirect()->route('cart.index')->with('success', 'Payment successful! Order placed.');
         }
 

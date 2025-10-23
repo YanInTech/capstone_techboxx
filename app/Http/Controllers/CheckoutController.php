@@ -88,7 +88,7 @@ class CheckoutController extends Controller
                         'checkout_date' => now()->toDateTimeString(),
                         'total_cost' => $ci->total_price,
                         'payment_method' => $paymentMethod,
-                        'payment_status' => $paymentMethod === 'Cash' ? 'Pending' : 'Paid',
+                        'payment_status' => 'Pending',
                     ];
 
                     // Create the Checkout record for each cart item
