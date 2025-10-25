@@ -2,15 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Storage;
-use Masbug\Flysystem\GoogleDriveAdapter;
-use Illuminate\Filesystem\FilesystemAdapter;
-
-use Google_Client;
-use Google\Service\Drive as Google_Service_Drive;
-
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,17 +37,23 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('components.icons.supplier', 'x-icons.supplier');
         Blade::component('components.icons.manage', 'x-icons.manage');
 
-        // Storage::extend('google', function ($app, $config) {
-        //     $client = new Google_Client();
-        //     $client->setClientId($config['clientId']);
-        //     $client->setClientSecret($config['clientSecret']);
-        //     $client->refreshToken($config['refreshToken']);
-
-        //     $service = new Google_Service_Drive($client);
-        //     $adapter = new GoogleDriveAdapter($service, $config['folderId']);
-        //     $flysystem = new \League\Flysystem\Filesystem($adapter);
-
-        //     return new FilesystemAdapter($flysystem, $adapter, []);
-        // });
+        View::composer('*', function ($view) {
+            $cartCount = 0;
+            
+            if(Auth::check()) {
+                // If user is logged in, get from database - only unprocessed items
+                $user = Auth::user();
+                if ($user->shoppingCart) {
+                    $cartCount = $user->shoppingCart->cartItem()
+                        ->where('processed', false)
+                        ->sum('quantity');
+                }
+            } elseif(session('cart')) {
+                // If guest, get from session
+                $cartCount = array_sum(array_column(session('cart'), 'quantity'));
+            }
+            
+            $view->with('cartCount', $cartCount);
+        });
     }
 }
