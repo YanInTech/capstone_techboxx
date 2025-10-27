@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\ComponentDetailsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
@@ -53,7 +54,23 @@ class AppServiceProvider extends ServiceProvider
                 $cartCount = array_sum(array_column(session('cart'), 'quantity'));
             }
             
-            $view->with('cartCount', $cartCount);
+            // Share low stock count
+            $lowStockCount = 0;
+            if(Auth::check()) {
+                try {
+                    $lowStockThreshold = 10;
+                    $components = app(ComponentDetailsController::class)->getAllFormattedComponents();
+                    $lowStockCount = $components->filter(function ($component) use ($lowStockThreshold) {
+                        return $component->stock <= $lowStockThreshold;
+                    })->count();
+                } catch (\Exception $e) {
+                    // Log error or handle gracefully
+                    logger()->error('Low stock count error: ' . $e->getMessage());
+                }
+            }
+            
+            $view->with('cartCount', $cartCount)
+                 ->with('lowStockCount', $lowStockCount);
         });
     }
 }

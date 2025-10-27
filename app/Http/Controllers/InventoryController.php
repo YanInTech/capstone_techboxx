@@ -18,6 +18,11 @@ class InventoryController extends Controller
         // Get all components
         $componentss = app(ComponentDetailsController::class)->getAllFormattedComponents();
 
+        // Count low stock items
+        $lowStockCount = $componentss->filter(function ($component) use ($lowStockThreshold) {
+            return $component->stock <= $lowStockThreshold;
+        })->count();
+
         // Add status and sort by stock level (lowest first) and then by status
         $componentss->each(function ($component) use ($lowStockThreshold) {
             $component->status = $component->stock <= $lowStockThreshold ? 'Low' : 'Normal';
@@ -38,7 +43,7 @@ class InventoryController extends Controller
             ['path' => Paginator::resolveCurrentPath()]
         );
 
-        return view('staff.inventory', compact('components'));
+        return view('staff.inventory', compact('components', 'lowStockCount'));
     }
 
 
