@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Http\Controllers\ComponentDetailsController;
+use App\Models\Checkout;
+use App\Models\OrderedBuild;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
@@ -68,9 +70,32 @@ class AppServiceProvider extends ServiceProvider
                     logger()->error('Low stock count error: ' . $e->getMessage());
                 }
             }
-            
+
+            // Order Builds count
+            $pendingPickupCount = OrderedBuild::whereNull('pickup_date')
+                ->whereIn('status', ['Pending', 'Approved'])
+                ->count();
+                
+            // Check-out Product count
+            $pendingCheckoutCount = Checkout::where(function ($query) {
+                $query->whereNull('pickup_status')
+                      ->orWhere(function ($q) {
+                          $q->where('pickup_status', 'Pending')
+                            ->whereNull('pickup_date');
+                      });
+            })
+            ->join('cart_items', 'checkouts.cart_item_id', '=', 'cart_items.id')
+            ->distinct('cart_items.shopping_cart_id')
+            ->count('cart_items.shopping_cart_id');
+
+            // Combine both counts
+            $totalPendingOrders = $pendingPickupCount + $pendingCheckoutCount;
+                
             $view->with('cartCount', $cartCount)
-                 ->with('lowStockCount', $lowStockCount);
+                 ->with('lowStockCount', $lowStockCount)
+                 ->with('totalPendingOrders', $totalPendingOrders)
+                 ->with('pendingPickupCount', $pendingPickupCount)
+                 ->with('pendingCheckoutCount', $pendingCheckoutCount);
         });
     }
 }

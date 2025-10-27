@@ -8,7 +8,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="border rounded-lg p-4 text-center">
                 <p class="text-sm text-gray-500">Orders in Progress</p>
-                <h3 class="text-2xl font-bold text-indigo-600">{{ $ordersInProgress }}</h3>
+                <h3 class="text-2xl font-bold text-indigo-600">{{ $totalPendingOrders }}</h3>
             </div>
             <div class="border rounded-lg p-4 text-center">
                 <p class="text-sm text-gray-500">Inventory Warnings</p>
