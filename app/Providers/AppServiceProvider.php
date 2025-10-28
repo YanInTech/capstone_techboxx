@@ -73,8 +73,15 @@ class AppServiceProvider extends ServiceProvider
 
             // Order Builds count
             $pendingPickupCount = OrderedBuild::whereNull('pickup_date')
-                ->whereIn('status', ['Pending', 'Approved'])
-                ->count();
+            ->where(function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->orWhere(function ($q) {
+                        $q->whereNull('user_id')
+                            ->where('status', 'Pending');
+                    });
+            })
+            ->whereIn('status', ['Pending', 'Approved'])
+            ->count();
                 
             // Check-out Product count
             $pendingCheckoutCount = Checkout::where(function ($query) {
