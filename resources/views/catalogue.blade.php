@@ -36,7 +36,7 @@
                 <!-- NEW IN -->
                 <a href="{{ route('catalogue', ['sort' => 'newest']) }}"
                 class="{{ request('sort') === 'newest' ? 'text-[#F17720] font-bold underline' : 'text-[#F17720]' }} hover:underline flex items-center gap-1">
-                NEW IN <x-icons.sparkle/>
+                NEW ARRIVAL <x-icons.sparkle/>
                 </a>
 
                 <!-- HOT -->
