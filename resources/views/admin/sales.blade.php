@@ -94,7 +94,7 @@
                                         <td class="py-1 px-2 truncate">{{ $product['product_name'] }}</td>
                                         <td class="py-1 px-2 text-center">{{ $product['total_sold'] }}</td>
                                         <td class="py-1 px-2 text-center whitespace-nowrap">
-                                            ₱{{ number_format($product['selling_price'] * $product['total_sold'], 2) }}
+                                            ₱{{ number_format(($product['selling_price'] * $product['total_sold']) - ($product['base_price'] * $product['total_sold']), 2) }}
                                         </td>
                                     </tr>
                                 @empty
@@ -176,13 +176,14 @@
         const salesCtx = document.getElementById('salesOverviewChart').getContext('2d');
         const labels = {!! json_encode($salesLabels) !!};
         const data = {!! json_encode($salesTotals) !!};
+        const xAxisLabel = {!! json_encode($xAxisLabel) !!};
 
         new Chart(salesCtx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Sales (₱)',
+                    label: 'Total Sales',
                     data: data,
                     borderColor: '#34D399',
                     backgroundColor: 'rgba(52, 211, 153, 0.2)',
@@ -198,7 +199,9 @@
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { display: false },
+                    legend: { 
+                        display: false // Hide the legend completely
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -210,6 +213,15 @@
                 scales: {
                     y: {
                         beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Sales (₱)',
+                            color: '#374151',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
                         ticks: {
                             callback: function(value) {
                                 return '₱' + value.toLocaleString();
@@ -217,7 +229,18 @@
                         },
                         grid: { color: 'rgba(0,0,0,0.05)' }
                     },
-                    x: { grid: { display: false } }
+                    x: {
+                        title: {
+                            display: true,
+                            text: xAxisLabel,
+                            color: '#374151',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: { display: false }
+                    }
                 }
             }
         });
