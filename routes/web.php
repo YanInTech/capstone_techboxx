@@ -85,6 +85,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
 
     // SALES
     Route::get('sales', [SalesController::class, 'index'])->name('sales');
+    Route::get('/admin/sales/download', [SalesController::class, 'downloadSalesReport'])->name('sales.download');
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
     // ACTIVITY LOGS
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activitylogs');
