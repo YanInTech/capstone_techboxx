@@ -81,17 +81,6 @@ class ActivityLogService
         );
     }
 
-    // public static function userApprovalFailed($unverifiedUser, $adminUser, $reason)
-    // {
-    //     return self::log(
-    //         'user_verification_failed',
-    //         "User verification for {$unverifiedUser->email} failed. Reason: {$reason}",
-    //         $unverifiedUser,
-    //         null,
-    //         ['failure_reason' => $reason]
-    //     );
-    // }
-
     public static function userVerificationRejected($unverifiedUser, $adminUser, $reason = null)
     {
         $description = "User verification for {$unverifiedUser->email} was rejected by {$adminUser->first_name} {$adminUser->last_name}";
@@ -337,30 +326,6 @@ class ActivityLogService
             ['3d_model_updated' => true]
         );
     }
-
-    // // Price update specific method (for future use)
-    // public static function componentPriceUpdated($componentType, $component, $staffUser, $oldPrice, $newPrice)
-    // {
-    //     return self::log(
-    //         'component_price_updated',
-    //         "{$componentType} component {$component->brand} {$component->model} price updated from ₱{$oldPrice} to ₱{$newPrice} by {$staffUser->first_name} {$staffUser->last_name}",
-    //         $component,
-    //         ['price' => $oldPrice],
-    //         ['price' => $newPrice]
-    //     );
-    // }
-
-    // // Stock update specific method (for future use)
-    // public static function componentStockUpdated($componentType, $component, $staffUser, $oldStock, $newStock)
-    // {
-    //     return self::log(
-    //         'component_stock_updated',
-    //         "{$componentType} component {$component->brand} {$component->model} stock updated from {$oldStock} to {$newStock} by {$staffUser->first_name} {$staffUser->last_name}",
-    //         $component,
-    //         ['stock' => $oldStock],
-    //         ['stock' => $newStock]
-    //     );
-    // }
 
     public static function componentDeleted($componentType, $component, $staffUser, $componentData)
     {

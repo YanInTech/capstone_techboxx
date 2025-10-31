@@ -90,7 +90,7 @@
                         <li>
                             <a href="{{ route('admin.sales') }}" 
                                class="child {{ request()->routeIs('admin.sales') ? 'active' : '' }}">
-                                <x-dynamic-component :component="'x-icons.bargraph'" />
+                                <x-dynamic-component :component="'x-icons.analytics'" />
                                 Sales
                             </a>
                         </li>
