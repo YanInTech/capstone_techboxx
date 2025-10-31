@@ -6,12 +6,18 @@
             <!-- Table Header -->
             <div class="overflow-x-auto border-b border-gray-200">
                 <table class="min-w-full">
+                    <colgroup>
+                        <col class="w-[40%]">   <!-- Component -->
+                        <col class="w-[20%]">   <!-- Category -->
+                        <col class="w-[20%]">   <!-- Qty -->
+                        <col class="w-[20%]">   <!-- Price -->
+                    </colgroup>
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Component</th>
                             <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 border-b">Category</th>
                             <th class="px-6 py-3 text-center text-sm font-medium text-gray-700 border-b">Qty</th>
-                            <th class="px-6 py-3 text-right text-sm font-medium text-gray-700 border-b">Price</th>
+                            <th class="px-6 py-3 text-sm font-medium text-gray-700 border-b">Price</th>
                         </tr>
                     </thead>
                 </table>
@@ -20,6 +26,12 @@
             <!-- Scrollable Body -->
             <div class="flex-1 overflow-y-auto overflow-x-auto">
                 <table class="min-w-full h-full">
+                    <colgroup>
+                        <col class="w-[40%]">   <!-- Component -->
+                        <col class="w-[20%]">   <!-- Category -->
+                        <col class="w-[20%]">   <!-- Qty -->
+                        <col class="w-[20%]">   <!-- Price -->
+                    </colgroup>
                     <tbody class="align-top">
                         @forelse ($paginatedGroups as $index => $group)
                             @foreach ($group['cart_items'] as $cartItem)
@@ -42,7 +54,7 @@
                                     </td>
                                     <td class="px-6 py-4 border-b">{{ ucfirst($cartItem->product_type) }}</td>
                                     <td class="px-6 py-4 border-b text-center">{{ $cartItem->quantity }}</td>
-                                    <td class="px-6 py-4 border-b text-right">₱{{ number_format($cartItem->total_price, 2) }}</td>
+                                    <td class="px-6 py-4 border-b text-center">₱{{ number_format($cartItem->total_price, 2) }}</td>
                                 </tr>
                             @endforeach
 
@@ -51,7 +63,7 @@
                                 <td colspan="3" class="px-6 border-b text-right font-semibold align-middle">
                                     Total:
                                 </td>
-                                <td class="px-6 border-b text-right font-bold text-gray-700 align-middle">
+                                <td class="px-6 border-b text-center font-bold text-gray-700 align-middle">
                                     ₱{{ number_format($group['total_cost'], 2) }}
                                 </td>
                             </tr>

@@ -104,15 +104,15 @@
 
                 <!-- Price & Stock -->
                 <div class="mt-6 border-t pt-6">
-                    <p class="text-sm text-gray-500">Price</p>
+                    <p class="text-sm text-gray-500">Price: </p>
                     <div class="text-2xl font-bold text-blue-600">₱{{ number_format($product['price'] ?? 0, 0) }}</div>
 
                     <!-- Stock directly below price -->
                     <div class="mt-2">
-                        <p class="text-sm text-gray-500">Stock</p>
+                        <p class="text-sm text-gray-500 pb-2">Stocks: </p>
                         @if(($product['stock'] ?? 0) > 0)
                             <span class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-semibold">
-                                In stock
+                                {{$product['stock']}} Available
                             </span>
                         @else
                             <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-semibold">
@@ -174,7 +174,7 @@
                             <!-- Current Product Stock -->
                             <div class="mt-1">
                                 @if(($product['stock'] ?? 0) > 0)
-                                    <span class="text-xs text-green-600 font-semibold">In Stock</span>
+                                    <span class="text-xs text-green-600 font-semibold">Stocks: {{$product['stock']}}</span>
                                 @else
                                     <span class="text-xs text-red-600 font-semibold">Out of Stock</span>
                                 @endif
@@ -222,7 +222,7 @@
                                             @if(($recommendation['stock'] ?? 0) <= 5)
                                                 Only {{ $recommendation['stock'] }} left!
                                             @else
-                                                In Stock
+                                                Stocks: {{$product['stock']}} 
                                             @endif
                                         </span>
                                     @else
@@ -339,28 +339,27 @@
         
         <!-- Full Description -->
         <div id="full-description" class="mt-12 bg-white shadow rounded-lg p-6">
-            <h2 class="text-xl font-bold mb-6">Product Specifications</h2>
+            <h2 class="text-xl font-bold mb-3">Product Specifications</h2>
             
             <!-- Combined Specifications -->
-            <div class="grid grid-cols-1 gap-2" style="max-width: 600px; margin: 0 auto;">
+            <div class="grid grid-cols-2 gap-y-4 gap-x-8 mb-6">
                 <!-- Common Specifications from Main Table -->
                 @foreach($commonColumns as $column)
                     @if(in_array($column, $columns) && !empty($row->$column))
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">
-                                {{ str_replace('_', ' ', $column) }}:
-                            </span>
-                            <span class="text-gray-700 text-right flex-grow">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">{{ str_replace('_', ' ', $column) }}:</span>
+                            <span class="text-gray-700">
                                 @if($column === 'price')
                                     ${{ number_format($row->$column, 2) }}
                                 @elseif(is_array($row->$column) || is_array(json_decode($row->$column, true)))
+                                    {{-- Handle array data --}}
                                     @php
                                         $values = is_array($row->$column) ? $row->$column : json_decode($row->$column, true);
                                     @endphp
                                     @if(is_array($values) && count($values) > 0)
-                                        <ul class="list-disc list-inside text-left">
+                                        <ul class="list-disc list-inside">
                                             @foreach($values as $value)
-                                                <li>{{ $value }}</li>
+                                                <ul>{{ $value }}</ul>
                                             @endforeach
                                         </ul>
                                     @else
@@ -377,37 +376,37 @@
                 <!-- Drive Bays from Related Table -->
                 @if(isset($relatedData['drive_bays']) && $relatedData['drive_bays'])
                     @if(isset($relatedData['drive_bays']->{'3_5_bays'}) && $relatedData['drive_bays']->{'3_5_bays'})
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">3.5" Drive Bays:</span>
-                            <span class="text-gray-700 text-right flex-grow">{{ $relatedData['drive_bays']->{'3_5_bays'} }}</span>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">3.5" Drive Bays:</span>
+                            <span class="text-gray-700">{{ $relatedData['drive_bays']->{'3_5_bays'} }}</span>
                         </div>
                     @endif
                     
                     @if(isset($relatedData['drive_bays']->{'2_5_bays'}) && $relatedData['drive_bays']->{'2_5_bays'} !== null)
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">2.5" Drive Bays:</span>
-                            <span class="text-gray-700 text-right flex-grow">{{ $relatedData['drive_bays']->{'2_5_bays'} }}</span>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">2.5" Drive Bays:</span>
+                            <span class="text-gray-700">{{ $relatedData['drive_bays']->{'2_5_bays'} }}</span>
                         </div>
                     @endif
 
                     @if(isset($relatedData['front_ports']->{'usb_3_0_type_A'}) && $relatedData['front_ports']->{'usb_3_0_type_A'} !== null)
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">USB 3.0 Type-A:</span>
-                            <span class="text-gray-700 text-right flex-grow">{{ $relatedData['front_ports']->{'usb_3_0_type_A'} }}</span>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">USB 3.0 Type-A:</span>
+                            <span class="text-gray-700">{{ $relatedData['front_ports']->{'usb_3_0_type_A'} }}</span>
                         </div>
                     @endif
 
                     @if(isset($relatedData['front_ports']->{'usb_2_0'}) && $relatedData['front_ports']->{'usb_2_0'} !== null)
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">USB 2.0:</span>
-                            <span class="text-gray-700 text-right flex-grow">{{ $relatedData['front_ports']->{'usb_2_0'} }}</span>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">USB 2.0:</span>
+                            <span class="text-gray-700">{{ $relatedData['front_ports']->{'usb_2_0'} }}</span>
                         </div>
                     @endif
 
                     @if(isset($relatedData['front_ports']->{'audio_jacks'}) && $relatedData['front_ports']->{'audio_jacks'} !== null)
-                        <div class="flex items-center justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0" style="min-width: 200px;">Audio Jacks:</span>
-                            <span class="text-gray-700 text-right flex-grow">{{ $relatedData['front_ports']->{'audio_jacks'} }}</span>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium capitalize">Audio Jacks:</span>
+                            <span class="text-gray-700">{{ $relatedData['front_ports']->{'audio_jacks'} }}</span>
                         </div>
                     @endif
 
@@ -439,9 +438,9 @@
                             }
                         @endphp
                         
-                        <div class="flex items-start justify-between border-b py-2" style="gap: 20px;">
-                            <span class="font-medium capitalize text-gray-800 flex-shrink-0 pt-1" style="min-width: 200px;">Radiator Support:</span>
-                            <span class="text-gray-700 text-right flex-grow">
+                        <div class="flex flex-col sm:flex-row sm:justify-between border-b pb-2">
+                            <span class="font-medium capitalize sm:mb-0 mb-1">Radiator Support:</span>
+                            <span class="text-gray-700 text-right">
                                 @foreach($radiatorSupport as $support)
                                     {{ $support }}@if(!$loop->last)<br>@endif
                                 @endforeach
