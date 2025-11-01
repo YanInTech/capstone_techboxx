@@ -32,7 +32,9 @@ class CustomerController extends Controller
 
         $request->validate([
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
             'email' => 'required|string|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
         ]);
@@ -41,8 +43,10 @@ class CustomerController extends Controller
 
         $user->update([
             'first_name' => $request->first_name,
+            'middle_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'address' => $request->address,
             'phone_number' => $request->phone_number,
             'email_verified_at' => $emailChanged ? null : $user->email_verified_at,
         ]);

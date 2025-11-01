@@ -34,7 +34,9 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone_number' => ['required','string','min:11','max:11']
@@ -42,7 +44,9 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
+            'address' => $request->address,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone_number' => $request->phone_number,
@@ -58,23 +62,5 @@ class RegisteredUserController extends Controller
         Auth::login($user); 
 
         return redirect()->route('home');
-
-        // consider functionality: making the id one-time-view
-        // add new column in the user_verifications table
-        // insert the following on the appropriate places:
-        // function:
-            // $table->timestamp('viewed_at')->nullable();
-        // controller:
-            // if ($user->viewed_at) {
-            // abort(403, 'This ID has already been reviewed.');
-            // }
-
-            // $user->update(['viewed_at' => now()]);
-        // display logic:
-            // @if (!$unverifieduser->viewed_at)
-            //     <img src="{{ asset('storage/' . $unverifieduser->id_uploaded) }}" alt="Valid ID">
-            // @else
-            //     <span class="text-red-600">ID already reviewed</span>
-            // @endif
     }
 }

@@ -11,7 +11,7 @@
             <div>
                 <span>Name</span>
                 <span>:</span>
-                <span>{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
+                <span>{{ Auth::user()->first_name }} {{ Auth::user()->middle_name }} {{ Auth::user()->last_name }}</span>
             </div>
             <div >
                 <span>Email</span>
@@ -27,6 +27,11 @@
                         </form>
                     @endif    
                 </span>
+            </div>
+            <div>
+                <span>Address</span>
+                <span>:</span>
+                <span>{{ Auth::user()->address }}</span>
             </div>
             <div>
                 <span>Contact</span>
@@ -53,8 +58,6 @@
         </button>
     </div>
     
-    {{-- <hr> --}}
-
     {{-- Edit Modal --}}
     <div x-show="showEditModal" x-cloak x-transition class="modal">
         <div class="modal-form" @click.away="showEditModal = false">
@@ -73,8 +76,16 @@
                     <input type="text" name="first_name"  x-model="user.first_name">
                 </div>
                 <div>
+                    <label for="middle_name">Middle Name</label>
+                    <input type="text" name="middle_name"  x-model="user.middle_name">
+                </div>
+                <div>
                     <label for="last_name">Last Name</label>
                     <input type="text" name="last_name" x-model="user.last_name">
+                </div>
+                <div>
+                    <label for="address">Address</label>
+                    <input type="text" name="address" x-model="user.address">
                 </div>
                 <div>
                     <label for="email">Email</label>
@@ -82,7 +93,7 @@
                 </div>
                 <div>
                     <label for="phone_number">Phone Number</label>
-                    <input type="text" name="phone_number" x-model="user.phone_number">
+                    <input required name="phone_number" id="phone_number" x-model="user.phone_number" type="tel" pattern="0[0-9]{10}" minlength="11" maxlength="11" oninput="this.value = this.value.slice(0, 11)">
                 </div>
 
                 <button type="submit">Save</button>
