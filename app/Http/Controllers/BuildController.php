@@ -102,6 +102,26 @@ class BuildController extends Controller
             ], 500);
         }
 
+
+        $formatted = [];
+        foreach ($build as $type => $data) {
+            // Skip non-component keys like 'budget_summary'
+            if ($type === 'budget_summary') continue;
+
+            // Convert "pc_case" → "case" for consistency
+            $cleanType = str_replace('pc_', '', $type);
+
+            $formatted[$cleanType] = [
+                'componentId' => $data['id'] ?? null,
+                'name'        => $data['name'] ?? '',
+                'price'       => $data['price'] ?? 0,
+                'imageUrl'    => $data['image'] ?? null,
+            ];
+        }
+
+        // 🟢 Store in session
+        session(['selected_components' => $formatted]);
+        
         return response()->json($build);
     }
 
