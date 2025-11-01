@@ -40,23 +40,23 @@
                 <div id="passwordFeedback" class="mt-2 text-sm space-y-1 hidden">
                     <div id="length" class="flex items-center gap-2 text-gray-500">
                         <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-xs">•</span>
-                        At least 8 characters
+                        Must be atleast 8 characters
                     </div>
                     <div id="uppercase" class="flex items-center gap-2 text-gray-500">
                         <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-xs">•</span>
-                        One uppercase letter
+                        Must contain 1 uppercase letter
                     </div>
                     <div id="lowercase" class="flex items-center gap-2 text-gray-500">
                         <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-xs">•</span>
-                        One lowercase letter
+                        Must contain 1 lowercase letter
                     </div>
                     <div id="number" class="flex items-center gap-2 text-gray-500">
                         <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-xs">•</span>
-                        One number
+                        Must contain 1 number
                     </div>
                     <div id="special" class="flex items-center gap-2 text-gray-500">
                         <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-xs">•</span>
-                        One special character
+                        Must contain 1 special character
                     </div>
                 </div>
             </div>
