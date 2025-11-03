@@ -26,46 +26,55 @@ class PurchasedHistoryController extends Controller
             'cartItem.storage',
             'cartItem.psu',
             'cartItem.cooler',
-            'invoice'
         ])
         ->whereHas('cartItem.shoppingCart', function($query) use ($userId) {
             $query->where('user_id', $userId);
         })
         ->where(function($query) {
-            $query->where('pickup_status', 'Pending')
-                  ->orWhereNotNull('pickup_date');
+            $query->whereNotNull('pickup_date');
+                //   ->orWhereNotNull('pickup_date');
         })
         ->orderBy('checkout_date', 'desc')
         ->get();
 
-        // Group by ShoppingCart ID + Checkout Timestamp
-        $grouped = $allCheckouts->groupBy(function ($checkout) {
-            return $checkout->cartItem->shopping_cart_id . '|' . $checkout->checkout_date->format('Y-m-d H:i:s');
-        });
+        // Transform individual component orders - with safety checks
+        $componentOrders = collect([]); // Initialize empty collection
+        
+        if ($allCheckouts->isNotEmpty()) {
+            // Group by ShoppingCart ID + Checkout Timestamp
+            $grouped = $allCheckouts->groupBy(function ($checkout) {
+                return $checkout->cartItem->shopping_cart_id . '|' . $checkout->checkout_date->format('Y-m-d H:i:s');
+            });
 
-        // Transform individual component orders - Convert to objects
-        $componentOrders = $grouped->map(function ($checkouts) {
-            $first = $checkouts->first();
-            $cartItems = $checkouts->map->cartItem;
+            $componentOrders = $grouped->map(function ($checkouts) {
+                $first = $checkouts->first();
+                
+                // Check if cartItem exists
+                if (!$first || !$first->cartItem) {
+                    return null;
+                }
+                
+                $cartItems = $checkouts->map->cartItem;
 
-            return (object)[
-                'type' => 'component',
-                'id' => 'comp_' . $first->cartItem->shopping_cart_id,
-                'order_id' => $first->cartItem->shopping_cart_id,
-                'checkout_date' => $first->checkout_date,
-                'pickup_date' => $first->pickup_date,
-                'updated_at' => $first->updated_at,
-                'pickup_status' => $first->pickup_status,
-                'total_cost' => $checkouts->sum('total_cost'),
-                'cart_items' => $cartItems->values(),
-                'payment_method' => $first->payment_method,
-                'payment_status' => $first->payment_status,
-                'user' => $first->cartItem->shoppingCart->user,
-                'build_name' => 'Custom Components Order',
-            ];
-        })->values();
+                return (object)[
+                    'type' => 'component',
+                    'id' => 'comp_' . $first->cartItem->shopping_cart_id,
+                    'order_id' => $first->cartItem->shopping_cart_id,
+                    'checkout_date' => $first->checkout_date,
+                    'pickup_date' => $first->pickup_date,
+                    'updated_at' => $first->updated_at,
+                    'pickup_status' => $first->pickup_status,
+                    'total_cost' => $checkouts->sum('total_cost'),
+                    'cart_items' => $cartItems->values(),
+                    'payment_method' => $first->payment_method,
+                    'payment_status' => $first->payment_status,
+                    'user' => $first->cartItem->shoppingCart->user ?? null,
+                    'build_name' => 'Custom Components Order',
+                ];
+            })->filter()->values(); // Remove null entries
+        }
 
-        // Get complete build orders - Convert to objects
+        // Get complete build orders - with safety checks
         $buildOrders = OrderedBuild::with([
             'user', 
             'userBuild.case',
@@ -82,11 +91,16 @@ class PurchasedHistoryController extends Controller
             $query->where('id', $userId);
         })
         ->where(function($query) {
-            $query->where('pickup_status', 'Pending')
-                  ->orWhereNotNull('pickup_date');
+            $query->whereNotNull('pickup_date');
+                //   ->orWhereNotNull('pickup_date');
         })
         ->get()
         ->map(function ($order) {
+            // Check if userBuild exists
+            if (!$order->userBuild) {
+                return null;
+            }
+            
             return (object)[
                 'type' => 'build',
                 'id' => 'build_' . $order->id,
@@ -95,14 +109,16 @@ class PurchasedHistoryController extends Controller
                 'pickup_date' => $order->pickup_date,
                 'updated_at' => $order->updated_at,
                 'pickup_status' => $order->pickup_status,
-                'total_cost' => $order->userBuild->total_price,
+                'total_cost' => $order->userBuild->total_price ?? 0,
                 'payment_method' => $order->payment_method,
                 'payment_status' => $order->payment_status,
-                'user' => $order->userBuild->user,
-                'build_name' => $order->userBuild->build_name,
+                'user' => $order->userBuild->user ?? null,
+                'build_name' => $order->userBuild->build_name ?? 'Unknown Build',
                 'user_build' => $order->userBuild,
             ];
-        });
+        })
+        ->filter() // Remove null entries
+        ->values();
 
         // Merge both collections and sort by checkout date
         $allOrders = $componentOrders->merge($buildOrders)
@@ -124,17 +140,5 @@ class PurchasedHistoryController extends Controller
         );
 
         return view('customer.purchasedhistory', compact('paginatedOrders'));
-    }
-
-    // Optional invoice view if you want it
-    public function invoice(Order $order)
-    {
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $order->load('items');
-        $hardwareMap = config('hardware', []);
-        return view('customer.invoice', compact('order', 'hardwareMap'));
     }
 }
