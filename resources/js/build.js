@@ -22,6 +22,12 @@ const componentsTab = document.getElementById('componentsTab');
 const summaryTab = document.getElementById('summaryTab');
 const cartForm = document.getElementById("cartForm");
 
+// Payment method variables
+let selectedPayment = null;
+let totalPrice = 0;
+let downpaymentAmount = 0;
+let remainingBalance = 0;
+
 window.selectedComponents = {};
 window.selectPayment = selectPayment;
 
@@ -254,6 +260,82 @@ function toggleStorage(selectedType) {
     }
 }
 
+// Payment method handling function
+function selectPayment(method, btn) {
+    console.log('Selecting payment:', method);
+    
+    selectedPayment = method;
+    document.getElementById('payment_method').value = method;
+
+    // Reset all payment button styles using inline styles
+    document.querySelectorAll('.payment-btn').forEach(b => {
+        b.style.backgroundColor = '#e5e7eb'; // bg-gray-200
+        b.style.color = '#374151'; // text-gray-800
+        b.style.border = '2px solid transparent';
+    });
+
+    // Apply active styles based on payment method using inline styles
+    if (method === 'PayPal') {
+        btn.style.backgroundColor = '#fbbf24'; // bg-yellow-400
+        btn.style.color = '#1f2937'; // text-gray-900
+        btn.style.border = '2px solid #f59e0b'; // border-yellow-500
+    } else if (method === 'PayPal_Downpayment') {
+        btn.style.backgroundColor = '#c084fc'; // bg-purple-400
+        btn.style.color = '#1f2937'; // text-gray-900
+        btn.style.border = '2px solid #a855f7'; // border-purple-500
+    } else if (method === 'Cash on Pickup') {
+        btn.style.backgroundColor = '#4ade80'; // bg-green-400
+        btn.style.color = '#1f2937'; // text-gray-900
+        btn.style.border = '2px solid #22c55e'; // border-green-500
+    }
+
+    // Handle downpayment display
+    const downpaymentSection = document.getElementById('downpayment-section');
+    const paymentSummary = document.getElementById('payment-summary');
+    const paymentAmount = document.getElementById('payment-amount');
+    const submitButton = document.getElementById('submit-button');
+
+    if (method === 'PayPal_Downpayment') {
+        downpaymentSection.classList.remove('hidden');
+        paymentSummary.classList.remove('hidden');
+        
+        // Update amounts
+        document.getElementById('downpayment-amount').textContent = '₱' + downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        document.getElementById('remaining-balance').textContent = '₱' + remainingBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        paymentAmount.textContent = '₱' + downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
+        // Update submit button text
+        if (submitButton) submitButton.textContent = 'Pay 50% Downpayment';
+    } else if (method === 'PayPal') {
+        downpaymentSection.classList.add('hidden');
+        paymentSummary.classList.remove('hidden');
+        if (paymentAmount) paymentAmount.textContent = '₱' + totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (submitButton) submitButton.textContent = 'Pay Full Amount';
+    } else {
+        downpaymentSection.classList.add('hidden');
+        paymentSummary.classList.add('hidden');
+        if (submitButton) submitButton.textContent = 'Place Order';
+    }
+
+    console.log('Payment method set to:', document.getElementById('payment_method').value);
+}
+
+// Initialize payment display if total price changes
+function updatePaymentDisplay(newTotalPrice) {
+    totalPrice = newTotalPrice;
+    downpaymentAmount = totalPrice * 0.5;
+    remainingBalance = totalPrice * 0.5;
+    
+    // Refresh display if downpayment is selected
+    if (selectedPayment === 'PayPal_Downpayment') {
+        const downpaymentBtn = document.querySelector('[onclick*="PayPal_Downpayment"]');
+        if (downpaymentBtn) selectPayment('PayPal_Downpayment', downpaymentBtn);
+    } else if (selectedPayment === 'PayPal') {
+        const paypalBtn = document.querySelector('[onclick*="PayPal"]');
+        if (paypalBtn) selectPayment('PayPal', paypalBtn);
+    }
+}
+
 //Components & Summary active tab
 document.querySelectorAll('.catalog-button button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -416,6 +498,9 @@ generateBtn.addEventListener('click', () => {
 
         summaryTableBody.innerHTML += totalRow;
 
+        // Update payment display with new total price
+        updatePaymentDisplay(totalPrice);
+
         // ** UPDATED: Conditionally show remarks or summary **
         if (currentBudget) {
             // Show remarks section if there's a currentBudget
@@ -547,7 +632,7 @@ document.querySelectorAll('.catalog-item').forEach(item => {
             toggleStorage(type);
         }
         
-                // --- SEND TO LARAVEL SESSION ---
+        // --- SEND TO LARAVEL SESSION ---
         fetch('/store-component', {
             method: 'POST',
             headers: {
@@ -642,9 +727,6 @@ function updateSummaryTable() {
 
         const row = document.createElement('tr');
 
-        // const idCell = document.createElement('td');
-        // idCell.innerHTML = `<p>${component.componentId}</p>`;
-        
         const nameCell = document.createElement('td');
         nameCell.innerHTML = `<p>${component.name}</p>`;
 
@@ -654,7 +736,6 @@ function updateSummaryTable() {
         const priceCell = document.createElement('td');
         priceCell.innerHTML = `<p>₱${component.price.toFixed(2)}</p>`;
 
-        // row.appendChild(idCell);
         row.appendChild(nameCell);
         row.appendChild(qtyCell);
         row.appendChild(priceCell);
@@ -678,6 +759,9 @@ function updateSummaryTable() {
         totalRow.appendChild(totalPriceCell);
 
         tbody.appendChild(totalRow);
+
+        // Update payment display when summary table changes
+        updatePaymentDisplay(totalPrice);
     }
 }
 
@@ -698,6 +782,16 @@ function handleFormSubmit(e) {
         if (!paymentMethod) {
             alert('Please select a payment method.');
             return false;
+        }
+
+        // Add downpayment amount to form if selected
+        if (selectedPayment === 'PayPal_Downpayment') {
+            const downpaymentInput = document.createElement('input');
+            downpaymentInput.type = 'hidden';
+            downpaymentInput.name = 'downpayment_amount';
+            downpaymentInput.value = downpaymentAmount;
+            form.appendChild(downpaymentInput);
+            console.log('Added downpayment amount:', downpaymentAmount);
         }
     }
 
@@ -820,24 +914,10 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.style.color = '#374151';
         }
     });
-});
 
-export function selectPayment(method, button) {
-    console.log('Selecting payment:', method);
-    
-    document.querySelectorAll('.payment-btn').forEach(btn => {
-        btn.style.backgroundColor = '#e5e7eb';
-        btn.style.color = '#374151';
-        btn.style.border = '2px solid transparent';
-    });
-    
-    button.style.backgroundColor = '#fbbf24';
-    button.style.color = '#1f2937';
-    button.style.border = '2px solid #f59e0b';
-    
-    document.getElementById('payment_method').value = method;
-    console.log('Payment method set to:', document.getElementById('payment_method').value);
-}
+    // Initialize payment variables
+    updatePaymentDisplay(0);
+});
 
 // ADD DATE TODAY ON THE SUMMARY TAB
 window.addEventListener('DOMContentLoaded', () => {

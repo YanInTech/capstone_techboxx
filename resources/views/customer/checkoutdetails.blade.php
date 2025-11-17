@@ -101,80 +101,222 @@
 
         <!-- Order Status Modal -->
         <div x-show="showModal" x-cloak x-transition
-                class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[99999]">
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
             <div @click.away="showModal = false" 
-                class="bg-white w-full max-w-2xl m-4 p-8 rounded-lg shadow-xl relative overflow-y-scroll">
-                <button @click="showModal = false" 
-                        class="absolute top-4 right-4 text-gray-500 hover:text-black text-xl">✖</button>
-
-                <h3 class="text-2xl font-bold mb-6 text-center">Order Status</h3>
-
-                <!-- Order Information -->
-                <div class="mb-6 space-y-2" x-show="selectedOrder">
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Order ID:</span>
-                        <span x-text="'#' + selectedOrder.shopping_cart_id" class="text-gray-700">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Checkout Date:</span>
-                        <span x-text="formatDate(selectedOrder.checkout_date)" class="text-gray-700">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Customer Name:</span>
-                        <span x-text="selectedOrder.user ? selectedOrder.user.first_name + ' ' + selectedOrder.user.last_name : 'Unknown'" class="text-gray-700">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Payment Method:</span>
-                        <span x-text="selectedOrder.payment_method || 'N/A'" class="text-gray-700">-</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="font-semibold">Contact Number:</span>
-                        <span x-text="selectedOrder.user?.phone_number || '0917-XXX-XXXX'" class="text-gray-700">-</span>
+                class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative overflow-hidden border border-gray-200">
+                
+                <!-- Header with Gradient -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-2xl font-bold">Order Status</h3>
+                            <p class="text-blue-100 text-sm mt-1" x-text="'Order #' + (selectedOrder?.shopping_cart_id || '')"></p>
+                        </div>
+                        <button @click="showModal = false" 
+                                class="text-white hover:text-gray-200 transition-colors duration-200 p-2 rounded-full hover:bg-white/10">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Status Timeline -->
-                <h4 class="font-bold text-lg mb-4 border-t border-gray-200 pt-3">Status Timeline</h4>
-                <div class="space-y-4">
-                    <!-- Submitted Status (Always shown) -->
-                    <div class="flex items-start space-x-3">
-                        <div class="flex flex-col items-center">
-                            <div class="w-3 h-3 bg-green-500 rounded-full mt-1"></div>
-                            <div class="w-0.5 h-8 bg-gray-300" x-show="selectedOrder.pickup_status === 'Pending'"></div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <span class="font-semibold text-sm" x-text="formatDate(selectedOrder.checkout_date) + ' - Submitted'"></span>
+                <!-- Content -->
+                <div class="max-h-[70vh] overflow-y-auto p-6">
+                    <!-- Order Information Card -->
+                    <div class="bg-gray-50 rounded-xl p-5 mb-6 border border-gray-200" x-show="selectedOrder">
+                        <h4 class="font-bold text-lg text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Order Details
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Order ID:</span>
+                                    <span x-text="'#' + selectedOrder.shopping_cart_id" class="text-gray-800 font-semibold bg-white px-3 py-1 rounded-lg border text-sm">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Checkout Date:</span>
+                                    <span x-text="formatDate(selectedOrder.checkout_date)" class="text-gray-800 font-medium">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Customer Name:</span>
+                                    <span x-text="selectedOrder.user ? selectedOrder.user.first_name + ' ' + selectedOrder.user.last_name : 'Unknown'" class="text-gray-800 font-medium">-</span>
+                                </div>
                             </div>
-                            <p class="text-sm text-gray-600 mt-1">Your order has been placed successfully.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- To Pick Up Status (Only shown when pickup_status is 'Pending') -->
-                    <div class="flex items-start space-x-3" x-show="selectedOrder.pickup_status === 'Pending'">
-                        <div class="flex flex-col items-center">
-                            <div class="w-3 h-3 bg-green-500 rounded-full mt-1"></div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <span class="font-semibold text-sm" x-text="formatDate(selectedOrder.updated_at) + ' - To Pick Up'"></span>
+                            
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Payment Method:</span>
+                                    <span x-text="selectedOrder.payment_method || 'N/A'" class="text-gray-800 font-medium bg-white px-3 py-1 rounded-lg border text-sm">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Contact:</span>
+                                    <span x-text="selectedOrder.user?.phone_number || '0917-XXX-XXXX'" class="text-gray-800 font-medium">-</span>
+                                </div>
                             </div>
-                            <p class="text-sm text-gray-600 mt-1">Your order is ready to be picked up from the shop.</p>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Current Status -->
-                <div class="text-center">
-                    <p class="font-bold text-lg mt-3">
-                        Current Status: 
-                        <template x-if="selectedOrder.pickup_status === null">
-                            <span class="text-blue-600">Submitted</span>
+                        <!-- Payment Status Badge -->
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Payment Status:</span>
+                                <span class="font-semibold px-4 py-2 rounded-full text-sm border-2" 
+                                    :class="{
+                                        'bg-green-100 text-green-800 border-green-200': selectedOrder.payment_status === 'Paid',
+                                        'bg-blue-100 text-blue-800 border-blue-200': selectedOrder.is_downpayment,
+                                        'bg-yellow-100 text-yellow-800 border-yellow-200': selectedOrder.payment_status === 'Pending',
+                                        'bg-red-100 text-red-800 border-red-200': selectedOrder.payment_status === 'Cancelled'
+                                    }"
+                                    x-text="selectedOrder.is_downpayment ? 'Downpayment Paid' : (selectedOrder.payment_status || 'Pending')">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Amount Information -->
+                        <template x-if="selectedOrder.is_downpayment">
+                            <div class="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Downpayment Paid:</span>
+                                    <span x-text="'₱' + formatCurrency(selectedOrder.downpayment_amount)" class="text-green-600 font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Remaining Balance:</span>
+                                    <span x-text="'₱' + formatCurrency(selectedOrder.remaining_balance)" class="text-orange-600 font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                    <span class="text-sm font-medium text-gray-600">Total Order Amount:</span>
+                                    <span x-text="'₱' + formatCurrency(selectedOrder.total_cost)" class="text-purple-600 font-bold text-xl">-</span>
+                                </div>
+                            </div>
                         </template>
-                        <template x-if="selectedOrder.pickup_status === 'Pending'">
-                            <span class="text-green-600">Ready for Pickup</span>
+
+                        <template x-if="!selectedOrder.is_downpayment">
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Total Amount:</span>
+                                    <span x-text="'₱' + formatCurrency(selectedOrder.total_cost)" class="text-purple-600 font-bold text-xl">-</span>
+                                </div>
+                            </div>
                         </template>
-                    </p>
+                    </div>
+
+                    <!-- Payment Instructions for Downpayment -->
+                    <div x-show="selectedOrder && selectedOrder.is_downpayment" 
+                        class="mb-6 p-5 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl shadow-sm">
+                        <div class="flex items-start">
+                            <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-yellow-800 mb-2 text-lg">Payment Reminder</h4>
+                                <p class="text-yellow-700">
+                                    You have paid <span x-text="'₱' + formatCurrency(selectedOrder.downpayment_amount)" class="font-bold"></span> 
+                                    (50% downpayment). The remaining balance of 
+                                    <span x-text="'₱' + formatCurrency(selectedOrder.remaining_balance)" class="font-bold"></span> 
+                                    must be settled upon pickup.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Timeline -->
+                    <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-lg text-gray-800 mb-6 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Order Timeline
+                        </h4>
+                        
+                        <div class="space-y-6">
+                            <!-- Submitted Status -->
+                            <div class="flex items-start space-x-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full mt-1 ring-4 ring-green-100"></div>
+                                    <div class="w-1 h-12 bg-gradient-to-b from-green-200 to-gray-100" 
+                                        x-show="selectedOrder.pickup_status === 'Pending' || selectedOrder.is_downpayment"></div>
+                                </div>
+                                <div class="flex-1 pb-6">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-800" x-text="'Submitted - ' + formatDate(selectedOrder.checkout_date)"></span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm leading-relaxed">Your order has been placed successfully and is being processed.</p>
+                                    <template x-if="selectedOrder.is_downpayment">
+                                        <p class="text-blue-600 text-sm font-medium mt-2 bg-blue-50 px-3 py-2 rounded-lg">
+                                            ✅ 50% downpayment of <span x-text="'₱' + formatCurrency(selectedOrder.downpayment_amount)" class="font-bold"></span> received.
+                                        </p>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- To Pick Up Status -->
+                            <div class="flex items-start space-x-4" x-show="selectedOrder.pickup_status === 'Pending'">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full mt-1 ring-4 ring-green-100"></div>
+                                    <div class="w-1 h-12 bg-gradient-to-b from-green-200 to-gray-100"></div>
+                                </div>
+                                <div class="flex-1 pb-6">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-800" x-text="'Ready for Pickup - ' + formatDate(selectedOrder.updated_at)"></span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm leading-relaxed">Your order is ready to be picked up from our shop location.</p>
+                                    <template x-if="selectedOrder.is_downpayment">
+                                        <p class="text-orange-600 text-sm font-medium mt-2 bg-orange-50 px-3 py-2 rounded-lg">
+                                            💰 Please bring <span x-text="'₱' + formatCurrency(selectedOrder.remaining_balance)" class="font-bold"></span> for the remaining balance.
+                                        </p>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Completed Status -->
+                            <div class="flex items-start space-x-4" x-show="selectedOrder.pickup_status === 'Completed'">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full mt-1 ring-4 ring-green-100"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-800" x-text="'Completed - ' + formatDate(selectedOrder.updated_at)"></span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm leading-relaxed">Order has been successfully completed and picked up.</p>
+                                    <template x-if="selectedOrder.is_downpayment">
+                                        <p class="text-green-600 text-sm font-medium mt-2 bg-green-50 px-3 py-2 rounded-lg">
+                                            🎉 Full payment of <span x-text="'₱' + formatCurrency(selectedOrder.total_cost)" class="font-bold"></span> received.
+                                        </p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Status Banner -->
+                    <div class="mt-6 p-5 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200 text-center">
+                        <p class="font-bold text-lg mb-2">
+                            Current Status: 
+                            <template x-if="selectedOrder.pickup_status === null && !selectedOrder.is_downpayment">
+                                <span class="text-blue-600 ml-2">📦 Submitted</span>
+                            </template>
+                            <template x-if="selectedOrder.is_downpayment">
+                                <span class="text-purple-600 ml-2">💳 Downpayment Paid - Awaiting Pickup</span>
+                            </template>
+                            <template x-if="selectedOrder.pickup_status === 'Pending'">
+                                <span class="text-green-600 ml-2">✅ Ready for Pickup</span>
+                            </template>
+                            <template x-if="selectedOrder.pickup_status === 'Completed'">
+                                <span class="text-gray-600 ml-2">🎉 Completed</span>
+                            </template>
+                        </p>
+                        <template x-if="selectedOrder.is_downpayment">
+                            <p class="text-sm text-gray-600 mt-2">
+                                Remaining balance to pay upon pickup: 
+                                <span x-text="'₱' + formatCurrency(selectedOrder.remaining_balance)" class="font-bold text-orange-600 text-lg"></span>
+                            </p>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,6 +354,22 @@
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
+                    });
+                },
+
+                 // ADD THIS MISSING FUNCTION
+                formatCurrency(amount) {
+                    if (amount === null || amount === undefined || amount === '') {
+                        return '0.00';
+                    }
+                    // Convert to number and format
+                    const num = parseFloat(amount);
+                    if (isNaN(num)) {
+                        return '0.00';
+                    }
+                    return num.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     });
                 },
                 

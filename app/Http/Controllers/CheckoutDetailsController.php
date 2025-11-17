@@ -52,6 +52,9 @@ class CheckoutDetailsController extends Controller
                 'payment_method' => $first->payment_method,
                 'user' => $first->cartItem->shoppingCart->user,
                 'checkout_ids' => $checkouts->pluck('id')->toArray(),
+                'is_downpayment' => $first->is_downpayment, // Fixed this line
+                'downpayment_amount' => $first->downpayment_amount, // Add this
+                'remaining_balance' => $first->remaining_balance, // Add this
             ];
         })->values();
 

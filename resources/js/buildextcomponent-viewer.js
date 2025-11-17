@@ -37,6 +37,58 @@ init();
 setupCatalogClickHandlers();
 animate();
 
+// Add this function to initialize from session data
+async function initializeFromSession() {
+    console.log('Initializing from session data:', window.selectedComponents);
+    
+    if (!window.selectedComponents) return;
+    
+    // Load case if selected
+    if (window.selectedComponents.case && window.selectedComponents.case.modelUrl) {
+        selectedCaseModelUrl = window.selectedComponents.case.modelUrl;
+        console.log('Loading case from session:', selectedCaseModelUrl);
+        await spawnCase(new THREE.Vector3(0, 0, 0), selectedCaseModelUrl);
+    }
+    
+    // Load motherboard if selected (after case)
+    if (window.selectedComponents.motherboard && window.selectedComponents.motherboard.modelUrl && caseModel) {
+        selectedMoboModelUrl = window.selectedComponents.motherboard.modelUrl;
+        console.log('Loading motherboard from session:', selectedMoboModelUrl);
+        await spawnMoboAtSlot();
+    }
+    
+    // Load other components in dependency order
+    if (window.selectedComponents.cpu && window.selectedComponents.cpu.modelUrl && moboModel) {
+        selectedCpuModelUrl = window.selectedComponents.cpu.modelUrl;
+        await spawnCpuAtSlot();
+    }
+    
+    if (window.selectedComponents.psu && window.selectedComponents.psu.modelUrl && caseModel) {
+        selectedPsuModelUrl = window.selectedComponents.psu.modelUrl;
+        await spawnPsuAtSlot();
+    }
+    
+    if (window.selectedComponents.cooler && window.selectedComponents.cooler.modelUrl && moboModel) {
+        selectedCoolerModelUrl = window.selectedComponents.cooler.modelUrl;
+        await spawnCoolerAtSlot();
+    }
+    
+    if (window.selectedComponents.ssd && window.selectedComponents.ssd.modelUrl && moboModel) {
+        selectedSsdModelUrl = window.selectedComponents.ssd.modelUrl;
+        await spawnSsdAtSlot();
+    }
+    
+    if (window.selectedComponents.gpu && window.selectedComponents.gpu.modelUrl && moboModel) {
+        selectedGpuModelUrl = window.selectedComponents.gpu.modelUrl;
+        await spawnGpuAtSlot();
+    }
+    
+    if (window.selectedComponents.ram && window.selectedComponents.ram.modelUrl && moboModel) {
+        selectedRamModelUrl = window.selectedComponents.ram.modelUrl;
+        await spawnRamAtSlot();
+    }
+}
+
 function init() {
     // Scene
     scene = new THREE.Scene();
@@ -72,6 +124,11 @@ function init() {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     });
+
+    // NEW: Initialize from session data after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeFromSession();
+    }, 500);
 }
 
 function animate() {

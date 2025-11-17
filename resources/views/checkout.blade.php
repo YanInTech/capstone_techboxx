@@ -155,14 +155,20 @@
                                 type="button"
                                 onclick="selectPayment('PayPal', this)"
                                 class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
-                                PayPal
+                                PayPal Full
                             </button>
                             <button
+                                type="button"
+                                onclick="selectPayment('PayPal_Downpayment', this)"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
+                                PayPal 50% Downpayment
+                            </button>
+                            {{-- <button
                                 type="button"
                                 onclick="selectPayment('Cash on Pickup', this)"
                                 class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
                                 Cash On Pickup
-                            </button>
+                            </button> --}}
                         </div>
                     </div>
 
@@ -171,6 +177,14 @@
                         <span class="text-gray-700 mr-2">Total Payment:</span>
                         <span class="text-pink-600 font-bold text-lg">
                             ₱{{ number_format($grandTotal, 2) }}
+                        </span>
+                    </div>
+
+                    <!-- Downpayment Amount (Hidden by default) -->
+                    <div id="downpayment-section" class="flex justify-end mb-2 hidden">
+                        <span class="text-gray-700 mr-2">Downpayment (50%):</span>
+                        <span id="downpayment-amount" class="text-green-600 font-bold text-lg">
+                            ₱{{ number_format($grandTotal * 0.5, 2) }}
                         </span>
                     </div>
 
@@ -190,6 +204,9 @@
     <!-- Scripts -->
     <script>
         let selectedPayment = null;
+        let formSubmitted = false;
+        let grandTotal = {{ $grandTotal }};
+        let downpaymentAmount = grandTotal * 0.5;
 
         function selectPayment(method, btn) {
             selectedPayment = method;
@@ -201,29 +218,22 @@
                 b.classList.add('bg-gray-200', 'text-gray-700');
             });
 
-            // highlight
+            // highlight selected
             btn.classList.remove('bg-gray-200', 'text-gray-700');
             btn.classList.add('bg-yellow-400', 'text-gray-900');
-        }
 
-        document.getElementById('checkout-form').addEventListener('submit', function(e) {
-            if (!selectedPayment) {
-                e.preventDefault();
-                alert('Please select a payment method before checking out.');
-                return false;
+            // Show/hide downpayment section
+            const downpaymentSection = document.getElementById('downpayment-section');
+            if (method === 'PayPal_Downpayment') {
+                downpaymentSection.classList.remove('hidden');
+                // Update checkout button text
+                document.getElementById('checkout-btn').textContent = 'Pay 50% Downpayment';
+            } else {
+                downpaymentSection.classList.add('hidden');
+                document.getElementById('checkout-btn').textContent = 'Check Out';
             }
-        });
-    </script>
-    <!-- Add this script to prevent form resubmission -->
-    <script>
-        // Prevent form resubmission when page is refreshed or back button is pressed
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
         }
 
-        // Disable form submission after it's been submitted once
-        let formSubmitted = false;
-        
         document.getElementById('checkout-form').addEventListener('submit', function(e) {
             if (!selectedPayment) {
                 e.preventDefault();
@@ -238,14 +248,38 @@
                 return false;
             }
             
+            // If downpayment is selected, modify the form data
+            if (selectedPayment === 'PayPal_Downpayment') {
+                // Create a hidden input for downpayment amount
+                const downpaymentInput = document.createElement('input');
+                downpaymentInput.type = 'hidden';
+                downpaymentInput.name = 'downpayment_amount';
+                downpaymentInput.value = downpaymentAmount;
+                this.appendChild(downpaymentInput);
+            }
+            
             formSubmitted = true;
             
             // Disable the submit button
             const submitBtn = document.getElementById('checkout-btn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
+            
+            // Update button text based on payment method
+            if (selectedPayment === 'PayPal_Downpayment') {
+                submitBtn.textContent = 'Processing 50% Downpayment...';
+            } else if (selectedPayment === 'PayPal') {
+                submitBtn.textContent = 'Redirecting to PayPal...';
+            } else {
+                submitBtn.textContent = 'Processing...';
+            }
+            
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
         });
+
+        // Prevent form resubmission when page is refreshed or back button is pressed
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
 
         // Also disable the button if user tries to go back and forward again
         window.addEventListener('pageshow', function(event) {

@@ -402,28 +402,66 @@ class="flex">
 
                 {{-- PAYMENT METHOD - ONLY FOR ORDER --}}
                 <div x-show="modalType === 'order'" class="bg-gray-50 rounded-xl p-6 space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-800">Payment Method</h4>
-                    <div class="flex gap-3">
-                        <input type="hidden" name="payment_method" id="payment_method" required>
-                        <button
-                            type="button"
-                            onclick="selectPayment('PayPal', this)"
-                            class="payment-btn flex-1 bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105">
-                            PayPal
-                        </button>
-                        <button
-                            type="button"
-                            onclick="selectPayment('Cash on Pickup', this)"
-                            class="payment-btn flex-1 bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105">
-                            Cash On Pickup
-                        </button>
+                    <div class="border-b border-gray-200 pb-3">
+                        <h4 class="text-lg font-semibold text-gray-800">Payment Method</h4>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        {{-- Payment Method Buttons --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input type="hidden" name="payment_method" id="payment_method" required>
+                            <button
+                                type="button"
+                                onclick="selectPayment('PayPal', this)"
+                                class="payment-btn bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                <span class="font-bold">PayPal</span>
+                                <span class="text-xs text-gray-600 mt-1">Full Payment</span>
+                            </button>
+                            <button
+                                type="button"
+                                onclick="selectPayment('PayPal_Downpayment', this)"
+                                class="payment-btn bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-purple-400 hover:border-purple-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                <span class="font-bold">PayPal</span>
+                                <span class="text-xs text-gray-600 mt-1">50% Downpayment</span>
+                            </button>
+                            {{-- <button
+                                type="button"
+                                onclick="selectPayment('Cash on Pickup', this)"
+                                class="payment-btn bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-green-400 hover:border-green-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                <span class="font-bold">Cash</span>
+                                <span class="text-xs text-gray-600 mt-1">On Pickup</span>
+                            </button> --}}
+                        </div>
+
+                        {{-- Downpayment Information --}}
+                        <div id="downpayment-section" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Downpayment (50%):</span>
+                                <span id="downpayment-amount" class="text-lg font-bold text-purple-600"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">Remaining Balance:</span>
+                                <span id="remaining-balance" class="text-lg font-bold text-orange-600"></span>
+                            </div>
+                            <p class="text-xs text-purple-600 mt-2 text-center">
+                                💡 Pay 50% now, settle the remaining 50% upon pickup
+                            </p>
+                        </div>
+
+                        {{-- Payment Summary --}}
+                        <div id="payment-summary" class="bg-white rounded-lg p-4 border border-gray-200 hidden">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-800">Amount to Pay:</span>
+                                <span id="payment-amount" class="text-xl font-bold text-green-600"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- UPDATED: Submit Button with Compatibility Check --}}
                 <div class="flex justify-between items-center pt-4 border-t border-gray-200">
                     <div x-show="compatibilityResults && compatibilityResults.errors && compatibilityResults.errors.length > 0" 
-                         class="text-red-600 text-sm font-medium">
+                        class="text-red-600 text-sm font-medium">
                         ❌ Fix compatibility issues to proceed
                     </div>
                     <div class="flex gap-3 ml-auto">
@@ -440,6 +478,7 @@ class="flex">
                                 'bg-gray-400 cursor-not-allowed': compatibilityResults && compatibilityResults.errors && compatibilityResults.errors.length > 0
                             }"
                             class="text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50"
+                            id="submit-button"
                             x-text="submitButtonText">
                         </button>
                     </div>

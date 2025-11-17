@@ -30,9 +30,10 @@ class PayPalController extends Controller
     public function create(Request $request)
     {
         $amount = $request->input('amount');
-        $checkoutIdsRaw = $request->input('checkout_ids'); // For cart items
-        $orderedBuildId = $request->input('ordered_build_id'); // For ordered builds
-        $selected = $request->input('selected'); // Comma-separated cart item IDs
+        $checkoutIdsRaw = $request->input('checkout_ids');
+        $orderedBuildId = $request->input('ordered_build_id');
+        $selected = $request->input('selected');
+        $isDownpayment = $request->input('is_downpayment', 0);
 
         $paypalRequest = new OrdersCreateRequest();
         $paypalRequest->prefer('return=representation');
@@ -48,12 +49,14 @@ class PayPalController extends Controller
                 "return_url" => route('paypal.success', [
                     'checkout_ids' => $checkoutIdsRaw,
                     'ordered_build_id' => $orderedBuildId,
-                    'selected' => $selected
+                    'selected' => $selected,
+                    'is_downpayment' => $isDownpayment
                 ]),
                 "cancel_url" => route('paypal.cancel', [
                     'checkout_ids' => $checkoutIdsRaw,
                     'ordered_build_id' => $orderedBuildId,
-                    'selected' => $selected
+                    'selected' => $selected,
+                    'is_downpayment' => $isDownpayment
                 ]),
             ]
         ];
@@ -80,9 +83,10 @@ class PayPalController extends Controller
         $checkoutIdsRaw = $request->query('checkout_ids', '');
         $orderedBuildId = $request->query('ordered_build_id');
         $selectedRaw = $request->query('selected', '');
+        $isDownpayment = $request->query('is_downpayment', 0);
 
         $checkoutIds = array_filter(array_map('intval', explode(',', $checkoutIdsRaw)));
-        $selectedIds = array_filter(array_map('intval', explode(',', $selectedRaw)));
+        // $selectedIds = array_filter(array_map('intval', explode(',', $selectedRaw)));
 
         try {
             $captureRequest = new OrdersCaptureRequest($paypalOrderId);
@@ -93,17 +97,20 @@ class PayPalController extends Controller
         }
 
         if (isset($captureResponse->result->status) && $captureResponse->result->status === "COMPLETED") {
-            // Update checkout payment statuses (for cart items)
+            // Update checkout payment statuses
             if (!empty($checkoutIds)) {
-                Checkout::whereIn('id', $checkoutIds)->update(['payment_status' => 'Paid']);
+                $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+                Checkout::whereIn('id', $checkoutIds)->update(['payment_status' => $paymentStatus]);
             }
 
             // Update ordered build payment status
             if ($orderedBuildId) {
-                OrderedBuild::where('id', $orderedBuildId)->update(['payment_status' => 'Paid']);
+                $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+                OrderedBuild::where('id', $orderedBuildId)->update(['payment_status' => $paymentStatus]);
             }
 
-            return redirect()->route('cart.index')->with('success', 'Payment successful! Order placed.');
+            $message = $isDownpayment ? '50% Downpayment successful! Order placed.' : 'Payment successful! Order placed.';
+            return redirect()->route('cart.index')->with('success', $message);
         }
 
         return redirect()->route('cart.index')->with('error', 'Payment not completed.');

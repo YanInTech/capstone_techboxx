@@ -18,8 +18,14 @@ class CheckoutController extends Controller
         $selectedItemsRaw = $request->input('selected_items', '[]');
         $selectedIds = json_decode($selectedItemsRaw, true) ?: [];
         $paymentMethod = $request->input('payment_method', 'Cash on Pickup');
+        $downpaymentAmount = $request->input('downpayment_amount');
 
-        if (strtolower($paymentMethod) === 'cash on pickup') {
+        // Determine if this is a downpayment
+        $isDownpayment = $paymentMethod === 'PayPal_Downpayment';
+        
+        if ($isDownpayment) {
+            $paymentMethod = 'PayPal'; // Store as PayPal but track downpayment
+        } elseif (strtolower($paymentMethod) === 'cash on pickup') {
             $paymentMethod = 'Cash';
         }
 
@@ -52,20 +58,20 @@ class CheckoutController extends Controller
                 }
             }
             
-            // If any stock errors, return with errors
             if (!empty($stockErrors)) {
                 return redirect()->route('cart.index')->with('error', implode('<br>', $stockErrors));
             }
 
             $grandTotal = $cartItems->sum(fn($i) => ($i->product->price ?? 0) * ($i->quantity ?? 0));
+            
+            // Calculate the amount to charge
+            $amountToCharge = $isDownpayment ? $downpaymentAmount : $grandTotal;
 
-            // Use database transaction to ensure data consistency
             DB::beginTransaction();
             
             try {
-                $checkoutIds = []; // Store all checkout IDs
+                $checkoutIds = [];
                 
-                // Iterate through selected cart items and create Checkout records
                 foreach ($cartItems as $ci) {
                     $product = $ci->product;
                     $name = $product->brand ?? ($product->name ?? ($product->model ?? 'Product'));
@@ -82,35 +88,36 @@ class CheckoutController extends Controller
                         }
                     }
 
-                    // Prepare the data before creating the Checkout record
+                    // Prepare checkout data
                     $data = [
                         'cart_item_id' => $ci->id,
                         'checkout_date' => now()->toDateTimeString(),
                         'total_cost' => $ci->total_price,
                         'payment_method' => $paymentMethod,
-                        'payment_status' => 'Pending',
+                        'payment_status' => $isDownpayment ? 'Paid' : 'Pending',
+                        'is_downpayment' => $isDownpayment,
+                        'downpayment_amount' => $isDownpayment ? $downpaymentAmount : null,
+                        'remaining_balance' => $isDownpayment ? ($grandTotal - $downpaymentAmount) : null,
                     ];
 
-                    // Create the Checkout record for each cart item
                     $checkout = Checkout::create($data);
-                    $checkoutIds[] = $checkout->id; // Store the checkout ID
+                    $checkoutIds[] = $checkout->id;
 
                     $ci->update(['processed' => true]);
                 }
 
                 DB::commit();
 
-                // Redirect to PayPal payment page if PayPal is selected
+                // Redirect to PayPal if PayPal or Downpayment is selected
                 if ($paymentMethod === 'PayPal') {
                     return redirect()->route('paypal.create', [
-                        'checkout_ids' => implode(',', $checkoutIds), // Pass all checkout IDs
-                        'amount' => $grandTotal,
-                        'selected' => implode(',', $selectedIds), // Pass selected cart item IDs
+                        'checkout_ids' => implode(',', $checkoutIds),
+                        'amount' => $amountToCharge,
+                        'selected' => implode(',', $selectedIds),
+                        'is_downpayment' => $isDownpayment ? 1 : 0,
                     ]);
                 }
 
-                // If payment is Cash on Pickup, no need to delete the cart items
-                // Just show the success message
                 return redirect()->route('cart.index')->with('success', 'Order placed successfully!');
 
             } catch (\Exception $e) {
