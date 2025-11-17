@@ -19,6 +19,11 @@
 </head>
 <script>
     window.selectedComponents = @json(session('selected_components', []));
+    // Make payment variables globally accessible
+    window.selectedPayment = null;
+    window.totalPrice = 0;
+    window.downpaymentAmount = 0;
+    window.remainingBalance = 0;
 </script>
 <body class="flex flex-col"
       x-data="{ 
@@ -135,6 +140,11 @@
               }
               this.totalPrice = totalPrice;
               
+              // Update global total price for payment calculations
+              window.totalPrice = totalPrice;
+              window.downpaymentAmount = totalPrice * 0.5;
+              window.remainingBalance = totalPrice * 0.5;
+              
               this.updateModalHiddenInputs();
               this.showModal = true;
           },
@@ -179,6 +189,185 @@
                 }
                 totalPriceInput.value = totalPrice.toFixed(2);
             }
+        },
+
+        // Form submission handling
+        submitForm(event) {
+            console.log('=== FORM SUBMISSION STARTED ===');
+            
+            // Prevent default immediately
+            event.preventDefault();
+            
+            // Validate build name
+            const buildNameInput = document.querySelector(`input[name='build_name']`);
+            const buildName = buildNameInput ? buildNameInput.value : '';
+            if (!buildName.trim()) {
+                alert('Please enter a build name.');
+                return false;
+            }
+            
+            // Validate components
+            if (Object.keys(this.selectedComponents).length === 0) {
+                alert('Please select at least one component.');
+                return false;
+            }
+            
+            // Validate all required components are selected
+            const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case'];
+            const missingComponents = [];
+            
+            requiredComponents.forEach(type => {
+                if (!this.selectedComponents[type] || !this.selectedComponents[type].componentId) {
+                    const componentNames = {
+                        'gpu': 'GPU',
+                        'motherboard': 'Motherboard',
+                        'cpu': 'CPU',
+                        'psu': 'Power Supply',
+                        'ram': 'RAM',
+                        'cooler': 'Cooler',
+                        'case': 'Case'
+                    };
+                    missingComponents.push(componentNames[type]);
+                }
+            });
+            
+            // Check storage
+            if (!this.selectedComponents.ssd?.componentId && !this.selectedComponents.hdd?.componentId) {
+                missingComponents.push('Storage (HDD or SSD)');
+            }
+            
+            if (missingComponents.length > 0) {
+                alert(`Please select the following components:\n\n${missingComponents.join('\n')}`);
+                return false;
+            }
+            
+            // Check compatibility errors
+            if (this.compatibilityResults && this.compatibilityResults.errors && this.compatibilityResults.errors.length > 0) {
+                alert('Please fix compatibility issues before proceeding.');
+                return false;
+            }
+
+            // PAYMENT METHOD VALIDATION - ONLY FOR ORDERS
+            if (this.modalType === 'order') {
+                const paymentMethod = document.getElementById('payment_method').value;
+                console.log('Payment method:', paymentMethod);
+                if (!paymentMethod) {
+                    alert('Please select a payment method.');
+                    return false;
+                }
+
+                // Handle PayPal payments - redirect to PayPal instead of submitting form
+                if (paymentMethod === 'PayPal' || paymentMethod === 'PayPal_Downpayment') {
+                    return this.handlePayPalPayment(event, paymentMethod);
+                }
+            }
+            
+            console.log('=== ALL VALIDATIONS PASSED - SUBMITTING FORM ===');
+            
+            // Update hidden inputs one final time
+            this.updateModalHiddenInputs();
+            
+            // Submit the form programmatically (for non-PayPal payments)
+            const form = event.target;
+            console.log('Submitting form to:', form.action);
+            form.submit();
+        },
+
+        async handlePayPalPayment(event, paymentMethod) {
+            console.log('=== HANDLING PAYPAL PAYMENT ===');
+            
+            // Update hidden inputs first
+            this.updateModalHiddenInputs();
+            
+            // Get the total price and calculate amount
+            const totalPrice = this.totalPrice;
+            const amount = paymentMethod === 'PayPal_Downpayment' ? totalPrice * 0.5 : totalPrice;
+            
+            console.log('Payment details:', {
+                paymentMethod,
+                totalPrice,
+                amount,
+                isDownpayment: paymentMethod === 'PayPal_Downpayment'
+            });
+            
+            // Prepare component IDs for the build
+            const componentIds = {};
+            for (const [type, component] of Object.entries(this.selectedComponents)) {
+                if (component && component.componentId) {
+                    // For storage components (SSD/HDD), we need to handle them specially
+                    if (type === 'ssd' || type === 'hdd') {
+                        // Use the actual storage component that was selected
+                        const storageInput = document.getElementById('hidden_storage');
+                        if (storageInput && storageInput.value) {
+                            componentIds['storage'] = storageInput.value;
+                        }
+                    } else {
+                        // For all other components, use the type directly
+                        componentIds[type] = component.componentId;
+                    }
+                }
+            }
+            
+            // Debug: Log the final component IDs
+            console.log('Final component IDs to send:', componentIds);
+            
+            // Get build name
+            const buildNameInput = document.querySelector(`input[name='build_name']`);
+            const buildName = buildNameInput ? buildNameInput.value : '';
+            
+            try {
+                // Use FormData instead of JSON for better compatibility
+                const formData = new FormData();
+                formData.append('build_name', buildName);
+                formData.append('total_price', totalPrice);
+                formData.append('payment_method', paymentMethod);
+                
+                // Add component IDs in the correct format
+                Object.entries(componentIds).forEach(([type, id]) => {
+                    formData.append(`component_ids[${type}]`, id);
+                });
+                
+                // Add downpayment amount if applicable
+                if (paymentMethod === 'PayPal_Downpayment') {
+                    formData.append('downpayment_amount', amount);
+                }
+                
+                // Add CSRF token
+                formData.append('_token', document.querySelector(`meta[name='csrf-token']`).content);
+                
+                console.log('Sending form data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+                
+                // Submit the order via AJAX
+                const response = await fetch('{{ route("build.order") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                console.log('Server response:', data);
+                
+                if (data.success && data.redirect_url) {
+                    // Redirect to PayPal
+                    console.log('Redirecting to PayPal:', data.redirect_url);
+                    window.location.href = data.redirect_url;
+                } else {
+                    console.error('PayPal redirection failed:', data);
+                    alert(data.message || 'Failed to process PayPal payment. Please try again.');
+                }
+                
+            } catch (error) {
+                console.error('PayPal payment error:', error);
+                alert('An error occurred while processing your payment. Please try again.');
+            }
+            
+            return false;
         },
         
         // Computed properties
@@ -336,21 +525,52 @@
 
                 {{-- PAYMENT METHOD - ONLY FOR ORDER --}}
                 <div x-show="modalType === 'order'" class="bg-gray-50 rounded-xl p-6 space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-800">Payment Method</h4>
-                    <div class="flex gap-3">
-                        <input type="hidden" name="payment_method" id="payment_method" required>
-                        <button
-                            type="button"
-                            onclick="selectPayment('PayPal', this)"
-                            class="payment-btn flex-1 bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105">
-                            PayPal
-                        </button>
-                        <button
-                            type="button"
-                            onclick="selectPayment('Cash on Pickup', this)"
-                            class="payment-btn flex-1 bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105">
-                            Cash On Pickup
-                        </button>
+                    <div class="border-b border-gray-200 pb-3">
+                        <h4 class="text-lg font-semibold text-gray-800">Payment Method</h4>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        {{-- Payment Method Buttons --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="hidden" name="payment_method" id="payment_method" required>
+                            <button
+                                type="button"
+                                onclick="selectPayment('PayPal', this)"
+                                class="payment-btn bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                <span class="font-bold">PayPal</span>
+                                <span class="text-xs text-gray-600 mt-1">Full Payment</span>
+                            </button>
+                            <button
+                                type="button"
+                                onclick="selectPayment('PayPal_Downpayment', this)"
+                                class="payment-btn bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-purple-400 hover:border-purple-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                <span class="font-bold">PayPal</span>
+                                <span class="text-xs text-gray-600 mt-1">50% Downpayment</span>
+                            </button>
+                        </div>
+
+                        {{-- Downpayment Information --}}
+                        <div id="downpayment-section" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Downpayment (50%):</span>
+                                <span id="downpayment-amount" class="text-lg font-bold text-purple-600"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">Remaining Balance:</span>
+                                <span id="remaining-balance" class="text-lg font-bold text-orange-600"></span>
+                            </div>
+                            <p class="text-xs text-purple-600 mt-2 text-center">
+                                💡 Pay 50% now, settle the remaining 50% upon pickup
+                            </p>
+                        </div>
+
+                        {{-- Payment Summary --}}
+                        <div id="payment-summary" class="bg-white rounded-lg p-4 border border-gray-200 hidden">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-800">Amount to Pay:</span>
+                                <span id="payment-amount" class="text-xl font-bold text-green-600"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -374,6 +594,7 @@
                                 'bg-gray-400 cursor-not-allowed': compatibilityResults && compatibilityResults.errors && compatibilityResults.errors.length > 0
                             }"
                             class="text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50"
+                            id="submit-button"
                             x-text="submitButtonText">
                         </button>
                     </div>
@@ -516,3 +737,84 @@
         </div>
     </div>
 </body>
+
+<script>
+    // Payment method handling for buildext
+    window.selectPayment = function(method, button) {
+        console.log('Selecting payment:', method);
+        
+        window.selectedPayment = method;
+        const paymentInput = document.getElementById('payment_method');
+        if (paymentInput) {
+            paymentInput.value = method;
+        }
+
+        // Reset all payment button styles using inline styles
+        document.querySelectorAll('.payment-btn').forEach(b => {
+            b.style.backgroundColor = '#e5e7eb'; // bg-gray-200
+            b.style.color = '#374151'; // text-gray-800
+            b.style.border = '2px solid transparent';
+        });
+
+        // Apply active styles based on payment method using inline styles
+        if (method === 'PayPal') {
+            button.style.backgroundColor = '#fbbf24'; // bg-yellow-400
+            button.style.color = '#1f2937'; // text-gray-900
+            button.style.border = '2px solid #f59e0b'; // border-yellow-500
+        } else if (method === 'PayPal_Downpayment') {
+            button.style.backgroundColor = '#c084fc'; // bg-purple-400
+            button.style.color = '#1f2937'; // text-gray-900
+            button.style.border = '2px solid #a855f7'; // border-purple-500
+        }
+
+        // Handle downpayment display
+        const downpaymentSection = document.getElementById('downpayment-section');
+        const paymentSummary = document.getElementById('payment-summary');
+        const paymentAmount = document.getElementById('payment-amount');
+        const submitButton = document.getElementById('submit-button');
+
+        // Get the total price from Alpine.js data
+        if (typeof Alpine !== 'undefined' && Alpine.$data) {
+            window.totalPrice = Alpine.$data.totalPrice || 0;
+        }
+        
+        window.downpaymentAmount = window.totalPrice * 0.5;
+        window.remainingBalance = window.totalPrice * 0.5;
+
+        if (method === 'PayPal_Downpayment') {
+            if (downpaymentSection) downpaymentSection.classList.remove('hidden');
+            if (paymentSummary) paymentSummary.classList.remove('hidden');
+            
+            // Update amounts
+            const downpaymentAmountEl = document.getElementById('downpayment-amount');
+            const remainingBalanceEl = document.getElementById('remaining-balance');
+            
+            if (downpaymentAmountEl) downpaymentAmountEl.textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (remainingBalanceEl) remainingBalanceEl.textContent = '₱' + window.remainingBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (paymentAmount) paymentAmount.textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            // Update submit button text
+            if (submitButton) submitButton.textContent = 'Pay 50% Downpayment';
+        } else if (method === 'PayPal') {
+            if (downpaymentSection) downpaymentSection.classList.add('hidden');
+            if (paymentSummary) paymentSummary.classList.remove('hidden');
+            if (paymentAmount) paymentAmount.textContent = '₱' + window.totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (submitButton) submitButton.textContent = 'Pay Full Amount';
+        }
+
+        console.log('Payment method set to:', paymentInput ? paymentInput.value : 'Not found');
+    }
+
+    // Initialize payment buttons on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure all payment buttons have initial gray style
+        document.querySelectorAll('.payment-btn').forEach(btn => {
+            btn.style.backgroundColor = '#e5e7eb';
+            btn.style.color = '#374151';
+            btn.style.border = '2px solid transparent';
+        });
+        
+        console.log('Payment module loaded for buildext');
+    });
+</script>
+</html>

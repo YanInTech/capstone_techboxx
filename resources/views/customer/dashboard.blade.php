@@ -156,177 +156,266 @@
         </table>
 
         {{-- VIEW MODAL --}}
-        <div x-show="showModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
-            <div class="add-component" @click.away="showModal = false">
-                <div class="relative !m-0">
-                    <h2 class="text-center w-[100%]">
-                        Build Details
-                        <x-icons.close class="close" @click="showModal = false"/>    
-                    </h2>
-                </div>
-                {{-- <pre x-text="JSON.stringify(selectedBuild, null, 2)"></pre> --}}
-                <div class="build-details-modal">
-                    <div>
-                        <p>Build Name</p>
-                        <p x-text="selectedBuild.build_name"></p>
+        <div x-show="showModal" x-cloak x-transition 
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.away="showModal = false">
+                {{-- Header --}}
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl z-10">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold text-gray-800">Build Details</h2>
+                        <button @click="showModal = false" class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
+                            <svg class="w-6 h-6 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <div class="build-details-modal">
-                    <div class="build-details-header">
-                        <h4>Component</h4>
+
+                {{-- Content --}}
+                <div class="p-6 space-y-6">
+                    {{-- Build Information --}}
+                    <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="text-lg font-semibold text-gray-800">Build Information</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <p class="text-sm font-medium text-gray-600">Build Name</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.build_name"></p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p>Case</p>
-                        <p x-text="selectedBuild.case.brand + '' + selectedBuild.case.model "></p>
+
+                    {{-- Components --}}
+                    <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="text-lg font-semibold text-gray-800">Components</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Case</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.case.brand + ' ' + selectedBuild.case.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">CPU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.cpu.brand + ' ' + selectedBuild.cpu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">RAM</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.ram.brand + ' ' + selectedBuild.ram.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Storage</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.storage.brand + ' ' + selectedBuild.storage.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Motherboard</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.motherboard.brand + ' ' + selectedBuild.motherboard.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">GPU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.gpu.brand + ' ' + selectedBuild.gpu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">PSU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.psu.brand + ' ' + selectedBuild.psu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Cooler</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.cooler.brand + ' ' + selectedBuild.cooler.model"></p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p>CPU</p>
-                        <p x-text="selectedBuild.cpu.brand + '' + selectedBuild.cpu.model "></p>
+
+                    {{-- Build Price --}}
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xl font-bold text-gray-800">Build Price:</h4>
+                            <h4 class="text-2xl font-bold text-green-600" x-text="'₱' + (parseFloat(selectedBuild.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                        </div>
                     </div>
-                    <div>
-                        <p>RAM</p>
-                        <p x-text="selectedBuild.ram.brand + '' + selectedBuild.ram.model "></p>
-                    </div>
-                    <div>
-                        <p>SSD</p>
-                        <p x-text="selectedBuild.storage.brand + '' + selectedBuild.storage.model "></p>
-                    </div>
-                    <div>
-                        <p>Motherboard</p>
-                        <p x-text="selectedBuild.motherboard.brand + '' + selectedBuild.motherboard.model "></p>
-                    </div>
-                    <div>
-                        <p>GPU</p>
-                        <p x-text="selectedBuild.gpu.brand + '' + selectedBuild.gpu.model "></p>
-                    </div>
-                    <div>
-                        <p>HDD</p>
-                        <p x-text="selectedBuild.storage.brand + '' + selectedBuild.storage.model "></p>
-                    </div>
-                    <div>
-                        <p>PSU</p>
-                        <p x-text="selectedBuild.psu.brand + '' + selectedBuild.psu.model "></p>
-                    </div>
-                    <div>
-                        <p>Cooler</p>
-                        <p x-text="selectedBuild.cooler.brand + '' + selectedBuild.cooler.model "></p>
-                    </div>
-                </div>
-                <div class="build-details-modal">
-                    <div class="build-details-price">
-                        <h4>Build Price:</h4>
-                        <h4 x-text="'₱' + (parseFloat(selectedBuild.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+
+                    {{-- Close Button --}}
+                    <div class="flex justify-end items-center pt-4 border-t border-gray-200">
+                        <button 
+                            type="button" 
+                            @click="showModal = false"
+                            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200">
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- ORDER MODAL --}}
-        <div x-show="orderModal" x-cloak x-transition class="modal overflow-y-scroll p-5">
-            <div class="add-component" @click.away="orderModal = false">
-                <div class="relative !m-0">
-                    <h2 class="text-center w-[100%]">
-                        Build Details
-                        <x-icons.close class="close" @click="orderModal = false"/>    
-                    </h2>
+        <div x-show="orderModal" x-cloak x-transition 
+            x-init="if (orderModal) { $nextTick(() => initializeSavedBuildPayment(selectedBuild.total_price)); }"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.away="orderModal = false; resetSavedBuildPayment();">
+                {{-- Header --}}
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl z-10">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold text-gray-800">Build Details</h2>
+                        <button @click="orderModal = false; resetSavedBuildPayment();" class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
+                            <svg class="w-6 h-6 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <form action="{{ route('build.save.order')}}" method="POST">
+
+                {{-- Content --}}
+                <form id="saved-build-order-form" action="{{ route('build.save.order')}}" method="POST" class="p-6 space-y-6">
                     @csrf
                     <input type="hidden" name="user_build_id" x-bind:value="selectedBuild.id">
                     <input type="hidden" name="total_price" x-bind:value="selectedBuild.total_price">
-                    <div class="build-details-modal">
-                        <div class="build-details-header">
-                            <h4>Customer Information</h4>
+                    
+                    {{-- Customer Information --}}
+                    <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="text-lg font-semibold text-gray-800">Customer Information</h4>
                         </div>
-                        <div>
-                            <p>Name</p>
-                            <p x-text="selectedBuild.user.first_name + ' ' + selectedBuild.user.last_name"></p>
-                        </div>
-                        <div>
-                            <p>Contact No</p>
-                            <p x-text="selectedBuild.user.phone_number"></p>
-                        </div>
-                        <div>
-                            <p>Email</p>
-                            <p x-text="selectedBuild.user.email"></p>
-                        </div>
-                        <div>
-                            <p>Build Name</p>
-                            <p x-text="selectedBuild.build_name"></p>
-                        </div>
-                    </div>
-                    <div class="build-details-modal">
-                        <div class="build-details-header">
-                            <h4>Component</h4>
-                        </div>
-                        <div>
-                            <p>Case</p>
-                            <p x-text="selectedBuild.case.brand + '' + selectedBuild.case.model "></p>
-                        </div>
-                        <div>
-                            <p>CPU</p>
-                            <p x-text="selectedBuild.cpu.brand + '' + selectedBuild.cpu.model "></p>
-                        </div>
-                        <div>
-                            <p>RAM</p>
-                            <p x-text="selectedBuild.ram.brand + '' + selectedBuild.ram.model "></p>
-                        </div>
-                        <div>
-                            <p>SSD</p>
-                            <p x-text="selectedBuild.storage.brand + '' + selectedBuild.storage.model "></p>
-                        </div>
-                        <div>
-                            <p>Motherboard</p>
-                            <p x-text="selectedBuild.motherboard.brand + '' + selectedBuild.motherboard.model "></p>
-                        </div>
-                        <div>
-                            <p>GPU</p>
-                            <p x-text="selectedBuild.gpu.brand + '' + selectedBuild.gpu.model "></p>
-                        </div>
-                        <div>
-                            <p>HDD</p>
-                            <p x-text="selectedBuild.storage.brand + '' + selectedBuild.storage.model "></p>
-                        </div>
-                        <div>
-                            <p>PSU</p>
-                            <p x-text="selectedBuild.psu.brand + '' + selectedBuild.psu.model "></p>
-                        </div>
-                        <div>
-                            <p>Cooler</p>
-                            <p x-text="selectedBuild.cooler.brand + '' + selectedBuild.cooler.model "></p>
-                        </div>
-                    </div>
-                    <div class="build-details-modal">
-                        <div class="build-details-price">
-                            <h4>Build Price:</h4>
-                            <h4 x-text="'₱' + (parseFloat(selectedBuild.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Name</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.user.first_name + ' ' + selectedBuild.user.last_name"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Contact No</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.user.phone_number"></p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <p class="text-sm font-medium text-gray-600">Email</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.user.email"></p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <p class="text-sm font-medium text-gray-600">Build Name</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.build_name"></p>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <h4>Payment Method</h4>
-                        <div class="flex gap-2">
-                            <input type="hidden" name="payment_method" id="payment_method" required>
-                            <button
-                                type="button"
-                                onclick="selectPayment('PayPal', this)"
-                                class="payment-btn px-4 py-2 rounded-lg font-semibold hover:!bg-yellow-400">
-                                PayPal
-                            </button>
-                            <button
-                                type="button"
-                                onclick="selectPayment('Cash on Pickup', this)"
-                                class="payment-btn px-4 py-2 rounded-lg font-semibold hover:!bg-yellow-400">
-                                Cash On Pickup
-                            </button>
+                    {{-- Components --}}
+                    <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="text-lg font-semibold text-gray-800">Components</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Case</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.case.brand + ' ' + selectedBuild.case.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">CPU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.cpu.brand + ' ' + selectedBuild.cpu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">RAM</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.ram.brand + ' ' + selectedBuild.ram.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">SSD</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.storage.brand + ' ' + selectedBuild.storage.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Motherboard</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.motherboard.brand + ' ' + selectedBuild.motherboard.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">GPU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.gpu.brand + ' ' + selectedBuild.gpu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">HDD</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.storage.brand + ' ' + selectedBuild.storage.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">PSU</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.psu.brand + ' ' + selectedBuild.psu.model"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Cooler</p>
+                                <p class="text-gray-800 font-semibold" x-text="selectedBuild.cooler.brand + ' ' + selectedBuild.cooler.model"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Build Price --}}
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xl font-bold text-gray-800">Build Price:</h4>
+                            <h4 class="text-2xl font-bold text-green-600" x-text="'₱' + (parseFloat(selectedBuild.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                        </div>
+                    </div>
+
+                    {{-- Payment Method Section --}}
+                    <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h4 class="text-lg font-semibold text-gray-800">Payment Method</h4>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            {{-- Payment Method Buttons --}}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="hidden" name="payment_method" id="payment_method" required>
+                                <button
+                                    type="button"
+                                    onclick="selectPaymentSavedBuild('PayPal', this)"
+                                    class="payment-btn-saved bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-yellow-400 hover:border-yellow-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                    <span class="font-bold">PayPal</span>
+                                    <span class="text-xs text-gray-600 mt-1">Full Payment</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="selectPaymentSavedBuild('PayPal_Downpayment', this)"
+                                    class="payment-btn-saved bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg border-2 border-transparent hover:bg-purple-400 hover:border-purple-500 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center">
+                                    <span class="font-bold">PayPal</span>
+                                    <span class="text-xs text-gray-600 mt-1">50% Downpayment</span>
+                                </button>
+                            </div>
+
+                            {{-- Downpayment Information --}}
+                            <div id="downpayment-section-saved" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Downpayment (50%):</span>
+                                    <span id="downpayment-amount-saved" class="text-lg font-bold text-purple-600"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-700">Remaining Balance:</span>
+                                    <span id="remaining-balance-saved" class="text-lg font-bold text-orange-600"></span>
+                                </div>
+                                <p class="text-xs text-purple-600 mt-2 text-center">
+                                    💡 Pay 50% now, settle the remaining 50% upon pickup
+                                </p>
+                            </div>
+
+                            {{-- Payment Summary --}}
+                            <div id="payment-summary-saved" class="bg-white rounded-lg p-4 border border-gray-200 hidden">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold text-gray-800">Amount to Pay:</span>
+                                    <span id="payment-amount-saved" class="text-xl font-bold text-green-600"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="flex justify-end mt-4">
-                        <button type="submit" 
-                            class="bg-blue-500 hover:!bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                            Order Build
-                        </button>
+                    {{-- Submit Button --}}
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                        <div class="flex gap-3 ml-auto">
+                            <button 
+                                type="button" 
+                                @click="orderModal = false; resetSavedBuildPayment();"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200">
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                id="submit-button-saved"
+                                class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50">
+                                Order Build
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

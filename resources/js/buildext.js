@@ -1,5 +1,11 @@
 // Initialize global selectedComponents object
 window.selectedComponents = window.selectedComponents || {};
+// Make payment variables globally accessible
+window.selectedPayment = null;
+window.totalPrice = 0;
+window.downpaymentAmount = 0;
+window.remainingBalance = 0;
+
 // Function to handle component selection from catalog
 function selectComponent(componentData) {
     const componentType = componentData.type.toLowerCase();
@@ -20,8 +26,24 @@ function selectComponent(componentData) {
 
     // Update session in backend
     updateSession(window.selectedComponents);
+    
+    // Update total price for payment calculations
+    updateTotalPrice();
 }
 
+// Update total price calculation
+function updateTotalPrice() {
+    window.totalPrice = 0;
+    for (const [type, component] of Object.entries(window.selectedComponents)) {
+        if (component && component.price) {
+            window.totalPrice += component.price;
+        }
+    }
+    window.downpaymentAmount = window.totalPrice * 0.5;
+    window.remainingBalance = window.totalPrice * 0.5;
+    
+    console.log('Updated total price:', window.totalPrice);
+}
 
 // BUILD CART FORM SUBMISSION - UPDATED VERSION
 function handleFormSubmit(e) {
@@ -181,28 +203,104 @@ function toggleStorage(selectedType) {
         if (otherHiddenInput) otherHiddenInput.value = '';
         
         console.log(`Cleared ${otherType} from selection`);
+        
+        // Update total price after clearing
+        updateTotalPrice();
     } else {
         console.log(`No ${otherType} to clear`);
     }
 }
 
-// Payment method function (same as build.js)
+// Payment method handling for buildext
 window.selectPayment = function(method, button) {
     console.log('Selecting payment:', method);
     
+    window.selectedPayment = method;
+    const paymentInput = document.getElementById('payment_method');
+    if (paymentInput) {
+        paymentInput.value = method;
+    }
+
+    // Reset all payment button styles using inline styles
+    document.querySelectorAll('.payment-btn').forEach(b => {
+        b.style.backgroundColor = '#e5e7eb'; // bg-gray-200
+        b.style.color = '#374151'; // text-gray-800
+        b.style.border = '2px solid transparent';
+    });
+
+    // Apply active styles based on payment method using inline styles
+    if (method === 'PayPal') {
+        button.style.backgroundColor = '#fbbf24'; // bg-yellow-400
+        button.style.color = '#1f2937'; // text-gray-900
+        button.style.border = '2px solid #f59e0b'; // border-yellow-500
+    } else if (method === 'PayPal_Downpayment') {
+        button.style.backgroundColor = '#c084fc'; // bg-purple-400
+        button.style.color = '#1f2937'; // text-gray-900
+        button.style.border = '2px solid #a855f7'; // border-purple-500
+    }
+
+    // Handle downpayment display
+    const downpaymentSection = document.getElementById('downpayment-section');
+    const paymentSummary = document.getElementById('payment-summary');
+    const paymentAmount = document.getElementById('payment-amount');
+    const submitButton = document.getElementById('submit-button');
+
+    // Use the global total price that we update when components change
+    console.log('Current total price for payment:', window.totalPrice);
+    
+    window.downpaymentAmount = window.totalPrice * 0.5;
+    window.remainingBalance = window.totalPrice * 0.5;
+
+    if (method === 'PayPal_Downpayment') {
+        if (downpaymentSection) downpaymentSection.classList.remove('hidden');
+        if (paymentSummary) paymentSummary.classList.remove('hidden');
+        
+        // Update amounts
+        const downpaymentAmountEl = document.getElementById('downpayment-amount');
+        const remainingBalanceEl = document.getElementById('remaining-balance');
+        
+        if (downpaymentAmountEl) downpaymentAmountEl.textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (remainingBalanceEl) remainingBalanceEl.textContent = '₱' + window.remainingBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (paymentAmount) paymentAmount.textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
+        // Update submit button text
+        if (submitButton) submitButton.textContent = 'Pay 50% Downpayment';
+    } else if (method === 'PayPal') {
+        if (downpaymentSection) downpaymentSection.classList.add('hidden');
+        if (paymentSummary) paymentSummary.classList.remove('hidden');
+        if (paymentAmount) paymentAmount.textContent = '₱' + window.totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (submitButton) submitButton.textContent = 'Pay Full Amount';
+    }
+
+    console.log('Payment method set to:', paymentInput ? paymentInput.value : 'Not found');
+}
+
+// Function to reset payment selection when modal closes
+function resetPaymentSelection() {
+    window.selectedPayment = null;
+    
+    // Reset UI elements
+    const downpaymentSection = document.getElementById('downpayment-section');
+    const paymentSummary = document.getElementById('payment-summary');
+    const submitButton = document.getElementById('submit-button');
+    
+    if (downpaymentSection) downpaymentSection.classList.add('hidden');
+    if (paymentSummary) paymentSummary.classList.add('hidden');
+    if (submitButton) submitButton.textContent = 'Order';
+    
+    // Reset payment buttons
     document.querySelectorAll('.payment-btn').forEach(btn => {
         btn.style.backgroundColor = '#e5e7eb';
         btn.style.color = '#374151';
         btn.style.border = '2px solid transparent';
     });
     
-    button.style.backgroundColor = '#fbbf24';
-    button.style.color = '#1f2937';
-    button.style.border = '2px solid #f59e0b';
+    // Clear payment method input
+    const paymentInput = document.getElementById('payment_method');
+    if (paymentInput) paymentInput.value = '';
     
-    document.getElementById('payment_method').value = method;
-    console.log('Payment method set to:', document.getElementById('payment_method').value);
-};
+    console.log('Payment selection reset');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const cartForm = document.getElementById('cartForm');
@@ -276,8 +374,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('selected-component');
             }
         });
+        
+        // Initialize total price from session components
+        updateTotalPrice();
     }
 
+    // Initialize payment buttons on load
+    document.querySelectorAll('.payment-btn').forEach(btn => {
+        btn.style.backgroundColor = '#e5e7eb';
+        btn.style.color = '#374151';
+        btn.style.border = '2px solid transparent';
+    });
 
     // SINGLE EVENT LISTENER FOR CATALOG ITEMS - COMBINED FUNCTIONALITY
     catalogItems.forEach(item => {
@@ -292,6 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             selectComponent(componentData);
             setComponentImage(componentData);
+            
+            // Highlight selected
+            this.classList.add('selected-component');
         });
     });
 
@@ -346,7 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('reloadButton').addEventListener('click', function() {
         reloadScene();
     });
+    
+    console.log('Payment module loaded for buildext');
 });
+
 function updateSession(selectedComponents) {
     fetch('/techboxx/build/update-session', {
         method: 'POST',

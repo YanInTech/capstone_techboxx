@@ -20,6 +20,9 @@ class OrderedBuild extends Model
         'payment_method',
         'pickup_status',
         'pickup_date',
+        'is_downpayment',
+        'downpayment_amount',
+        'remaining_balance',
     ];
 
     protected $casts = [

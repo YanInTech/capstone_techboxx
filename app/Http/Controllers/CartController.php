@@ -201,6 +201,9 @@ class CartController extends Controller
         // Get authenticated user
         $user = Auth::user();
         if (!$user) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Please log in to place an order.']);
+            }
             return redirect()->route('login')->with('error', 'Please log in to place an order.');
         }
         
@@ -208,7 +211,8 @@ class CartController extends Controller
         $validated = $request->validate([
             'build_name' => 'required|string|max:255',
             'total_price' => 'required|numeric|min:0',
-            'payment_method' => 'required|string|in:PayPal,Cash on Pickup',
+            'payment_method' => 'required|string|in:PayPal,PayPal_Downpayment,Cash on Pickup',
+            'downpayment_amount' => 'nullable|numeric|min:0',
         ]);
 
         // Validate component IDs from the component_ids array
@@ -226,23 +230,39 @@ class CartController extends Controller
             'storage' => 'storages',
         ];
 
-        // Validate each required component
+        // Validate each required component - FIXED: Handle both AJAX and regular requests
         foreach ($requiredComponents as $componentType => $tableName) {
             if (!isset($componentIds[$componentType]) || empty($componentIds[$componentType])) {
-                return redirect()->back()->with('error', "Missing $componentType component.");
+                $error = "Missing $componentType component.";
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $error]);
+                }
+                return redirect()->back()->with('error', $error);
             }
             
             // Check if the component exists in the database
             if (!DB::table($tableName)->where('id', $componentIds[$componentType])->exists()) {
-                return redirect()->back()->with('error', "Invalid $componentType selected.");
+                $error = "Invalid $componentType selected.";
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $error]);
+                }
+                return redirect()->back()->with('error', $error);
             }
         }
 
-        // Determine payment status based on payment method
+        // Determine payment status and method
         $paymentMethod = $request->input('payment_method');
-        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : 'Paid';
+        $isDownpayment = $paymentMethod === 'PayPal_Downpayment';
+        
+        // Set payment status - for downpayment, it should be 'Downpayment Paid' after PayPal success
+        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : ($isDownpayment ? 'Paid' : 'Paid');
+        
+        $displayPaymentMethod = $paymentMethod === 'Cash on Pickup' ? 'Cash' : 'PayPal';
 
-        $displayPaymentMethod = $paymentMethod === 'Cash on Pickup' ? 'Cash' : $paymentMethod;
+        // Calculate downpayment amount if not provided
+        $downpaymentAmount = $isDownpayment ? 
+            ($request->input('downpayment_amount') ?? $validated['total_price'] * 0.5) : 
+            null;
 
         try {
             // Create UserBuild record
@@ -261,23 +281,50 @@ class CartController extends Controller
                 'status' => 'Ordered',
             ]);
 
-            // Create Checkout record
-            $checkout = OrderedBuild::create([
+            // Create OrderedBuild record
+            $orderedBuild = OrderedBuild::create([
                 'user_build_id' => $userBuild->id,
                 'payment_method' => $displayPaymentMethod,
                 'payment_status' => $paymentStatus,
                 'status' => 'Pending',
+                'is_downpayment' => $isDownpayment,
+                'downpayment_amount' => $downpaymentAmount,
+                'remaining_balance' => $isDownpayment ? ($validated['total_price'] - $downpaymentAmount) : null,
             ]);
 
-            // Redirect based on payment method
-            if ($paymentMethod === 'PayPal') {
+            // Handle PayPal redirection
+            if ($paymentMethod === 'PayPal' || $paymentMethod === 'PayPal_Downpayment') {
+                $amount = $isDownpayment ? $downpaymentAmount : $validated['total_price'];
+                
+                // For AJAX requests, return JSON with redirect URL
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => route('paypal.create', [
+                            'ordered_build_id' => $orderedBuild->id,
+                            'amount' => $amount,
+                            'is_downpayment' => $isDownpayment ? 1 : 0,
+                            'checkout_ids' => '' // Explicitly set empty for ordered builds
+                        ])
+                    ]);
+                }
+                
+                // For regular form submissions, redirect directly
                 return redirect()->route('paypal.create', [
-                    'ordered_build_id' => $checkout->id, // Pass the ordered build ID
-                    'amount' => $validated['total_price'],
+                    'ordered_build_id' => $orderedBuild->id,
+                    'amount' => $amount,
+                    'is_downpayment' => $isDownpayment ? 1 : 0,
+                    'checkout_ids' => '' // Explicitly set empty for ordered builds
                 ]);
             }
 
-            // dd($request->all());
+            // For non-PayPal payments and AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect_url' => route('customer.orderdetails')
+                ]);
+            }
 
             return redirect()->route('customer.orderdetails')->with([
                 'message' => 'Build ordered successfully!',
@@ -285,39 +332,57 @@ class CartController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            // Log::error('Order build failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to create order. Please try again.');
+            // Log the error for debugging
+            // \Log::error('Order build failed: ' . $e->getMessage());
+            // \Log::error('Exception trace: ' . $e->getTraceAsString());
+            
+            $error = 'Failed to create order. Please try again.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $error]);
+            }
+            return redirect()->back()->with('error', $error);
         }
     }
 
     public function orderSavedBuild(Request $request)
     {
-        // Determine payment status based on payment method
+        // Determine payment status and method
         $paymentMethod = $request->input('payment_method');
-        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : 'Paid';
+        $isDownpayment = $paymentMethod === 'PayPal_Downpayment';
+        
+        // Set payment status - for downpayment, it should be 'Downpayment Paid' after PayPal success
+        $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+        
+        $displayPaymentMethod = 'PayPal'; // Always PayPal since we removed Cash on Pickup
 
-        $displayPaymentMethod = $paymentMethod === 'Cash on Pickup' ? 'Cash' : $paymentMethod;
+        // Calculate downpayment amount if applicable
+        $downpaymentAmount = $isDownpayment ? ($request->input('downpayment_amount') ?? $request->total_price * 0.5) : null;
+        $remainingBalance = $isDownpayment ? ($request->total_price - $downpaymentAmount) : null;
 
-
-        // Create Checkout record
-        $checkout = OrderedBuild::create([
+        // Create OrderedBuild record
+        $orderedBuild = OrderedBuild::create([
             'user_build_id' => $request->user_build_id,
             'status' => "Pending",
             'payment_method' => $displayPaymentMethod,
             'payment_status' => $paymentStatus,
+            'is_downpayment' => $isDownpayment,
+            'downpayment_amount' => $downpaymentAmount,
+            'remaining_balance' => $remainingBalance,
         ]);
 
         UserBuild::where('id', $request->user_build_id)->update([
             'status' => "Ordered",
         ]);
 
-        // dd($request->all());
-
         // Redirect based on payment method
-        if ($paymentMethod === 'PayPal') {
+        if ($paymentMethod === 'PayPal' || $paymentMethod === 'PayPal_Downpayment') {
+            $amount = $isDownpayment ? $downpaymentAmount : $request->total_price;
+            
             return redirect()->route('paypal.create', [
-                'ordered_build_id' => $checkout->id, // Pass the ordered build ID
-                'amount' => $request->total_price,
+                'ordered_build_id' => $orderedBuild->id,
+                'amount' => $amount,
+                'is_downpayment' => $isDownpayment ? 1 : 0,
+                'checkout_ids' => '' // Explicitly set empty for saved builds
             ]);
         }
 

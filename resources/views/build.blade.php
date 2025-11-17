@@ -163,7 +163,7 @@
         }
     },
     
-    // NEW: Form submission handler
+    // In your build.blade.php - update the submitForm method
     submitForm(event) {
         console.log('=== FORM SUBMISSION STARTED ===');
         
@@ -218,16 +218,129 @@
             alert('Please fix compatibility issues before proceeding.');
             return false;
         }
+
+        // PAYMENT METHOD VALIDATION - ONLY FOR ORDERS
+        if (this.modalType === 'order') {
+            const paymentMethod = document.getElementById('payment_method').value;
+            console.log('Payment method:', paymentMethod);
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return false;
+            }
+
+            // Handle PayPal payments - redirect to PayPal instead of submitting form
+            if (paymentMethod === 'PayPal' || paymentMethod === 'PayPal_Downpayment') {
+                return this.handlePayPalPayment(event, paymentMethod);
+            }
+        }
         
         console.log('=== ALL VALIDATIONS PASSED - SUBMITTING FORM ===');
         
         // Update hidden inputs one final time
         this.updateModalHiddenInputs();
         
-        // Submit the form programmatically
+        // Submit the form programmatically (for non-PayPal payments)
         const form = event.target;
         console.log('Submitting form to:', form.action);
         form.submit();
+    },
+
+    async handlePayPalPayment(event, paymentMethod) {
+        console.log('=== HANDLING PAYPAL PAYMENT ===');
+        
+        // Update hidden inputs first
+        this.updateModalHiddenInputs();
+        
+        // Get the total price and calculate amount
+        const totalPrice = this.totalPrice;
+        const amount = paymentMethod === 'PayPal_Downpayment' ? totalPrice * 0.5 : totalPrice;
+        
+        console.log('Payment details:', {
+            paymentMethod,
+            totalPrice,
+            amount,
+            isDownpayment: paymentMethod === 'PayPal_Downpayment'
+        });
+        
+        // Prepare component IDs for the build - FIXED: Handle storage components properly
+        const componentIds = {};
+        for (const [type, component] of Object.entries(this.selectedComponents)) {
+            if (component && component.componentId) {
+                // For storage components (SSD/HDD), we need to handle them specially
+                if (type === 'ssd' || type === 'hdd') {
+                    // Use the actual storage component that was selected
+                    // The backend expects 'storage' as the key with the ID of the selected storage component
+                    const storageInput = document.getElementById('hidden_storage');
+                    if (storageInput && storageInput.value) {
+                        componentIds['storage'] = storageInput.value;
+                    }
+                } else {
+                    // For all other components, use the type directly
+                    componentIds[type] = component.componentId;
+                }
+            }
+        }
+        
+        // Debug: Log the final component IDs
+        console.log('Final component IDs to send:', componentIds);
+        
+        // Get build name
+        const buildNameInput = document.querySelector(`input[name='build_name']`);
+        const buildName = buildNameInput ? buildNameInput.value : '';
+        
+        try {
+            // Use FormData instead of JSON for better compatibility
+            const formData = new FormData();
+            formData.append('build_name', buildName);
+            formData.append('total_price', totalPrice);
+            formData.append('payment_method', paymentMethod);
+            
+            // Add component IDs in the correct format
+            Object.entries(componentIds).forEach(([type, id]) => {
+                formData.append(`component_ids[${type}]`, id);
+            });
+            
+            // Add downpayment amount if applicable
+            if (paymentMethod === 'PayPal_Downpayment') {
+                formData.append('downpayment_amount', amount);
+            }
+            
+            // Add CSRF token
+            formData.append('_token', document.querySelector(`meta[name='csrf-token']`).content);
+            
+            console.log('Sending form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
+            // Submit the order via AJAX
+            const response = await fetch('{{ route("build.order") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            console.log('Server response:', data);
+            
+            if (data.success && data.redirect_url) {
+                // Redirect to PayPal
+                console.log('Redirecting to PayPal:', data.redirect_url);
+                window.location.href = data.redirect_url;
+            } else {
+                console.error('PayPal redirection failed:', data);
+                alert(data.message || 'Failed to process PayPal payment. Please try again.');
+            }
+            
+        } catch (error) {
+            console.error('PayPal payment error:', error);
+            alert('An error occurred while processing your payment. Please try again.');
+        }
+        
+        return false;
     },
     
     // Computed properties for dynamic content
@@ -675,4 +788,12 @@ class="flex">
         </section>    
     </main>
 </body>
+
+<script>
+    // Make payment variables globally accessible
+    window.selectedPayment = null;
+    window.totalPrice = 0;
+    window.downpaymentAmount = 0;
+    window.remainingBalance = 0;
+</script>
 </html>

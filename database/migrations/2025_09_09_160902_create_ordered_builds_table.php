@@ -21,6 +21,9 @@ return new class extends Migration
             $table->string('payment_method');
             $table->string('pickup_status')->nullable();
             $table->timestamp('pickup_date')->nullable();
+            $table->boolean('is_downpayment')->default(false);
+            $table->decimal('downpayment_amount', 10, 2)->nullable();
+            $table->decimal('remaining_balance', 10, 2)->nullable();
             $table->softDeletes();
         });
     }

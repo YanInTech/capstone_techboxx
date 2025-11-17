@@ -65,7 +65,7 @@ class PayPalController extends Controller
             $response = $this->client->execute($paypalRequest);
         } catch (\Exception $e) {
             Log::error('PayPal create error: ' . $e->getMessage());
-            return redirect()->route('cart.index')->with('error', 'Unable to start PayPal payment.');
+            return redirect()->route('techboxx.build')->with('error', 'Unable to start PayPal payment.');
         }
 
         foreach ($response->result->links as $link) {
@@ -74,7 +74,7 @@ class PayPalController extends Controller
             }
         }
 
-        return redirect()->route('cart.index')->with('error', 'Unable to start PayPal payment.');
+        return redirect()->route('techboxx.build')->with('error', 'Unable to start PayPal payment.');
     }
 
     public function success(Request $request)
@@ -93,7 +93,7 @@ class PayPalController extends Controller
             $captureResponse = $this->client->execute($captureRequest);
         } catch (\Exception $e) {
             Log::error('PayPal capture error: ' . $e->getMessage());
-            return redirect()->route('cart.index')->with('error', 'Payment capture failed.');
+            return redirect()->route('techboxx.build')->with('error', 'Payment capture failed.');
         }
 
         if (isset($captureResponse->result->status) && $captureResponse->result->status === "COMPLETED") {
@@ -105,15 +105,15 @@ class PayPalController extends Controller
 
             // Update ordered build payment status
             if ($orderedBuildId) {
-                $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+                $paymentStatus = $isDownpayment ? 'Paid' : 'Paid';
                 OrderedBuild::where('id', $orderedBuildId)->update(['payment_status' => $paymentStatus]);
             }
 
             $message = $isDownpayment ? '50% Downpayment successful! Order placed.' : 'Payment successful! Order placed.';
-            return redirect()->route('cart.index')->with('success', $message);
+            return redirect()->route('customer.orderdetails')->with('success', $message);
         }
 
-        return redirect()->route('cart.index')->with('error', 'Payment not completed.');
+        return redirect()->route('techboxx.build')->with('error', 'Payment not completed.');
     }
 
     public function cancel(Request $request)
@@ -122,8 +122,16 @@ class PayPalController extends Controller
         $orderedBuildId = $request->query('ordered_build_id');
         $checkoutIds = array_filter(array_map('intval', explode(',', $checkoutIdsRaw)));
         
-        // Handle cart item cancellations
+        Log::info('PayPal cancellation triggered', [
+            'checkout_ids' => $checkoutIds,
+            'ordered_build_id' => $orderedBuildId,
+            'all_params' => $request->query()
+        ]);
+        
+        // Handle cart item cancellations (from CheckoutController)
         if (!empty($checkoutIds)) {
+            Log::info('Processing checkout cancellations', ['checkout_ids' => $checkoutIds]);
+            
             $checkouts = Checkout::whereIn('id', $checkoutIds)->get();
             
             foreach ($checkouts as $checkout) {
@@ -143,12 +151,22 @@ class PayPalController extends Controller
                 }
             }
             
-            Checkout::whereIn('id', $checkoutIds)->update(['payment_status' => 'Cancelled']);
+            // Update payment status to Cancelled and delete
+            Checkout::whereIn('id', $checkoutIds)->update([
+                'payment_status' => 'Cancelled',
+                'is_downpayment' => false,
+                'downpayment_amount' => null,
+                'remaining_balance' => null,
+            ]);
             Checkout::whereIn('id', $checkoutIds)->delete();
+            
+            Log::info('Checkout records cancelled and deleted', ['count' => count($checkoutIds)]);
         }
         
-        // Handle ordered build cancellation
+        // Handle ordered build cancellation (from BuildController)
         if ($orderedBuildId) {
+            Log::info('Processing ordered build cancellation', ['ordered_build_id' => $orderedBuildId]);
+            
             $orderedBuild = OrderedBuild::find($orderedBuildId);
             
             if ($orderedBuild) {
@@ -158,14 +176,26 @@ class PayPalController extends Controller
                 // Update and soft delete the ordered build
                 $orderedBuild->update([
                     'payment_status' => 'Cancelled',
-                    'cancelled_at' => now()
+                    'is_downpayment' => false,
+                    'downpayment_amount' => null,
+                    'remaining_balance' => null,
                 ]);
                 $orderedBuild->delete();
                 
                 Log::info("Ordered build ID {$orderedBuildId} cancelled and stock restored");
+            } else {
+                Log::warning("Ordered build not found for cancellation", ['ordered_build_id' => $orderedBuildId]);
             }
         }
         
+        // Determine which route to redirect to based on what was cancelled
+        if (!empty($checkoutIds)) {
+            return redirect()->route('cart.index')->with('success', 'Payment was cancelled. Your cart items have been restored.');
+        } elseif ($orderedBuildId) {
+            return redirect()->route('techboxx.build')->with('success', 'Payment was cancelled. Your custom build has been cancelled.');
+        }
+        
+        // Fallback redirect
         return redirect()->route('cart.index')->with('success', 'Payment was cancelled.');
     }
 

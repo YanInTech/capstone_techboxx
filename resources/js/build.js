@@ -261,10 +261,11 @@ function toggleStorage(selectedType) {
 }
 
 // Payment method handling function
+// In build.js - update the selectPayment function
 function selectPayment(method, btn) {
     console.log('Selecting payment:', method);
     
-    selectedPayment = method;
+    window.selectedPayment = method;
     document.getElementById('payment_method').value = method;
 
     // Reset all payment button styles using inline styles
@@ -299,17 +300,17 @@ function selectPayment(method, btn) {
         downpaymentSection.classList.remove('hidden');
         paymentSummary.classList.remove('hidden');
         
-        // Update amounts
-        document.getElementById('downpayment-amount').textContent = '₱' + downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        document.getElementById('remaining-balance').textContent = '₱' + remainingBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        paymentAmount.textContent = '₱' + downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        // Update amounts using global variables
+        document.getElementById('downpayment-amount').textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        document.getElementById('remaining-balance').textContent = '₱' + window.remainingBalance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        paymentAmount.textContent = '₱' + window.downpaymentAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         
         // Update submit button text
         if (submitButton) submitButton.textContent = 'Pay 50% Downpayment';
     } else if (method === 'PayPal') {
         downpaymentSection.classList.add('hidden');
         paymentSummary.classList.remove('hidden');
-        if (paymentAmount) paymentAmount.textContent = '₱' + totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if (paymentAmount) paymentAmount.textContent = '₱' + window.totalPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         if (submitButton) submitButton.textContent = 'Pay Full Amount';
     } else {
         downpaymentSection.classList.add('hidden');
@@ -322,15 +323,20 @@ function selectPayment(method, btn) {
 
 // Initialize payment display if total price changes
 function updatePaymentDisplay(newTotalPrice) {
-    totalPrice = newTotalPrice;
-    downpaymentAmount = totalPrice * 0.5;
-    remainingBalance = totalPrice * 0.5;
+    window.totalPrice = newTotalPrice;
+    window.downpaymentAmount = window.totalPrice * 0.5;
+    window.remainingBalance = window.totalPrice * 0.5;
+    
+    // Also update the Alpine.js totalPrice if modal is open
+    if (typeof Alpine !== 'undefined' && Alpine.$data && Alpine.$data.totalPrice !== undefined) {
+        Alpine.$data.totalPrice = newTotalPrice;
+    }
     
     // Refresh display if downpayment is selected
-    if (selectedPayment === 'PayPal_Downpayment') {
+    if (window.selectedPayment === 'PayPal_Downpayment') {
         const downpaymentBtn = document.querySelector('[onclick*="PayPal_Downpayment"]');
         if (downpaymentBtn) selectPayment('PayPal_Downpayment', downpaymentBtn);
-    } else if (selectedPayment === 'PayPal') {
+    } else if (window.selectedPayment === 'PayPal') {
         const paypalBtn = document.querySelector('[onclick*="PayPal"]');
         if (paypalBtn) selectPayment('PayPal', paypalBtn);
     }
@@ -764,160 +770,6 @@ function updateSummaryTable() {
         updatePaymentDisplay(totalPrice);
     }
 }
-
-// BUILD CART FORM SUBMISSION - UPDATED VERSION
-function handleFormSubmit(e) {
-    console.log('=== FORM SUBMISSION INTERCEPTED ===');
-    e.preventDefault(); // PREVENT DEFAULT IMMEDIATELY
-    
-    // Get the form to check its action (order vs save)
-    const form = e.target;
-    const isOrder = form.action.includes('order');
-    console.log('Form type:', isOrder ? 'ORDER' : 'SAVE');
-    
-    // Payment method validation - ONLY FOR ORDERS
-    if (isOrder) {
-        const paymentMethod = document.getElementById('payment_method').value;
-        console.log('Payment method:', paymentMethod);
-        if (!paymentMethod) {
-            alert('Please select a payment method.');
-            return false;
-        }
-
-        // Add downpayment amount to form if selected
-        if (selectedPayment === 'PayPal_Downpayment') {
-            const downpaymentInput = document.createElement('input');
-            downpaymentInput.type = 'hidden';
-            downpaymentInput.name = 'downpayment_amount';
-            downpaymentInput.value = downpaymentAmount;
-            form.appendChild(downpaymentInput);
-            console.log('Added downpayment amount:', downpaymentAmount);
-        }
-    }
-
-    // Build name validation
-    const buildNameInput = document.querySelector('input[name="build_name"]');
-    const buildName = buildNameInput ? buildNameInput.value : '';
-    console.log('Build name:', buildName);
-    if (!buildName.trim()) {
-        alert('Please enter a build name.');
-        return false;
-    }
-
-    // Check if any components are selected
-    console.log('Selected components:', window.selectedComponents);
-    if (Object.keys(window.selectedComponents).length === 0) {
-        alert('Please select at least one component.');
-        return false;
-    }
-
-    // Update all hidden inputs before submission
-    console.log('=== UPDATING HIDDEN INPUTS ===');
-    for (const [type, component] of Object.entries(window.selectedComponents)) {
-        const hiddenInput = document.getElementById(`hidden_${type}`);
-        if (hiddenInput && component && component.componentId) {
-            hiddenInput.value = component.componentId;
-            console.log(`Set ${type} to:`, component.componentId);
-        } else {
-            console.log(`Missing hidden input or component for: ${type}`);
-        }
-    }
-
-    // Update storage components specifically
-    const storageInput = document.getElementById('hidden_storage');
-    if (storageInput) {
-        if (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) {
-            storageInput.value = window.selectedComponents.hdd.componentId;
-        } else if (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId) {
-            storageInput.value = window.selectedComponents.ssd.componentId;
-        }
-        console.log('Storage set to:', storageInput.value);
-    }
-
-    // Update total price hidden input
-    const totalPriceInput = document.getElementById('hidden_total_price');
-    if (totalPriceInput) {
-        let totalPrice = 0;
-        for (const [type, component] of Object.entries(window.selectedComponents)) {
-            if (component && component.price) {
-                totalPrice += component.price;
-            }
-        }
-        totalPriceInput.value = totalPrice.toFixed(2);
-        console.log('Total price set to:', totalPriceInput.value);
-    }
-
-    // VALIDATE IF ALL COMPONENTS ARE SELECTED
-    console.log('=== VALIDATING COMPONENTS ===');
-    const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case', 'storage'];
-    const allComponentsSelected = requiredComponents.every(type => {
-        if (type === 'storage') {
-            return (window.selectedComponents.hdd && window.selectedComponents.hdd.componentId) || 
-                   (window.selectedComponents.ssd && window.selectedComponents.ssd.componentId);
-        }
-        return window.selectedComponents[type] && window.selectedComponents[type].componentId;
-    });
-
-    console.log('All components selected:', allComponentsSelected);
-
-    if (!allComponentsSelected) {
-        const missingComponents = [];
-        requiredComponents.forEach(type => {
-            if (type === 'storage') {
-                if (!window.selectedComponents.hdd?.componentId && !window.selectedComponents.ssd?.componentId) {
-                    missingComponents.push('Storage (HDD or SSD)');
-                }
-            } else if (!window.selectedComponents[type]?.componentId) {
-                const componentNames = {
-                    'gpu': 'GPU',
-                    'motherboard': 'Motherboard',
-                    'cpu': 'CPU',
-                    'psu': 'Power Supply',
-                    'ram': 'RAM',
-                    'cooler': 'Cooler',
-                    'case': 'Case'
-                };
-                missingComponents.push(componentNames[type]);
-            }
-        });
-
-        alert(`Please select the following components:\n\n${missingComponents.join('\n')}`);
-        return false;
-    }
-
-    console.log('=== FORM VALIDATION PASSED - SUBMITTING ===');
-    
-    // If all validations pass, submit the form programmatically
-    console.log('Submitting form...');
-    form.submit(); // Use form.submit() instead of this.submit()
-}
-
-// Attach event listener properly
-document.addEventListener('DOMContentLoaded', function() {
-    const cartForm = document.getElementById('cartForm');
-    console.log('DOM loaded - cartForm found:', !!cartForm);
-    
-    if (cartForm) {
-        // Remove any existing event listeners
-        cartForm.removeEventListener('submit', handleFormSubmit);
-        // Add the event listener
-        cartForm.addEventListener('submit', handleFormSubmit);
-        console.log('Form submit event listener attached');
-    } else {
-        console.error('cartForm not found!');
-    }
-
-    // Ensure all payment buttons have initial gray style
-    document.querySelectorAll('.payment-btn').forEach(btn => {
-        if (!btn.style.backgroundColor) {
-            btn.style.backgroundColor = '#e5e7eb';
-            btn.style.color = '#374151';
-        }
-    });
-
-    // Initialize payment variables
-    updatePaymentDisplay(0);
-});
 
 // ADD DATE TODAY ON THE SUMMARY TAB
 window.addEventListener('DOMContentLoaded', () => {
