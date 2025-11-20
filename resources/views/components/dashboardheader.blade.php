@@ -5,7 +5,6 @@
     </div>
     
     <div class="gap-3">
-        <x-icons.bell/>
         <div x-data="{ open: false }" class="gap-1">
             <x-icons.profile/>
             <p>{{ $slot }}</p>

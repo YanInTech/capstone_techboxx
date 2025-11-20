@@ -116,6 +116,7 @@ class BuildController extends Controller
                 'name'        => $data['name'] ?? '',
                 'price'       => $data['price'] ?? 0,
                 'imageUrl'    => $data['image'] ?? null,
+                'modelUrl'     => $data['model_3d'] ?? null,
             ];
         }
 
@@ -271,6 +272,7 @@ class BuildController extends Controller
             'name'        => $request->name,
             'price'       => $request->price,
             'imageUrl'    => $request->imageUrl,
+            'modelUrl'     => $request->modelUrl,
         ];
 
         $request->session()->put('selected_components', $components);

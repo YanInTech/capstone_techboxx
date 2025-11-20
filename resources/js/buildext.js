@@ -19,6 +19,8 @@ function selectComponent(componentData) {
         componentId: componentData.id,
         name: componentData.name,
         price: componentData.price,
+        image: componentData.image,
+        modelUrl: componentData.modelUrl || null,
         type: componentType
     };
     
@@ -364,7 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: type,
                     name: item.getAttribute('data-name'),
                     price: parseFloat(item.getAttribute('data-price')) || 0,
-                    image: item.getAttribute('data-image')
+                    image: item.getAttribute('data-image'),
+                    modelUrl: item.getAttribute('data-model')
                 };
 
                 selectComponent(componentData);
@@ -394,7 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: this.getAttribute('data-type'),
                 name: this.getAttribute('data-name'),
                 price: parseFloat(this.getAttribute('data-price')) || 0,
-                image: this.getAttribute('data-image')
+                image: this.getAttribute('data-image'),
+                modelUrl: this.getAttribute('data-model')
             };
             
             selectComponent(componentData);
