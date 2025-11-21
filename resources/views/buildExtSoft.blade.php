@@ -11,17 +11,11 @@
         'resources\css\build.css',
         'resources\css\buildextsoft.css',
         'resources\js\app.js',
-        'resources\js\buildext.js',
+        'resources\js\buildextsoftmodel.js', // Updated to use the new file
         'resources\css\admin-staff\modal.css',
         ])
     
 </head>
-<script>
-    window.selectedComponents = @json(session('selected_components', []));
-</script>
-
-<body class="flex flex-col" x-data="softwareModal()">
-
 <script>
     window.selectedComponents = @json(session('selected_components', []));
 </script>
@@ -45,9 +39,6 @@
             @else
                 <button type="button" onclick="window.location='{{ route('techboxx.build.extend') }}'">
                     <x-icons.arrow class="build-arrow"/>
-                </button>
-                <button id="reloadButton">
-                    <x-icons.reload class="ext-reload" />
                 </button>
             @endif
         </div>
@@ -174,18 +165,14 @@
             </div>
         </div>
     </main>
-    </div>
-
 
     <script>
-
     const fullComponents = @json($fullComponents);
 
     function softwareModal() {
         return {
             viewModal: false,
             selectedSoftware: {},
-            // Use fullComponents passed from the controller
             fullComponents: @json($fullComponents),
 
             checkCompatibility() {
@@ -212,10 +199,7 @@
                     alert("⚠ Compatibility Issues:\n" + messages.join("\n"));
                 }
             }
-
         }
     }
     </script>
-
-
 </body>

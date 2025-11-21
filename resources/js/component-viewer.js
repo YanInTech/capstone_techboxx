@@ -187,6 +187,7 @@ function setupDragAndDrop() {
             mobomarker.rotation.y = Math.PI / 2;  // 90 degrees        
             mobomarker.rotation.z = 0;          // No rotation on the Z axis
             mobomarker.position.set(moboSlotPosition.x, moboSlotPosition.y - 0.9, moboSlotPosition.z + -0.61); // Position the mobomarker            scene.add(mobomarker);
+            scene.add(mobomarker);
           }
         } 
 
@@ -254,6 +255,7 @@ function setupDragAndDrop() {
             cpumarker.rotation.y = Math.PI / 2;  // 90 degrees        
             cpumarker.rotation.z = 0;          // No rotation on the Z axis
             cpumarker.position.set(cpuSlotPosition.x, cpuSlotPosition.y + .2, cpuSlotPosition.z - 0.07); // Position the cpumarker            scene.add(cpumarker);
+            scene.add(cpumarker);
           }
           
           
