@@ -23,6 +23,8 @@ class ComponentLookup:
         self.brand_mapping = {}
         self.price_mapping = {}
         self.id_mapping = {}
+        self.image_mapping = {}
+        self.model3d_mapping = {}
         self.detailed_maps = {}
         
     def load_component_data(self, table_name, component_type):
@@ -39,7 +41,9 @@ class ComponentLookup:
                 'build_category_id': row.build_category_id,
                 'price': float(row.price),
                 'full_name': f"{row.brand} {row.model}",
-                'component_type': component_type
+                'component_type': component_type,
+                'image': getattr(row, 'image', None),
+                'model3d': getattr(row, 'model_3d', None)
             }
             
             # Add storage_type for storage components
@@ -57,6 +61,8 @@ class ComponentLookup:
             self.brand_mapping[component_key] = row.brand
             self.price_mapping[component_key] = float(row.price)
             self.id_mapping[component_key] = row.id
+            self.image_mapping[component_key] = getattr(row, 'image', None)
+            self.model3d_mapping[component_key] = getattr(row, 'model3d', None)
             self.components[component_key] = component_info
         
         self.detailed_maps[component_type] = component_map
@@ -81,6 +87,8 @@ component_to_category = lookup_system.category_mapping
 component_to_brand = lookup_system.brand_mapping
 component_to_price = lookup_system.price_mapping
 component_to_id = lookup_system.id_mapping
+component_to_image = lookup_system.image_mapping
+component_to_model3d = lookup_system.model3d_mapping
 
 # ---------- HELPER FUNCTIONS FOR EASY DATA FETCHING ----------
 def get_component_info(component_type, component_id):
@@ -247,7 +255,9 @@ def get_best_recommendation_by_category():
                 recommendation_data = {
                     "id": comp_id,
                     "name": comp_info['full_name'],
-                    "price": comp_info['price']
+                    "price": comp_info['price'],
+                    "image": comp_info.get('image'),
+                    "model3d": comp_info.get('model3d')
                 }
                 
                 if comp_type == "storage":
@@ -260,7 +270,9 @@ def get_best_recommendation_by_category():
             recommendations[comp_type] = {
                 "id": None,
                 "name": fallback_item,
-                "price": 0
+                "price": 0,
+                "image": None,
+                "model3d": None
             }
     
     return recommendations
@@ -296,7 +308,9 @@ def get_recommendations_for_category(target_category, preferred_cpu_brand=None):
                 recommendation_data = {
                     "id": comp_id,
                     "name": comp_info['full_name'],
-                    "price": comp_info['price']
+                    "price": comp_info['price'],
+                    "image": comp_info.get('image'),
+                    "model3d": comp_info.get('model3d')
                 }
                 
                 if comp_type == "storage":
@@ -309,7 +323,9 @@ def get_recommendations_for_category(target_category, preferred_cpu_brand=None):
             recommendations[comp_type] = {
                 "id": None,
                 "name": fallback_item, 
-                "price": 0
+                "price": 0,
+                "image": None,
+                "model3d": None
             }
     
     return recommendations
@@ -335,7 +351,9 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                         "name": comp_info['full_name'],
                         "id": rec["id"],
                         "price": comp_info['price'],
-                        "category": comp_info['build_category_id']
+                        "category": comp_info['build_category_id'],
+                        "image": comp_info.get('image'),
+                        "model3d": comp_info.get('model3d')
                     }
                     total_price += comp_info['price']
     
@@ -359,7 +377,9 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                         "name": cheaper_alt['full_name'],
                         "id": cheaper_alt['id'],
                         "price": cheaper_alt['price'],
-                        "category": cheaper_alt['build_category_id']
+                        "category": cheaper_alt['build_category_id'],
+                        "image": cheaper_alt.get('image'),
+                        "model3d": cheaper_alt.get('model3d')
                     }
                     total_price -= savings
     
@@ -377,20 +397,26 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                     "id": detail["id"],
                     "name": detail["name"],
                     "price": detail["price"],
-                    "type": comp_info.get('storage_type', 'unknown') if comp_info else 'unknown'
+                    "type": comp_info.get('storage_type', 'unknown') if comp_info else 'unknown',
+                    "image": detail["image"],
+                    "model3d": detail["model3d"]
                 }
             else:
                 final_recommendations[comp_type] = {
                     "id": detail["id"],
                     "name": detail["name"], 
-                    "price": detail["price"]
+                    "price": detail["price"],
+                    "image": detail["image"],
+                    "model3d": detail["model3d"]
                 }
             final_total += detail["price"]
         else:
             final_recommendations[comp_type] = {
                 "id": None,
                 "name": None, 
-                "price": 0
+                "price": 0,
+                "image": None,
+                "model3d": None
             }
     
     final_recommendations["budget_summary"] = {
@@ -428,7 +454,9 @@ def get_fallback_recommendations():
                 recommendation_data = {
                     "id": comp_id,
                     "name": comp_info['full_name'],
-                    "price": comp_info['price']
+                    "price": comp_info['price'],
+                    "image": comp_info.get('image'),
+                    "model3d": comp_info.get('model3d')
                 }
                 
                 if comp_type == "storage":
@@ -437,7 +465,13 @@ def get_fallback_recommendations():
                 else:
                     recommendations[comp_type] = recommendation_data
         else:
-            recommendations[comp_type] = {"id": None, "name": None, "price": 0}
+            recommendations[comp_type] = {
+                "id": None, 
+                "name": None, 
+                "price": 0,
+                "image": None,
+                "model3d": None
+            }
     
     return recommendations
 

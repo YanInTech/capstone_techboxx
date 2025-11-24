@@ -529,53 +529,86 @@ generateBtn.addEventListener('click', () => {
             summaryTab.classList.add('active');
         }
 
-        // Update component mapping
+        // In build.js - Update the component mapping section
         Object.entries(data).forEach(([key, item]) => {
             if (key === 'budget_summary') return;
             
             let componentType = key;
+            let draggableType = key;
+            
+            // Handle special cases for component type mapping
             if (key === 'pc_case') {
                 key = 'case';
                 componentType = 'case';
+                draggableType = 'case';
             }
             if (key === 'storage') {
                 componentType = item.type;
+                draggableType = item.type;
             }
 
-            let buttonSelector = key === 'storage' 
-                ? `button[data-type="${item.type}"]`
-                : `button[data-type="${key}"]`;
-            
+            // Store component data WITH model3d
             selectedComponents[componentType] = {
                 componentId: item.id,
                 name: item.name,
                 price: parseFloat(item.price.toString().replace(/,/g, '')),
-                imageUrl: item.image || '' // Add image URL if available from API
+                imageUrl: item.image || '',
+                model3d: item.model3d || '' // Store model3d path
             };
+
+            // UPDATE DRAGGABLE IMAGES
+            const draggable = document.getElementById(draggableType);
+            if (draggable && item.image) {
+                const imageUrl = `/storage/${item.image}`.replace(/\\/g, '/');
+                
+                draggable.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" style="max-width: 50px; max-height: 50px;">
+                    <p>${draggableType.toUpperCase()}</p>
+                `;
+                
+                if (!draggable.hasAttribute('draggable')) {
+                    draggable.setAttribute('draggable', 'true');
+                }
+            }
 
             // UPDATE HIDDEN INPUTS FOR CART FORM
             if (componentType === 'hdd' || componentType === 'ssd') {
-                // For storage components, update the storage input
                 const storageInput = document.getElementById('hidden_storage');
                 if (storageInput) {
                     storageInput.value = item.id;
                 }
             } else {
-                // For regular components
                 const hiddenInput = document.getElementById(`hidden_${componentType}`);
                 if (hiddenInput) {
                     hiddenInput.value = item.id;
                 }
             }
 
+            // Update button names and store model3d path as data attribute
+            let buttonSelector = key === 'storage' 
+                ? `button[data-type="${item.type}"]`
+                : `button[data-type="${key}"]`;
+            
             const button = document.querySelector(buttonSelector);
             if (button) {
                 const selectedName = button.querySelector('.selected-name');
                 if (selectedName) {
                     selectedName.textContent = item.name;
                 }
+                
+                // Store model3d path as data attribute
+                if (item.model3d) {
+                    button.setAttribute('data-model', item.model3d);
+                }
             }
         });
+
+        // ✅ ADD THIS: After all buttons are updated, load the models
+        setTimeout(() => {
+            if (typeof window.loadModelsFromButtons === 'function') {
+                window.loadModelsFromButtons();
+            }
+        }, 1000); // Give it 1 second to ensure all data attributes are set
     })
     .catch(err => {
         console.error("Error:", err);

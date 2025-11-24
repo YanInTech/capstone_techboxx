@@ -30,6 +30,103 @@ let selectedSsdModelUrl = null;
 let selectedGpuModelUrl = null;
 let selectedRamModelUrl = null;
 
+// Function to load models from button data attributes
+function loadModelsFromButtons() {
+    console.log('Loading models from buttons...');
+    
+    // Helper function to get model path from button
+    function getModelFromButton(type) {
+        const button = document.querySelector(`button[data-type="${type}"]`);
+        if (button && button.hasAttribute('data-model')) {
+            const modelPath = button.getAttribute('data-model');
+            // Ensure proper path format
+            return modelPath.startsWith('/storage/') ? modelPath : `/storage/${modelPath}`;
+        }
+        return null;
+    }
+    
+    // Load Case first (it's required for other components)
+    const caseModelPath = getModelFromButton('case');
+    if (caseModelPath) {
+        console.log('Found case model:', caseModelPath);
+        selectedCaseModelUrl = caseModelPath;
+        window.selectedCaseModelUrl = caseModelPath;
+        
+        spawnCase(new THREE.Vector3(0, 0, 0), caseModelPath).then(() => {
+            console.log('Case loaded, now loading other components...');
+            
+            // After case loads, load motherboard
+            setTimeout(() => {
+                const moboModelPath = getModelFromButton('motherboard');
+                if (moboModelPath) {
+                    console.log('Found motherboard model:', moboModelPath);
+                    selectedMoboModelUrl = moboModelPath;
+                    window.selectedMoboModelUrl = moboModelPath;
+                    spawnMoboAtSlot().then(() => {
+                        console.log('Motherboard loaded');
+                        
+                        // After motherboard loads, load CPU, GPU, RAM, etc.
+                        setTimeout(() => {
+                            // CPU
+                            const cpuModelPath = getModelFromButton('cpu');
+                            if (cpuModelPath) {
+                                selectedCpuModelUrl = cpuModelPath;
+                                window.selectedCpuModelUrl = cpuModelPath;
+                                spawnCpuAtSlot();
+                            }
+                            
+                            // Cooler
+                            const coolerModelPath = getModelFromButton('cooler');
+                            if (coolerModelPath) {
+                                selectedCoolerModelUrl = coolerModelPath;
+                                window.selectedCoolerModelUrl = coolerModelPath;
+                                spawnCoolerAtSlot();
+                            }
+                            
+                            // SSD
+                            const ssdModelPath = getModelFromButton('ssd');
+                            if (ssdModelPath) {
+                                selectedSsdModelUrl = ssdModelPath;
+                                window.selectedSsdModelUrl = ssdModelPath;
+                                spawnSsdAtSlot();
+                            }
+                            
+                            // GPU
+                            const gpuModelPath = getModelFromButton('gpu');
+                            if (gpuModelPath) {
+                                selectedGpuModelUrl = gpuModelPath;
+                                window.selectedGpuModelUrl = gpuModelPath;
+                                spawnGpuAtSlot();
+                            }
+                            
+                            // RAM
+                            const ramModelPath = getModelFromButton('ram');
+                            if (ramModelPath) {
+                                selectedRamModelUrl = ramModelPath;
+                                window.selectedRamModelUrl = ramModelPath;
+                                spawnRamAtSlot();
+                            }
+                        }, 500);
+                    });
+                }
+                
+                // PSU (only depends on case)
+                const psuModelPath = getModelFromButton('psu');
+                if (psuModelPath) {
+                    selectedPsuModelUrl = psuModelPath;
+                    window.selectedPsuModelUrl = psuModelPath;
+                    spawnPsuAtSlot();
+                }
+            }, 500);
+        });
+    } else {
+        console.warn('No case model found in buttons');
+    }
+}
+
+// Make it globally accessible
+window.loadModelsFromButtons = loadModelsFromButtons;
+
 function setupCatalogClickHandlers() {
   document.querySelectorAll('.catalog-item').forEach(item => {
     item.addEventListener('click', async () => {

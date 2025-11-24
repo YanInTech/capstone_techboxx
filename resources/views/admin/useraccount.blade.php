@@ -82,7 +82,8 @@
                 </thead>
                 <tbody>
                     @foreach ($userAccounts as $userAccount)
-                        <tr @if($userAccount->status === 'Inactive') class="bg-gray-200 opacity-60" @endif>
+                        <tr @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }};" class="hover:opacity-50"
+                            @if($userAccount->status === 'Inactive') class="bg-gray-200 opacity-60 cursor-not-allowed" @endif>
                             <td>{{ $userAccount->first_name }} {{ $userAccount->last_name }}</td>
                             <td>{{ $userAccount->email }}</td>
                             <td class="text-center">{{ ucfirst($userAccount->role) }}</td>
@@ -94,18 +95,18 @@
                                         <form action="{{ route('admin.users.restore', $userAccount->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" title="Activate">
+                                            <button @click.stop type="submit" title="Activate">
                                                 <x-icons.restore />
                                             </button>
                                         </form>
                                     @else
                                         {{-- View / Edit / Delete Buttons --}}
                                         @if ($userAccount->role === 'Customer') 
-                                            <button @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }}">
+                                            {{-- <button @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }}">
                                                 <x-icons.view />    
-                                            </button>
+                                            </button> --}}
                                         @else
-                                            <button @click="showEditModal = true; selectedUser = {{ $userAccount->toJson() }}">
+                                            <button @click.stop @click="showEditModal = true; selectedUser = {{ $userAccount->toJson() }}">
                                                 <x-icons.edit />
                                             </button>
                                         @endif
@@ -113,7 +114,7 @@
                                         <form action="{{ route('admin.users.delete', $userAccount->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit">
+                                            <button @click.stop type="submit">
                                                 <x-icons.delete />
                                             </button>
                                         </form>
@@ -175,7 +176,7 @@
             <div x-show="showViewModal" x-cloak x-transition class="modal">
                 <div class="modal-form" @click.away="showViewModal = false">
                     <div>
-                        <h2 class="text-center">Customer Details</h2>
+                        <h2 class="text-center">User Details</h2>
                         <x-icons.close class="close" @click="showViewModal = false"/>        
                     </div>
 

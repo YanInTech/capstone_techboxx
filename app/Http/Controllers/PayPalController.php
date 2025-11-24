@@ -110,7 +110,7 @@ class PayPalController extends Controller
             }
 
             $message = $isDownpayment ? '50% Downpayment successful! Order placed.' : 'Payment successful! Order placed.';
-            return redirect()->route('customer.orderdetails')->with('success', $message);
+            return redirect()->route('cart.index')->with('success', $message);
         }
 
         return redirect()->route('techboxx.build')->with('error', 'Payment not completed.');
