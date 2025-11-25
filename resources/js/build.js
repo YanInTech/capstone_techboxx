@@ -30,11 +30,91 @@ let remainingBalance = 0;
 
 window.selectedComponents = {};
 window.selectPayment = selectPayment;
+window.clearSearch = clearSearch;
 
 let currentBrandFilter = '';     // e.g. "amd" or "intel"
 let currentCategoryFilter = '';  // e.g. "gaming"
 let currentTypeFilter = '';      // e.g. "cpu"
 let currentBudget = null;
+
+let currentSearchTerm = '';
+
+function initializeSearch() {
+    const searchForm = document.querySelector('.component-search');
+    const searchInput = searchForm.querySelector('input[name="search"]');
+    
+    // Replace form submission with AJAX search
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        performSearch(searchInput.value.trim());
+    });
+    
+    // Optional: Add real-time search as user types (with debounce)
+    let searchTimeout;
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(e.target.value.trim());
+        }, 300); // 300ms delay
+    });
+    
+    // Clear search when input is emptied
+    searchInput.addEventListener('keyup', function(e) {
+        if (e.target.value === '') {
+            currentSearchTerm = '';
+            applyAllFilters();
+        }
+    });
+}
+
+function performSearch(searchTerm) {
+    currentSearchTerm = searchTerm.toLowerCase();
+    
+    // If search term is empty, just apply existing filters
+    if (!currentSearchTerm) {
+        applyAllFilters();
+        return;
+    }
+    
+    // Apply all filters including search
+    applyAllFilters();
+    
+    // Optional: Show search results count
+    updateSearchResultsCount();
+}
+
+function updateSearchResultsCount() {
+    const visibleItems = document.querySelectorAll('.catalog-item:not(.hidden)');
+    const catalogTitle = document.getElementById('catalogTitle');
+    
+    if (currentSearchTerm) {
+        const currentType = currentTypeFilter ? currentTypeFilter.toUpperCase() : 'All Components';
+        catalogTitle.textContent = `${currentType} (${visibleItems.length} results for "${currentSearchTerm}")`;
+    }
+}
+
+function updateCatalogTitle() {
+    const catalogTitle = document.getElementById('catalogTitle');
+    const visibleItems = document.querySelectorAll('.catalog-item:not(.hidden)');
+    
+    let title = currentTypeFilter ? currentTypeFilter.toUpperCase() : 'ALL COMPONENTS';
+    
+    if (currentSearchTerm) {
+        title += ` (${visibleItems.length} results for "${currentSearchTerm}")`;
+    } else if (currentBrandFilter || currentCategoryFilter || currentBudget !== null) {
+        title += ` (${visibleItems.length} items)`;
+    }
+    
+    catalogTitle.textContent = title;
+}
+
+// Add a function to clear search
+function clearSearch() {
+    const searchInput = document.querySelector('.component-search input[name="search"]');
+    searchInput.value = '';
+    currentSearchTerm = '';
+    applyAllFilters();
+}
 
 function applyAllFilters() {
     catalogItem.forEach(item => {
@@ -42,6 +122,7 @@ function applyAllFilters() {
         const itemName = item.getAttribute('data-name').toLowerCase();
         const itemCategory = item.getAttribute('data-category').toLowerCase();
         const itemPrice = parseFloat(item.getAttribute('data-price'));
+        const itemBrand = item.getAttribute('data-name').toLowerCase(); // Using data-name for brand search
 
         let show = true;
 
@@ -71,8 +152,16 @@ function applyAllFilters() {
             show = false;
         }
 
+        // Search filter - ADD THIS NEW FILTER
+        if (currentSearchTerm && !itemName.includes(currentSearchTerm)) {
+            show = false;
+        }
+
         item.classList.toggle('hidden', !show);
     });
+    
+    // Update catalog title based on current state
+    updateCatalogTitle();
 }
 
 function displayBuildRemarks(budgetSummary, userBudget, totalPrice, category, cpuBrand) {
@@ -641,6 +730,10 @@ buildSectionButtons.forEach(button => {
 
         applyAllFilters();
     })
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSearch();
 });
 
 document.querySelectorAll('.catalog-item').forEach(item => {
