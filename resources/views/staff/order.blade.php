@@ -173,6 +173,10 @@
                             <h4>Build Price:</h4>
                             <h4 x-text="'₱' + (parseFloat(selectedBuild.user_build.total_price)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
                         </div>
+                        <div class="build-details-price !border-none">
+                            <h4>Remaining Balance:</h4>
+                            <h4 x-text="'₱' + (parseFloat(selectedBuild.remaining_balance ?? 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>                        </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -295,6 +299,10 @@
                         <div class="build-details-price !border-none">
                             <h4>Total Cost:</h4>
                             <h4 x-text="'₱' + (selectedOrder.total_cost.toFixed(2)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>
+                        </div>
+                        <div class="build-details-price !border-none">
+                            <h4>Remaining Balance:</h4>
+                            <h4 x-text="'₱' + (parseFloat(selectedOrder.remaining_balance ?? 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')"></h4>                        </div>
                         </div>
                     </div>
                 </div>

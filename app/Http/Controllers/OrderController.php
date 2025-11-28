@@ -84,6 +84,7 @@ class OrderController extends Controller
                 'shopping_cart_id' => $first->cartItem->shopping_cart_id,
                 'checkout_date' => $first->checkout_date,
                 'total_cost' => $checkouts->sum('total_cost'),
+                'remaining_balance' => $checkouts->sum('remaining_balance'),
                 'payment_method' => $checkouts->pluck('payment_method')->unique()->implode(', '),
                 'payment_status' => $checkouts->pluck('payment_status')->unique()->implode(', '),
                 'pickup_status' => $checkouts->pluck('pickup_status')->unique()->implode(', '),
