@@ -79,7 +79,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::post('dashboard', [UserAccountController::class, 'store'])->name('users.add');
     Route::post('users/{id}/approve', [UserAccountController::class, 'approve'])->name('users.approved');
     Route::delete('users/{id}/decline', [UserAccountController::class, 'decline'])->name('users.decline');
-    Route::put('users/{id}/update', [UserAccountController::class, 'update']);
+    Route::put('users/{id}/update', [UserAccountController::class, 'update'])->name('users.update');
     Route::delete('users/{id}/delete', [UserAccountController::class, 'delete'])->name('users.delete');
     Route::patch('/admin/users/{id}/restore', [UserAccountController::class, 'restore'])->name('users.restore');
 

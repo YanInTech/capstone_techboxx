@@ -17,16 +17,6 @@
                 <span>Email</span>
                 <span>:</span>
                 <span>{{ Auth::user()->email }}</span>
-                <span class="email-row">
-                    @if (! Auth::user()->hasVerifiedEmail())
-                        <form action="{{ route('verification.send') }}" method="POST">
-                            @csrf
-                            <button type="submit">
-                                <u>(Verifiy Email)</u>
-                            </button>
-                        </form>
-                    @endif    
-                </span>
             </div>
             <div>
                 <span>Address</span>

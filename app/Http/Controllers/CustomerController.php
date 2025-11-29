@@ -43,7 +43,7 @@ class CustomerController extends Controller
 
         $user->update([
             'first_name' => $request->first_name,
-            'middle_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
             'address' => $request->address,
@@ -53,7 +53,7 @@ class CustomerController extends Controller
 
         return redirect()->route('customer.dashboard')->with([
             'message' => $emailChanged
-                ? 'Profile Updated. Please verify your new email address'
+                ? 'Profile Updated.'
                 : 'Profile updated successfully.',
             'type' => 'success',
         ]);

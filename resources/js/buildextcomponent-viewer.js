@@ -246,7 +246,7 @@ interact('.component-button').draggable({
                     
                     const cpuSlotPosition = new THREE.Vector3();
                     cpuSlot.getWorldPosition(cpuSlotPosition);
-                    cpumarker.position.set(cpuSlotPosition.x, cpuSlotPosition.y + -1, cpuSlotPosition.z + -1.4);
+                    cpumarker.position.set(cpuSlotPosition.x, cpuSlotPosition.y, cpuSlotPosition.z);
                     scene.add(cpumarker);
                 }
             }

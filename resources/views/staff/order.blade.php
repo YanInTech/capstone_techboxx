@@ -116,7 +116,7 @@
                         </div>
                         <div>
                             <p>Name</p>
-                            <p x-text="selectedBuild.user_build.user.first_name + ' ' + selectedBuild.user_build.user.last_name"></p>
+                            <p x-text="selectedBuild.user_build.user.first_name + ' ' + (selectedBuild.user_build.user.middle_name ? selectedBuild.user_build.user.middle_name + ' ' : '') + selectedBuild.user_build.user.last_name"></p>
                         </div>
                         <div>
                             <p>Contact No</p>
@@ -258,7 +258,7 @@
                         </div>
                         <div>
                             <p>Name</p>
-                            <p x-text="selectedOrder.user.first_name + ' ' + selectedOrder.user.last_name"></p>
+                            <p x-text="selectedOrder.user.first_name + ' ' + (selectedOrder.user.middle_name ? selectedOrder.user.middle_name + ' ' : '') + selectedOrder.user.last_name"></p>
                         </div>
                         <div>
                             <p>Contact No</p>

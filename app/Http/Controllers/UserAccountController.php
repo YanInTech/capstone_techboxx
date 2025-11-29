@@ -78,6 +78,8 @@ class UserAccountController extends Controller
         $oldData = [
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
             'email' => $user->email,
             'role' => $user->role,
         ];
@@ -85,6 +87,8 @@ class UserAccountController extends Controller
         $user->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
+            'phone_number' => $request->phone_number,
+            'address' => $request->address,
             'email' => $request->email,
             'role' => $request->role,
         ]);

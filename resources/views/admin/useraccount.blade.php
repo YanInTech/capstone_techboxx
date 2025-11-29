@@ -84,7 +84,7 @@
                     @foreach ($userAccounts as $userAccount)
                         <tr @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }};" class="hover:opacity-50"
                             @if($userAccount->status === 'Inactive') class="bg-gray-200 opacity-60 cursor-not-allowed" @endif>
-                            <td>{{ $userAccount->first_name }} {{ $userAccount->last_name }}</td>
+                            <td>{{ $userAccount->first_name }} {{ $userAccount->middle_name }} {{ $userAccount->last_name }}</td>
                             <td>{{ $userAccount->email }}</td>
                             <td class="text-center">{{ ucfirst($userAccount->role) }}</td>
                             <td class="text-center">{{ ucfirst($userAccount->status) }}</td>
@@ -134,26 +134,26 @@
                         <h2 class="text-center">Edit User</h2>
                         <x-icons.close class="close" @click="showEditModal = false"/>    
                     </div>
-                    <form :action="'/users/' + selectedUser.id + '/update'" method="POST">
+                    <form :action="`/admin/users/${selectedUser.id}/update`" method="POST">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="id" x-model="selectedUser.id">
 
                         <div>
                             <label for="first_name">First Name</label>
-                            <input readonly x-model="selectedUser.first_name">
+                            <input name="first_name" x-model="selectedUser.first_name">
                         </div>
                         <div>
                             <label for="last_name">Last Name</label>
-                            <input readonly x-model="selectedUser.last_name">
+                            <input name="last_name" x-model="selectedUser.last_name">
                         </div>
                         <div>
                             <label>Contact Number</label>
-                            <input readonly x-model="selectedUser.phone_number">
+                            <input name="phone_number" x-model="selectedUser.phone_number">
                         </div>
                         <div>
                             <label>Address</label>
-                            <input readonly x-model="selectedUser.address">
+                            <input name="address" x-model="selectedUser.address">
                         </div>
                         <div>
                             <label for="email">Email</label>

@@ -33,9 +33,9 @@
                 <button type="button" onclick="window.location='{{ route('techboxx.build.extend') }}'">
                     <x-icons.arrow class="ext-arrow"/>
                 </button>
-                <button id="reloadButton">
+                {{-- <button id="reloadButton">
                     <x-icons.reload class="ext-reload" />
-                </button>
+                </button> --}}
             @else
                 <button type="button" onclick="window.location='{{ route('techboxx.build.extend') }}'">
                     <x-icons.arrow class="build-arrow"/>

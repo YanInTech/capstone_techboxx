@@ -76,7 +76,7 @@
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="font-semibold text-gray-700">Customer Name:</span>
-                                <span x-text="selectedOrder.user_build.user ? selectedOrder.user_build.user.first_name + ' ' + selectedOrder.user_build.user.last_name : 'Unknown'" class="text-gray-800 font-medium">-</span>
+                                <span x-text="selectedOrder.user_build.user ? selectedOrder.user_build.user.first_name + ' ' + selectedOrder.user_build.user.middle_name + ' ' + selectedOrder.user_build.user.last_name : 'Unknown'" class="text-gray-800 font-medium">-</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="font-semibold text-gray-700">Payment Method:</span>
