@@ -555,15 +555,15 @@ generateBtn.addEventListener('click', () => {
     .then(res => res.json())
     .then(data => { 
         loadingSpinner.classList.add('hidden');
-
         summaryTableBody.innerHTML = '';
-
+        
         let totalPrice = 0;
-
-        // Filter out the budget_summary and only process components
         const components = Object.entries(data).filter(([key, item]) => {
             return key !== 'budget_summary' && item && item.price !== undefined;
         });
+
+        // Clear previous components
+        window.selectedComponents = {};
 
         components.forEach(([key, item]) => {
             const price = parseFloat(item.price.toString().replace(/,/g, ''));
@@ -574,14 +574,49 @@ generateBtn.addEventListener('click', () => {
 
             totalPrice += price;
 
+            // ✅ FIX 1: Handle component type mapping properly
+            let componentType = key;
+            
+            // Map 'pc_case' to 'case' for JavaScript
+            if (key === 'pc_case') {
+                componentType = 'case';
+            }
+            // Handle storage type
+            if (key === 'storage') {
+                componentType = item.type; // 'ssd' or 'hdd'
+            }
+
+            // ✅ FIX 2: Store component with all necessary data
+            window.selectedComponents[componentType] = {
+                componentId: item.id,
+                name: item.name,
+                price: price,
+                imageUrl: item.image || '',
+                model3d: item.model3d || '',
+                originalType: key // Keep original type for reference
+            };
+
+            // Add to summary table
             let row = '';
             row += `<tr>`;
             row += `<td><p>${item.name}</p></td>`;
             row += `<td><p>1</p></td>`;
             row += `<td><p>₱${price.toFixed(2)}</p></td>`;
             row += `</tr>`;
-
             summaryTableBody.innerHTML += row;
+
+            // ✅ FIX 3: Update hidden inputs
+            if (componentType === 'ssd' || componentType === 'hdd') {
+                const storageInput = document.getElementById('hidden_storage');
+                if (storageInput) {
+                    storageInput.value = item.id;
+                }
+            } else {
+                const hiddenInput = document.getElementById(`hidden_${componentType}`);
+                if (hiddenInput) {
+                    hiddenInput.value = item.id;
+                }
+            }
         });
 
         // Add total price row

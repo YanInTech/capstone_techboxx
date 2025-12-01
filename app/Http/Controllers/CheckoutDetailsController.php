@@ -43,6 +43,7 @@ class CheckoutDetailsController extends Controller
             $cartItems = $checkouts->map->cartItem;
 
             return [
+                'checkout_id' => $first->id,
                 'shopping_cart_id' => $first->cartItem->shopping_cart_id,
                 'checkout_date' => $first->checkout_date,
                 'updated_at' => $first->updated_at,

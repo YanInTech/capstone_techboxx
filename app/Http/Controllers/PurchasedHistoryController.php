@@ -59,7 +59,7 @@ class PurchasedHistoryController extends Controller
                 return (object)[
                     'type' => 'component',
                     'id' => 'comp_' . $first->cartItem->shopping_cart_id,
-                    'order_id' => $first->cartItem->shopping_cart_id,
+                    'order_id' => $first->id,
                     'checkout_date' => $first->checkout_date,
                     'pickup_date' => $first->pickup_date,
                     'updated_at' => $first->updated_at,

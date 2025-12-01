@@ -383,26 +383,30 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                     }
                     total_price -= savings
     
-    # Format final recommendations
+    # In your Python script, update the output format
     final_recommendations = {}
     final_total = 0
-    
+
     for comp_type in component_types:
         if comp_type in component_details:
             detail = component_details[comp_type]
             comp_info = get_component_info(comp_type, detail["id"])
             
+            # ✅ FIX: Return 'case' instead of 'pc_case' for consistency
+            output_type = 'case' if comp_type == 'pc_case' else comp_type
+            
             if comp_type == "storage":
-                final_recommendations["storage"] = {
+                storage_type = comp_info.get('storage_type', 'unknown') if comp_info else 'unknown'
+                final_recommendations[storage_type] = {  # Use 'ssd' or 'hdd' as key
                     "id": detail["id"],
                     "name": detail["name"],
                     "price": detail["price"],
-                    "type": comp_info.get('storage_type', 'unknown') if comp_info else 'unknown',
+                    "type": storage_type,
                     "image": detail["image"],
                     "model3d": detail["model3d"]
                 }
             else:
-                final_recommendations[comp_type] = {
+                final_recommendations[output_type] = {  # Use mapped type as key
                     "id": detail["id"],
                     "name": detail["name"], 
                     "price": detail["price"],
@@ -411,21 +415,16 @@ def get_budget_recommendations(user_budget, target_category=None, preferred_cpu_
                 }
             final_total += detail["price"]
         else:
-            final_recommendations[comp_type] = {
-                "id": None,
-                "name": None, 
-                "price": 0,
-                "image": None,
-                "model3d": None
-            }
-    
+            # Don't add empty entries
+            pass
+
     final_recommendations["budget_summary"] = {
         "user_budget": user_budget,
         "total_price": final_total,
         "remaining_budget": user_budget - final_total,
         "within_budget": final_total <= user_budget * (1 + budget_tolerance)
     }
-    
+
     return final_recommendations
 
 def get_fallback_for_component(comp_type, target_category):

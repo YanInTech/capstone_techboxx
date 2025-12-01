@@ -205,7 +205,7 @@
                             ])
                             @click="setSelectedOrder({{ json_encode($group) }})"
                         >
-                            <td class="text-center">{{ $group['shopping_cart_id'] }}</td>
+                            <td class="text-center">{{ $group['checkout_id'] }}</td>
                             <td class="text-center">{{ $group['checkout_date'] ? ($group['checkout_date'])->format('Y-m-d') : '-' }}</td>
                             <td class="text-center">{{ number_format($group['total_cost'], 2) }}</td>
                             <td class="text-center">{{ $group['pickup_status'] ?? '-' }}</td>

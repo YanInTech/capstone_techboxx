@@ -83,6 +83,7 @@ class OrderController extends Controller
             $cartItems = $checkouts->map->cartItem->unique('id')->values();
 
             return [
+                'checkout_id' => $first->id,
                 'shopping_cart_id' => $first->cartItem->shopping_cart_id,
                 'checkout_date' => $first->checkout_date,
                 'total_cost' => $checkouts->sum('total_cost'),
