@@ -99,13 +99,13 @@ class PayPalController extends Controller
         if (isset($captureResponse->result->status) && $captureResponse->result->status === "COMPLETED") {
             // Update checkout payment statuses
             if (!empty($checkoutIds)) {
-                $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+                $paymentStatus = $isDownpayment ? 'Pending' : 'Paid';
                 Checkout::whereIn('id', $checkoutIds)->update(['payment_status' => $paymentStatus]);
             }
 
             // Update ordered build payment status
             if ($orderedBuildId) {
-                $paymentStatus = $isDownpayment ? 'Paid' : 'Paid';
+                $paymentStatus = $isDownpayment ? 'Pending' : 'Paid';
                 OrderedBuild::where('id', $orderedBuildId)->update(['payment_status' => $paymentStatus]);
             }
 

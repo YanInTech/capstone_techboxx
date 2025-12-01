@@ -255,7 +255,7 @@ class CartController extends Controller
         $isDownpayment = $paymentMethod === 'PayPal_Downpayment';
         
         // Set payment status - for downpayment, it should be 'Downpayment Paid' after PayPal success
-        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : ($isDownpayment ? 'Paid' : 'Paid');
+        $paymentStatus = $paymentMethod === 'Cash on Pickup' ? 'Pending' : ($isDownpayment ? 'Pending' : 'Paid');
         
         $displayPaymentMethod = $paymentMethod === 'Cash on Pickup' ? 'Cash' : 'PayPal';
 
@@ -351,7 +351,7 @@ class CartController extends Controller
         $isDownpayment = $paymentMethod === 'PayPal_Downpayment';
         
         // Set payment status - for downpayment, it should be 'Downpayment Paid' after PayPal success
-        $paymentStatus = $isDownpayment ? 'Downpayment Paid' : 'Paid';
+        $paymentStatus = $isDownpayment ? 'Pending' : 'Paid';
         
         $displayPaymentMethod = 'PayPal'; // Always PayPal since we removed Cash on Pickup
 

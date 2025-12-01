@@ -74,30 +74,30 @@
 
         <!-- Improved Footer -->
         <footer class="bg-gray-900 text-gray-400 py-8">
-    <div class="container mx-auto px-4">
-        <!-- Contact Info in one line -->
-        <div class="flex justify-center mb-4">
-            <div class="flex items-center space-x-6">
-                <!-- Facebook Link -->
-                <a href="https://www.facebook.com/itsmadoxx" class="flex items-center hover:text-white transition-colors duration-300 text-xs">
-                    <i class="fab fa-facebook-f mr-2"></i>
-                    <span>Facebook: <span class="text-white">Madoxx.qwe PC </span></span>
-                </a>
+            <div class="container mx-auto px-4">
+                <!-- Contact Info in one line -->
+                <div class="flex justify-center mb-4">
+                    <div class="flex items-center space-x-6">
+                        <!-- Facebook Link -->
+                        <a href="https://www.facebook.com/itsmadoxx" class="flex items-center hover:text-white transition-colors duration-300 text-xs">
+                            <i class="fab fa-facebook-f mr-2"></i>
+                            <span>Facebook: <span class="text-white">Madoxx.qwe PC </span></span>
+                        </a>
+                        
+                        <!-- Contact Number -->
+                        <div class="flex items-center text-xs">
+                            <i class="fas fa-phone mr-2"></i>
+                            <span>Cell no: <span class="text-white">09238721088</span></span>
+                        </div>
+                    </div>
+                </div>
                 
-                <!-- Contact Number -->
-                <div class="flex items-center text-xs">
-                    <i class="fas fa-phone mr-2"></i>
-                    <span>Cell no: <span class="text-white">09238721088</span></span>
+                <!-- Copyright centered below -->
+                <div class="text-center">
+                    <p class="text-sm">© 2025 TechBoxx. All rights reserved.</p>
                 </div>
             </div>
-        </div>
-        
-        <!-- Copyright centered below -->
-        <div class="text-center">
-            <p class="text-sm">© 2025 TechBoxx. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+        </footer>
         <script>
         function addToCart(productId, price) {
             const qty = document.querySelector(`#qty-${productId}`).value;

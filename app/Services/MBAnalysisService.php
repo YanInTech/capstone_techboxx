@@ -37,30 +37,30 @@ class MBAnalysisService
         }
     }
     
-    // Fallback recommendations if Python script fails
-    public function getFallbackRecommendations($productType)
-    {
-        // Simple fallback based on product type
-        $fallbacks = [
-            'cpu' => [
-                ['name' => 'Compatible Motherboard', 'type' => 'motherboard', 'price' => 0],
-                ['name' => 'RAM Kit', 'type' => 'ram', 'price' => 0],
-                ['name' => 'CPU Cooler', 'type' => 'cooler', 'price' => 0]
-            ],
-            'gpu' => [
-                ['name' => 'Power Supply', 'type' => 'psu', 'price' => 0],
-                ['name' => 'PC Case', 'type' => 'pc_case', 'price' => 0]
-            ],
-            'motherboard' => [
-                ['name' => 'Compatible CPU', 'type' => 'cpu', 'price' => 0],
-                ['name' => 'RAM', 'type' => 'ram', 'price' => 0]
-            ],
-            'ram' => [
-                ['name' => 'Motherboard', 'type' => 'motherboard', 'price' => 0],
-                ['name' => 'CPU', 'type' => 'cpu', 'price' => 0]
-            ]
-        ];
+    // // Fallback recommendations if Python script fails
+    // public function getFallbackRecommendations($productType)
+    // {
+    //     // Simple fallback based on product type
+    //     $fallbacks = [
+    //         'cpu' => [
+    //             ['name' => 'Compatible Motherboard', 'type' => 'motherboard', 'price' => 0],
+    //             ['name' => 'RAM Kit', 'type' => 'ram', 'price' => 0],
+    //             ['name' => 'CPU Cooler', 'type' => 'cooler', 'price' => 0]
+    //         ],
+    //         'gpu' => [
+    //             ['name' => 'Power Supply', 'type' => 'psu', 'price' => 0],
+    //             ['name' => 'PC Case', 'type' => 'pc_case', 'price' => 0]
+    //         ],
+    //         'motherboard' => [
+    //             ['name' => 'Compatible CPU', 'type' => 'cpu', 'price' => 0],
+    //             ['name' => 'RAM', 'type' => 'ram', 'price' => 0]
+    //         ],
+    //         'ram' => [
+    //             ['name' => 'Motherboard', 'type' => 'motherboard', 'price' => 0],
+    //             ['name' => 'CPU', 'type' => 'cpu', 'price' => 0]
+    //         ]
+    //     ];
         
-        return $fallbacks[$productType] ?? [];
-    }
+    //     return $fallbacks[$productType] ?? [];
+    // }
 }

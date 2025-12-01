@@ -110,7 +110,7 @@
                         </div>
                     </div>
                     <div>
-                        <button>Add Software</button>
+                        <button class="!w-[100%]">Add Software</button>
                     </div>
                 </form>
             </div>
@@ -137,7 +137,7 @@
                             <td class="text-center">{{ $software->buildCategory->name }}</td>
                             <td>
                                 @if($software->deleted_at)
-                                <form action="{{ route('staff.software-details.restore', ['id' => $software->id]) }}" method="POST">
+                                <form action="{{ route('staff.software-details.restore', ['id' => $software->id]) }}" method="POST" class="flex justify-center gap-2">
                                         @csrf
                                         @method('PATCH') <!-- or any method you use for restoring -->
                                         <button @click.stop type="submit">
@@ -323,7 +323,7 @@
                             </div>
                         </div>
                         <div>
-                            <button>Update Software</button>
+                            <button class="!w-[100%]">Update Software</button>
                         </div>
                     </form>
                 </div>

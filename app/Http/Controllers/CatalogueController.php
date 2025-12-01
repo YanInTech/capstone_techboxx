@@ -380,10 +380,10 @@ class CatalogueController extends Controller
     $mbaService = new MBAnalysisService();
     $mbaRecommendations = $mbaService->getRecommendations($product['name'], $category);
     
-    // If no MBA recommendations, use fallback
-    if (empty($mbaRecommendations)) {
-        $mbaRecommendations = $mbaService->getFallbackRecommendations($category);
-    }
+    // // If no MBA recommendations, use fallback
+    // if (empty($mbaRecommendations)) {
+    //     $mbaRecommendations = $mbaService->getFallbackRecommendations($category);
+    // }
 
     return view('product.show', compact(
         'product', 
