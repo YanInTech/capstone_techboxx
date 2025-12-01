@@ -13,6 +13,7 @@ class OrderedBuild extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'created_at',
         'user_build_id',
         'status',
         'user_id',

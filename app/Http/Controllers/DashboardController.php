@@ -15,8 +15,11 @@ class DashboardController extends Controller
     {
         try {
             // Basic stats
-            $totalOrders = Checkout::count() 
-                   + OrderedBuild::count();
+            $totalOrders = Checkout::join('cart_items', 'checkouts.cart_item_id', '=', 'cart_items.id')
+                ->distinct('cart_items.shopping_cart_id')
+                ->count('cart_items.shopping_cart_id')
+            + OrderedBuild::count();
+
             $pendingOrders = Checkout::where('pickup_date', null)->count() 
                    + OrderedBuild::where('pickup_date', null)->count();
 

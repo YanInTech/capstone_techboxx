@@ -47,6 +47,7 @@ class UserAccountController extends Controller
     public function store(Request $request) {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|max:255',
@@ -77,6 +78,7 @@ class UserAccountController extends Controller
         // Store old data for logging
         $oldData = [
             'first_name' => $user->first_name,
+            'middle_name' => $user->middle_name,
             'last_name' => $user->last_name,
             'phone_number' => $user->phone_number,
             'address' => $user->address,
@@ -86,6 +88,7 @@ class UserAccountController extends Controller
 
         $user->update([
             'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
             'phone_number' => $request->phone_number,
             'address' => $request->address,

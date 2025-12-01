@@ -11,6 +11,11 @@
                         <label for="first_name">First name</label>
                         <input required type="text" name="first_name">
                     </div>
+
+                    <div class="input-label">
+                        <label for="middle_name">Middle name</label>
+                        <input required type="text" name="middle_name">
+                    </div>
                     
                     <div class="input-label">
                         <label for="last_name">Last Name</label>
@@ -38,7 +43,7 @@
                 <div class="flex flex-col gap-2">
                     <div class="input-label">
                         <label for="phone_number">Contact Number</label>
-                        <input required name="phone_number" id="phone_number" type="number" onkeydown="return !['e','E','+','-'].includes(event.key)">
+                        <input required name="phone_number" id="phone_number" type="tel" pattern="0[0-9]{10}" minlength="11" maxlength="11" oninput="this.value = this.value.slice(0, 11)">
                     </div>
                     <div class="input-label">
                         <label for="address">Address</label>
@@ -82,8 +87,8 @@
                 </thead>
                 <tbody>
                     @foreach ($userAccounts as $userAccount)
-                        <tr @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }};" class="hover:opacity-50"
-                            @if($userAccount->status === 'Inactive') class="bg-gray-200 opacity-60 cursor-not-allowed" @endif>
+                        <tr @click="{{ $userAccount->status !== 'Inactive' ? "showViewModal = true; selectedUser = {$userAccount->toJson()};" : '' }}" 
+                            class="hover:opacity-50 @if($userAccount->status === 'Inactive') bg-gray-200 opacity-60 cursor-not-allowed @else cursor-pointer @endif">
                             <td>{{ $userAccount->first_name }} {{ $userAccount->middle_name }} {{ $userAccount->last_name }}</td>
                             <td>{{ $userAccount->email }}</td>
                             <td class="text-center">{{ ucfirst($userAccount->role) }}</td>
@@ -102,27 +107,23 @@
                                     @else
                                         {{-- View / Edit / Delete Buttons --}}
                                         @if ($userAccount->role === 'Customer') 
-                                            {{-- <button @click="showViewModal = true; selectedUser = {{ $userAccount->toJson() }}">
-                                                <x-icons.view />    
-                                            </button> --}}
                                         @else
                                             <button @click.stop @click="showEditModal = true; selectedUser = {{ $userAccount->toJson() }}">
                                                 <x-icons.edit />
                                             </button>
+                                            <form action="{{ route('admin.users.delete', $userAccount->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button @click.stop type="submit">
+                                                    <x-icons.delete />
+                                                </button>
+                                            </form>
                                         @endif
-
-                                        <form action="{{ route('admin.users.delete', $userAccount->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button @click.stop type="submit">
-                                                <x-icons.delete />
-                                            </button>
-                                        </form>
                                     @endif
                                 </div>
                             </td>    
                         </tr>    
-                        @endforeach
+                    @endforeach
                 </tbody>
             </table>    
 
@@ -130,9 +131,11 @@
             {{-- Edit Modal --}}
             <div x-show="showEditModal" x-cloak x-transition class="modal">
                 <div class="modal-form" @click.away="showEditModal = false">
-                    <div class="flex">
-                        <h2 class="text-center">Edit User</h2>
-                        <x-icons.close class="close" @click="showEditModal = false"/>    
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            Edit User
+                            <x-icons.close class="close" @click="showEditModal = false"/>    
+                        </h2>
                     </div>
                     <form :action="`/admin/users/${selectedUser.id}/update`" method="POST">
                         @csrf
@@ -144,12 +147,16 @@
                             <input name="first_name" x-model="selectedUser.first_name">
                         </div>
                         <div>
+                            <label for="middle_name">Middle Name</label>
+                            <input name="middle_name" x-model="selectedUser.middle_name">
+                        </div>
+                        <div>
                             <label for="last_name">Last Name</label>
                             <input name="last_name" x-model="selectedUser.last_name">
                         </div>
                         <div>
                             <label>Contact Number</label>
-                            <input name="phone_number" x-model="selectedUser.phone_number">
+                            <input required name="phone_number" x-model="selectedUser.phone_number" id="phone_number" type="tel" pattern="0[0-9]{10}" minlength="11" maxlength="11" oninput="this.value = this.value.slice(0, 11)">
                         </div>
                         <div>
                             <label>Address</label>
@@ -175,11 +182,12 @@
             {{-- View Modal --}}
             <div x-show="showViewModal" x-cloak x-transition class="modal">
                 <div class="modal-form" @click.away="showViewModal = false">
-                    <div>
-                        <h2 class="text-center">User Details</h2>
-                        <x-icons.close class="close" @click="showViewModal = false"/>        
+                    <div class="relative !m-0">
+                        <h2 class="text-center w-[100%]">
+                            User Details
+                            <x-icons.close class="close" @click="showViewModal = false"/>    
+                        </h2>
                     </div>
-
                     <form>
                         @csrf
                         @method('PUT')
@@ -188,6 +196,10 @@
                         <div>
                             <label for="first_name">First Name</label>
                             <input type="text" name="first_name" x-model="selectedUser.first_name" readonly>
+                        </div>
+                        <div>
+                            <label for="middle_name">Middle Name</label>
+                            <input type="text" name="middle_name" x-model="selectedUser.first_name" readonly>
                         </div>
                         <div>
                             <label for="last_name">Last Name</label>

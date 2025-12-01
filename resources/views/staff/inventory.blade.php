@@ -102,7 +102,7 @@
                         </div>
                         <div>
                             <button>Confirm Stock-in</button>
-                            <button @click="showStockInCompModal = false">Cancel</button>
+                            {{-- <button @click="showStockInCompModal = false">Cancel</button> --}}
                         </div>
                     </form>
                 </div>

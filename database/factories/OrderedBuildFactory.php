@@ -19,12 +19,15 @@ class OrderedBuildFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'created_at' => $this->faker->dateTimeBetween(
+                '2025-11-25 23:59:59',
+                '2025-12-01 00:00:00'   // End: November 25th (this will wrap to next year)
+            ),
             'user_build_id' => UserBuild::inRandomOrder()->first()->id,
             'status' => 'Pending',
-            'user_id' => User::inRandomOrder()->first()->id,
+            // 'user_id' => User::inRandomOrder()->first()->id,
             'payment_status' => 'Paid',
-            'payment_method' => fake()->randomElement(['Paypal', 'Cash']),
+            'payment_method' => fake()->randomElement(['Paypal']),
             'pickup_status' => null,
         ];
     }

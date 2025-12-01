@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if ((!data.errors || data.errors.length === 0) && (!data.warnings || data.warnings.length === 0)) {
-                message = "✅ No issues found. However, make sure all components are added for a complete compatibility check.";
+                message = "✅ No issues found, all components are compatible.";
             }
 
             alert(message);

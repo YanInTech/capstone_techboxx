@@ -20,7 +20,6 @@
         <x-logoheader>
             <x-slot name="header">
                 <h1>Login</h1>
-                <p>Don't have an account? <a href="{{ route('register') }}">Sign up</a></p>
             </x-slot>
 
             <div>
@@ -31,7 +30,11 @@
             <div>
                 <label for="password">Password</label>
                 <input type="password" name="password">   
-                <a href="{{ route('password.request') }}" class="forget-pass">Forgot Password</a> 
+                <div class="flex justify-between">
+                    <a href="{{ route('register') }}" class="forget-pass">Sign up</a>
+                    <a href="{{ route('password.request') }}" class="forget-pass">Forgot Password</a>     
+                </div>
+                
             </div>
         </x-logoheader>
 

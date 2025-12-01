@@ -72,12 +72,6 @@
                                             <x-icons.check/>
                                         </button>
                                     </form>
-                                    <form action={{ route('staff.order.decline', $order->id) }} method="POST">
-                                        @csrf
-                                        <button type="submit" @click.stop>
-                                            <x-icons.close/>      
-                                        </button>
-                                    </form>
                                 @elseif ($order->status === 'Approved' && $order->pickup_status === null)
                                     <form action={{ route('staff.order.ready', $order->id) }} method="POST">
                                         @csrf

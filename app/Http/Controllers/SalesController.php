@@ -195,71 +195,85 @@ class SalesController extends Controller
 
     private function getChartData($period, $startDate, $endDate)
     {
+        // Get checkouts data
+        $checkouts = Checkout::whereIn('payment_status', ['paid', 'pending'])  
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->get();
+        
+        // Get ordered builds data
+        $orderedBuilds = OrderedBuild::with('userBuild')
+            ->whereIn('payment_status', ['paid', 'pending'])  
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->get();
+        
+        // Combine all sales into a collection
+        $allSales = collect();
+        
+        // Add checkouts
+        foreach ($checkouts as $checkout) {
+            $allSales->push([
+                'date' => $checkout->updated_at,
+                'amount' => $checkout->total_cost
+            ]);
+        }
+        
+        // Add ordered builds
+        foreach ($orderedBuilds as $order) {
+            $allSales->push([
+                'date' => $order->updated_at,
+                'amount' => $order->userBuild->total_price
+            ]);
+        }
+        
+        // Group by period
         if ($period === 'daily') {
-            $salesData = Checkout::select(
-                    DB::raw('HOUR(updated_at) as label'),
-                    DB::raw('SUM(total_cost) as total_sales')
-                )
-                ->whereIn('payment_status', ['paid', 'pending'])  
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->groupBy('label')
-                ->unionAll(
-                    OrderedBuild::join('user_builds', 'ordered_builds.user_build_id', '=', 'user_builds.id')
-                        ->select(
-                            DB::raw('HOUR(ordered_builds.updated_at) as label'),
-                            DB::raw('SUM(user_builds.total_price) as total_sales')
-                        )
-                        ->whereIn('ordered_builds.payment_status', ['paid', 'pending'])  
-                        ->whereBetween('ordered_builds.updated_at', [$startDate, $endDate])
-                        ->groupBy('label')
-                )
-                ->orderBy('label')
-                ->get();
-
-            $labels = $salesData->pluck('label')->map(fn($h) => sprintf('%02d:00', $h));
+            $grouped = $allSales->groupBy(function ($sale) {
+                return $sale['date']->format('H');
+            })->sortKeys();
+            
+            $labels = range(0, 23);
+            $completeLabels = array_map(fn($h) => sprintf('%02d:00', $h), $labels);
             $xAxisLabel = 'Time of Day';
+            
         } elseif ($period === 'weekly') {
-            $salesData = Checkout::select(
-                    DB::raw('DAYNAME(updated_at) as label'),
-                    DB::raw('SUM(total_cost) as total_sales')
-                )
-                ->whereIn('payment_status', ['paid', 'pending'])  
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->groupBy('label')
-                ->orderByRaw("FIELD(label, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')")
-                ->get();
-            $labels = $salesData->pluck('label');
+            $grouped = $allSales->groupBy(function ($sale) {
+                return $sale['date']->format('l'); // Full day name
+            });
+            
+            $dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            $labels = $dayOrder;
             $xAxisLabel = 'Days of Week';
+            
         } elseif ($period === 'annually') {
-            $salesData = Checkout::select(
-                    DB::raw('MONTHNAME(updated_at) as label'),
-                    DB::raw('SUM(total_cost) as total_sales')
-                )
-                ->whereIn('payment_status', ['paid', 'pending'])  
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->groupBy('label')
-                ->orderBy(DB::raw('MIN(updated_at)'))
-                ->get();
-            $labels = $salesData->pluck('label');
+            $grouped = $allSales->groupBy(function ($sale) {
+                return $sale['date']->format('F'); // Full month name
+            });
+            
+            $monthOrder = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            $labels = $monthOrder;
             $xAxisLabel = 'Months';
-        } else {
-            $salesData = Checkout::select(
-                    DB::raw('DAY(updated_at) as label'),
-                    DB::raw('SUM(total_cost) as total_sales')
-                )
-                ->whereIn('payment_status', ['paid', 'pending'])  
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->groupBy('label')
-                ->orderBy('label')
-                ->get();
-            $labels = $salesData->pluck('label')->map(fn($d) => 'Day ' . $d);
+            
+        } else { // monthly
+            $grouped = $allSales->groupBy(function ($sale) {
+                return $sale['date']->format('j'); // Day without leading zeros
+            })->sortKeys();
+            
+            $daysInMonth = $startDate->daysInMonth;
+            $labels = range(1, $daysInMonth);
+            $completeLabels = array_map(fn($d) => 'Day ' . $d, $labels);
             $xAxisLabel = 'Days of Month';
         }
-
-        $totals = $salesData->pluck('total_sales');
-
+        
+        // Sum amounts for each group
+        $totals = collect($labels)->map(function ($label) use ($grouped) {
+            return $grouped->has($label) ? $grouped[$label]->sum('amount') : 0;
+        });
+        
         return [
-            'labels' => $labels,
+            'labels' => $period === 'monthly' ? $completeLabels : $labels,
             'totals' => $totals,
             'xAxisLabel' => $xAxisLabel
         ];

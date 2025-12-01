@@ -56,8 +56,8 @@ class OrderController extends Controller
         $allCheckouts = Checkout::with([
             'cartItem' => fn ($q) => $q->with([
                 'case', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'cooler',
-                'shoppingCart.user',
             ]),
+            'cartItem.shoppingCart.user' // Chain this separately
         ])
         ->orderByRaw("
             CASE 
@@ -78,7 +78,9 @@ class OrderController extends Controller
         // Step 2: Transform each group into a custom object
         $groupedOrders = $grouped->map(function ($checkouts) {
             $first = $checkouts->first();
-            $cartItems = $checkouts->map->cartItem;
+            
+            // Deduplicate cart items by ID
+            $cartItems = $checkouts->map->cartItem->unique('id')->values();
 
             return [
                 'shopping_cart_id' => $first->cartItem->shopping_cart_id,

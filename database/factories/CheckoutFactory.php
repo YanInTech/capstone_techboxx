@@ -20,10 +20,13 @@ class CheckoutFactory extends Factory
         return [
             //
             'cart_item_id' => CartItem::inRandomOrder()->first()->id,
-            'checkout_date' => now(),
+            'checkout_date' => $this->faker->dateTimeBetween(
+                '2025-11-25 23:59:59',
+                '2025-12-01 00:00:00'   // End: November 25th (this will wrap to next year)
+            ),
             'total_cost' => fake()->randomFloat(2,1000,50000),
-            'payment_method' => 'Cash',
-            'payment_status' => 'Pending',
+            'payment_method' => 'Paypal',
+            'payment_status' => 'Paid',
             'pickup_status' => null,
             'pickup_date' => null,
         ];
