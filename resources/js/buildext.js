@@ -6,6 +6,38 @@ window.totalPrice = 0;
 window.downpaymentAmount = 0;
 window.remainingBalance = 0;
 
+// functio to update the selected components sidebar display
+function updateSelectedComponentsDisplay() {
+    const container = document.getElementById('selected-components-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (Object.keys(window.selectedComponents).lenght ===0) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-gray-500 italic">
+                No components selected yet
+            </div>
+        `;
+        return;
+    }
+
+    for (const [type, component] of Object.entries(window.selectedComponents)) {
+        const div = document.createElement('div');
+        div.className = 'flex justify between items-center bg-gray-50 p-2 rounded border border-gray-200';
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <div>
+                    <span class="text-xs font-medium text-gray-600">${type.toUpperCase()}</span>
+                    <p class="text-sm font-semibold text-gray-800">${component.name}</p>
+                </div>
+            </div>    
+            <span class="text-sm font-bold text-green-600">₱${component.price.toFixed(2)}</span>
+        `;
+        container.appendChild(div);
+    }
+}
+
 // Function to handle component selection from catalog
 function selectComponent(componentData) {
     const componentType = componentData.type.toLowerCase();
@@ -25,6 +57,9 @@ function selectComponent(componentData) {
     };
     
     console.log('Selected component:', componentType, window.selectedComponents[componentType]);
+
+    // update the sidebar display
+    updateSelectedComponentsDisplay();
 
     // Update session in backend
     updateSession(window.selectedComponents);
@@ -188,6 +223,9 @@ function toggleStorage(selectedType) {
     if (window.selectedComponents[otherType]) {
         // Clear from selectedComponents
         delete window.selectedComponents[otherType];
+
+        // update sidebar display
+        updateSelectedComponentsDisplay();
         
         // Clear the UI for the other storage type
         const otherComponent = document.querySelector(`.component-button[data-type="${otherType}"]`);
@@ -310,6 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.querySelector('.catalog-wrapper');
     const componentButtons = document.querySelectorAll('.component-section .component-button');
     const catalogItems = document.querySelectorAll('#catalogSection .build-catalog');
+
+    // initialize selected components sidebar
+    updateSelectedComponentsDisplay();
 
     // CART
     if (cartForm) {

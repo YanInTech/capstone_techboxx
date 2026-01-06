@@ -671,6 +671,15 @@
                     </a>
                 </div>
 
+                <div>
+                    <h3>Selected Components</h3>
+
+                    {{-- display selected components --}}
+                    <div id="selected-components-list" class="mt-4 space-y-2 max-h-64 overflow-y-auto p-2">
+                        {{-- components will be dynamically inserted here from js.file --}}
+                    </div>
+                </div>
+
             </section>
 
 
