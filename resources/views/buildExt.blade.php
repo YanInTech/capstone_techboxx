@@ -661,7 +661,9 @@
             <section class="compatibility-section">
                 <div class="flex gap-2 items-center">
                     <button id="validateBuild" 
-                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled
+                            title="Please select all required components to validate your build">
                         Validate Build
                     </button>
 

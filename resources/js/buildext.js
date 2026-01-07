@@ -6,6 +6,71 @@ window.totalPrice = 0;
 window.downpaymentAmount = 0;
 window.remainingBalance = 0;
 
+// Add this function to check if all required components are selected
+function areAllComponentsSelected() {
+    // Define all required component types
+    const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case'];
+    
+    // Check if all required components are selected
+    const allRequiredSelected = requiredComponents.every(type => {
+        return window.selectedComponents[type] && window.selectedComponents[type].componentId;
+    });
+    
+    // Check if at least one storage component is selected
+    const storageSelected = window.selectedComponents.ssd?.componentId || 
+                           window.selectedComponents.hdd?.componentId;
+    
+    return allRequiredSelected && storageSelected;
+}
+
+// Function to update the validate button state
+function updateValidateButton() {
+    const validateButton = document.getElementById('validateBuild');
+    if (!validateButton) return;
+    
+    const allComponentsSelected = areAllComponentsSelected();
+    
+    // Enable/disable button based on component selection
+    validateButton.disabled = !allComponentsSelected;
+    
+    // Update button appearance
+    if (allComponentsSelected) {
+        validateButton.classList.remove('bg-gray-400');
+        validateButton.classList.add('bg-green-600', 'hover:bg-green-700');
+    } else {
+        validateButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+        validateButton.classList.add('bg-gray-400');
+    }
+}
+
+// Function to show which components are missing (for debugging or user info)
+function getMissingComponents() {
+    const requiredComponents = ['gpu', 'motherboard', 'cpu', 'psu', 'ram', 'cooler', 'case'];
+    const missingComponents = [];
+    
+    requiredComponents.forEach(type => {
+        if (!window.selectedComponents[type] || !window.selectedComponents[type].componentId) {
+            const componentNames = {
+                'gpu': 'GPU',
+                'motherboard': 'Motherboard',
+                'cpu': 'CPU',
+                'psu': 'Power Supply',
+                'ram': 'RAM',
+                'cooler': 'Cooler',
+                'case': 'Case'
+            };
+            missingComponents.push(componentNames[type]);
+        }
+    });
+    
+    // Check storage
+    if (!window.selectedComponents.ssd?.componentId && !window.selectedComponents.hdd?.componentId) {
+        missingComponents.push('Storage (HDD or SSD)');
+    }
+    
+    return missingComponents;
+}
+
 function updateSelectedComponentsDisplay() {
     const tbody = document.getElementById('components-body');
     const emptyState = document.getElementById('empty-state');
@@ -105,6 +170,8 @@ function selectComponent(componentData) {
     
     // Update total price for payment calculations
     updateTotalPrice();
+
+    updateValidateButton();
 }
 
 // Update total price calculation
@@ -265,6 +332,8 @@ function toggleStorage(selectedType) {
 
         // update sidebar display
         updateSelectedComponentsDisplay();
+
+        updateValidateButton();
         
         // Clear the UI for the other storage type
         const otherComponent = document.querySelector(`.component-button[data-type="${otherType}"]`);
@@ -391,6 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // initialize selected components sidebar
     updateSelectedComponentsDisplay();
 
+    updateValidateButton();
+
     // CART
     if (cartForm) {
         cartForm.addEventListener('submit', handleFormSubmit);
@@ -490,7 +561,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // VALIDATION
-    document.getElementById('validateBuild').addEventListener('click', () => {
+    document.getElementById('validateBuild').addEventListener('click', function() {
+        // If button is disabled (components incomplete), show what's missing
+        if (this.disabled) {
+            const missing = getMissingComponents();
+            if (missing.length > 0) {
+                alert(`Please select the following components:\n\n${missing.join('\n')}`);
+                return;
+            }
+        }
+        
+        // Existing validation logic
         const selections = {};
         document.querySelectorAll('.component-button').forEach(button => {
             const type = button.getAttribute('data-type');
