@@ -672,13 +672,49 @@
                 </div>
 
                 <div>
-                    <h3>Selected Components</h3>
+    <h3 class="text-xl font-bold pb-2 border-b border-gray-200 text-center">
+        Selected Components
+    </h3>
 
-                    {{-- display selected components --}}
-                    <div id="selected-components-list" class="mt-4 space-y-2 max-h-64 overflow-y-auto p-2">
-                        {{-- components will be dynamically inserted here from js.file --}}
-                    </div>
-                </div>
+    {{-- display selected components --}}
+    <div id="selected-components-list" class="mt-4">
+        <div class="border border-gray-200 rounded-lg bg-white">
+            <div class="overflow-y-auto max-h-48">
+                <table class="w-full">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="py-1 px-2 text-xs font-medium text-gray-600 text-left">Type</th>
+                            <th class="py-1 px-2 text-xs font-medium text-gray-600 text-left">Component</th>
+                            <th class="py-1 px-2 text-xs font-medium text-gray-600 text-right">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="components-body" class="text-sm">
+                        <!-- Component rows will be dynamically inserted here -->
+                    </tbody>
+                    
+                    {{-- Empty state as a table row --}}
+                    <tr id="empty-state" class="border-t">
+                        <td colspan="3" class="py-4 text-center text-gray-400 text-sm">
+                            No components selected
+                        </td>
+                    </tr>
+                    
+                    {{-- Total row as table footer --}}
+                    <tfoot id="total-row" class="hidden bg-gray-50">
+                        <tr>
+                            <td colspan="2" class="px-3 py-2 text-right font-medium text-gray-700 border-t">
+                                Total:
+                            </td>
+                            <td class="px-3 py-2 text-right font-bold text-green-600 border-t">
+                                <span id="total-price"></span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
             </section>
 

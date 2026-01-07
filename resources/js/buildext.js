@@ -6,35 +6,74 @@ window.totalPrice = 0;
 window.downpaymentAmount = 0;
 window.remainingBalance = 0;
 
-// functio to update the selected components sidebar display
 function updateSelectedComponentsDisplay() {
-    const container = document.getElementById('selected-components-list');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    if (Object.keys(window.selectedComponents).lenght ===0) {
-        container.innerHTML = `
-            <div class="text-center py-4 text-gray-500 italic">
-                No components selected yet
-            </div>
-        `;
+    const tbody = document.getElementById('components-body');
+    const emptyState = document.getElementById('empty-state');
+    const totalRow = document.getElementById('total-row');
+    const totalPriceEl = document.getElementById('total-price');
+    
+    if (!tbody || !emptyState || !totalRow) return;
+    
+    // Clear existing rows
+    tbody.innerHTML = '';
+    
+    if (Object.keys(window.selectedComponents).length === 0) {
+        emptyState.classList.remove('hidden');
+        totalRow.classList.add('hidden');
         return;
     }
-
+    
+    // Hide empty state, show total row
+    emptyState.classList.add('hidden');
+    totalRow.classList.remove('hidden');
+    
+    let total = 0;
+    
+    // Add compact component rows
     for (const [type, component] of Object.entries(window.selectedComponents)) {
-        const div = document.createElement('div');
-        div.className = 'flex justify between items-center bg-gray-50 p-2 rounded border border-gray-200';
-        div.innerHTML = `
-            <div class="flex items-center gap-2">
-                <div>
-                    <span class="text-xs font-medium text-gray-600">${type.toUpperCase()}</span>
-                    <p class="text-sm font-semibold text-gray-800">${component.name}</p>
-                </div>
-            </div>    
-            <span class="text-sm font-bold text-green-600">₱${component.price.toFixed(2)}</span>
+        const row = document.createElement('tr');
+        row.className = 'border-t border-gray-100';
+        
+        // Format type display - shorter
+        const typeDisplay = {
+            'cpu': 'CPU',
+            'gpu': 'GPU',
+            'ram': 'RAM',
+            'psu': 'PSU',
+            'ssd': 'SSD',
+            'hdd': 'HDD',
+            'motherboard': 'MBD',
+            'cooler': 'CLR',
+            'case': 'CASE'
+        }[type] || type.substring(0, 3).toUpperCase();
+        
+        // Truncate component name if too long
+        let componentName = component.name;
+        if (componentName.length > 10) {
+            componentName = componentName.substring(0, 12) + '...';
+        }
+        
+        row.innerHTML = `
+            <td class="py-1 px-2">
+                <p class="text-[10px] font-semibold text-gray-700">${typeDisplay}</p>
+            </td>
+            <td class="py-1 px-2">
+                <p class="text-gray-800" title="${component.name}">${componentName}</p>
+            </td>
+            <td class="py-1 px-2 text-right whitespace-nowrap">
+                <p class="font-medium text-green-600 text-sm">
+                    ₱${component.price.toFixed(2)}
+                </p>
+            </td>
         `;
-        container.appendChild(div);
+        tbody.appendChild(row);
+        
+        total += component.price || 0;
+    }
+    
+    // Update total price
+    if (totalPriceEl) {
+        totalPriceEl.textContent = `₱${total.toFixed(2)}`;
     }
 }
 
