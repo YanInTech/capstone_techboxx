@@ -54,24 +54,41 @@
         <div class="layout-container">
             <div x-data="{ viewModal: false, selectedSoftware: {} }">
                 <section class="software-section">
-                    <label class="soft">Software Compatibility</label>
-                    @foreach ($buildCategories as $category)
-                        <h3>{{ $category->name }}</h3>
-                        <div class="software-icons">
-                            @foreach ($softwares->where('build_category_id', $category->id) as $software)
-                                <div 
-                                    @click="viewModal = true; selectedSoftware = {{ $software->toJson() }}"
-                                    class="cursor-pointer"
-                                >
-                                    <img 
-                                        src="{{ asset('storage/' . $software->icon) }}" 
-                                        alt="{{ $software->name }}"
-                                        class="hover:scale-105 transition bg-white"
+                    <label class="soft">Compatible Softwares</label>
+                    @forelse ($buildCategories as $category)
+                        @php
+                            $categorySoftwares = $softwares->where('build_category_id', $category->id);
+                        @endphp
+                        @if($categorySoftwares->count() > 0)
+                            <h3>{{ $category->name }}</h3>
+                            <div class="software-icons">
+                                @foreach ($categorySoftwares as $software)
+                                    <div 
+                                        @click="viewModal = true; selectedSoftware = {{ $software->toJson() }}"
+                                        class="cursor-pointer"
                                     >
-                                </div>
-                            @endforeach
+                                        <img 
+                                            src="{{ asset('storage/' . $software->icon) }}" 
+                                            alt="{{ $software->name }}"
+                                            class="hover:scale-105 transition bg-white"
+                                        >
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    @empty
+                        <div class="text-white p-4 text-center">
+                            No compatible software found for your current build.
                         </div>
-                    @endforeach
+                    @endforelse
+                    
+                    <!-- Add this message if there are no compatible software at all -->
+                    @if($softwares->count() === 0)
+                        <div class="text-white p-4 text-center">
+                            No compatible software found for your current build. 
+                            Please check if you have sufficient RAM and storage.
+                        </div>
+                    @endif
                 </section>
 
                 {{-- VIEW SOFTWARE DETAILS MODAL --}}
@@ -122,14 +139,14 @@
                                 <p>Storage:</p> <p x-text="selectedSoftware.storage_reco || '-'"></p>
                             </div>
                         </div>
-                        <div class="mt-4">
+                        {{-- <div class="mt-4">
                             <button 
                                 @click="checkCompatibility()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
                             >
                                 Check Compatibility
                             </button>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
             </div>
