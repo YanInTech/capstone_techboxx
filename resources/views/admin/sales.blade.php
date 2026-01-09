@@ -26,7 +26,8 @@
         </div>
 
         <!-- KPI Summary -->
-        <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-5 gap-4 mb-6"> <!-- Changed from grid-cols-4 to grid-cols-5 -->
+            <!-- Existing KPI cards... -->
             <div class="bg-white p-5 rounded-lg shadow-md">
                 <h3 class="text-gray-500 text-sm mb-1">Total Components Sold</h3>
                 <p class="text-2xl font-semibold">{{ number_format($summary['total_sold']) }}</p>
@@ -45,6 +46,15 @@
             <div class="bg-white p-5 rounded-lg shadow-md">
                 <h3 class="text-gray-500 text-sm mb-1">Profit</h3>
                 <p class="text-2xl font-semibold text-emerald-600">₱{{ number_format($summary['profit'], 2) }}</p>
+            </div>
+
+            <!-- NEW: Remaining Balance KPI -->
+            <div class="bg-white p-5 rounded-lg shadow-md">
+                <h3 class="text-gray-500 text-sm mb-1">Remaining Collectibles</h3>
+                <p class="text-2xl font-semibold text-amber-600">₱{{ number_format($summary['remaining_balance'], 2) }}</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Unpaid/Pending Payments
+                </p>
             </div>
         </div>
 

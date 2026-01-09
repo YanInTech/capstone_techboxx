@@ -154,6 +154,38 @@ class SalesController extends Controller
             ];
         });
 
+        // Get remaining balance data from both checkouts and ordered builds
+        $remainingBalance = 0;
+
+        // 1. From CHECKOUTS (cart_items)
+        $checkoutsWithPartialPayment = Checkout::where('payment_status', 'pending')
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->get();
+
+        foreach ($checkoutsWithPartialPayment as $checkout) {
+            // Calculate remaining balance for checkouts with down payment
+            if ($checkout->down_payment > 0) {
+                $remainingBalance += ($checkout->total_cost - $checkout->down_payment);
+            } else {
+                $remainingBalance += $checkout->total_cost; // Full amount if not paid
+            }
+        }
+
+        // 2. From ORDERED BUILDS
+        $orderedBuildsWithPartialPayment = OrderedBuild::with('userBuild')
+            ->where('payment_status', 'pending')
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->get();
+
+        foreach ($orderedBuildsWithPartialPayment as $orderedBuild) {
+            // Calculate remaining balance for ordered builds with down payment
+            if ($orderedBuild->down_payment > 0) {
+                $remainingBalance += ($orderedBuild->userBuild->total_price - $orderedBuild->down_payment);
+            } else {
+                $remainingBalance += $orderedBuild->userBuild->total_price; // Full amount if not paid
+            }
+        }
+
         // 5. Compute summary
         $totalSold = $groupedSalesWithDetails->sum('total_sold');
         $totalCostOfGoods = $groupedSalesWithDetails->sum(function ($item) {
@@ -169,6 +201,7 @@ class SalesController extends Controller
             'cost_of_goods' => $totalCostOfGoods,
             'revenue' => $totalRevenue,
             'profit' => $totalProfit,
+            'remaining_balance' => $remainingBalance,
         ];
 
         // 6. Apply product type filter
@@ -292,7 +325,7 @@ class SalesController extends Controller
             'period' => $period,
             'summary' => $data['summary'],
             'products' => $data['groupedSalesWithDetails'],
-            'generatedDate' => now()->format('F j, Y g:i A')
+            'generatedDate' => now()->format('F j, Y g:i A'),
         ]);
 
         // Download PDF

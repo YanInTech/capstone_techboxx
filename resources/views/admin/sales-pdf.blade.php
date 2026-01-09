@@ -123,15 +123,19 @@
             </div>
             <div class="summary-item">
                 <div class="summary-label">Cost of Goods Sold</div>
-                <div class="summary-value currency">₱{{ number_format($summary['cost_of_goods'], 2) }}</div>
+                <div class="summary-value currency">PHP {{ number_format($summary['cost_of_goods'], 2) }}</div>
             </div>
             <div class="summary-item">
                 <div class="summary-label">Revenue</div>
-                <div class="summary-value currency">₱{{ number_format($summary['revenue'], 2) }}</div>
+                <div class="summary-value currency">PHP {{ number_format($summary['revenue'], 2) }}</div>
             </div>
             <div class="summary-item">
                 <div class="summary-label">Profit</div>
-                <div class="summary-value currency">₱{{ number_format($summary['profit'], 2) }}</div>
+                <div class="summary-value currency">PHP {{ number_format($summary['profit'], 2) }}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Remaining Collectibles</div>
+                <div class="summary-value currency">PHP {{ number_format($summary['remaining_balance'], 2) }}</div>
             </div>
         </div>
     </div>
@@ -159,7 +163,7 @@
                             <td>{{ $product['product_name'] }}</td>
                             <td class="text-center">{{ $product['product_type'] }}</td>
                             <td class="text-center">{{ $product['total_sold'] }}</td>
-                            <td class="text-right currency">₱{{ number_format($earnings, 2) }}</td>
+                            <td class="text-right currency">PHP{{ number_format($earnings, 2) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
